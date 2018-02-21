@@ -1,0 +1,6 @@
+\.vs/
+
+*.user
+.couscous/
+docs/Template-Dark/
+.idea/

@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonApiDotNetCore.MongoDb", "src\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj", "{7F964050-3BB1-4E5C-8458-A974B956908F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{262566DF-A206-4026-8018-69C66936EFCF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EAC8B3B-BD8B-4FFF-8807-37FCA45BD8BD}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "test\UnitTests\UnitTests.csproj", "{0AB9C87F-0A30-4875-B9BF-38F606E79734}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AEA5DF2E-26B5-4D81-AA6A-ADA690E3E0D8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F964050-3BB1-4E5C-8458-A974B956908F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F964050-3BB1-4E5C-8458-A974B956908F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F964050-3BB1-4E5C-8458-A974B956908F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F964050-3BB1-4E5C-8458-A974B956908F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AB9C87F-0A30-4875-B9BF-38F606E79734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AB9C87F-0A30-4875-B9BF-38F606E79734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AB9C87F-0A30-4875-B9BF-38F606E79734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AB9C87F-0A30-4875-B9BF-38F606E79734}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7F964050-3BB1-4E5C-8458-A974B956908F} = {262566DF-A206-4026-8018-69C66936EFCF}
+		{0AB9C87F-0A30-4875-B9BF-38F606E79734} = {AEA5DF2E-26B5-4D81-AA6A-ADA690E3E0D8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F7741F43-2CB1-4C5E-9886-FDCB0B973E30}
+	EndGlobalSection
+EndGlobal
