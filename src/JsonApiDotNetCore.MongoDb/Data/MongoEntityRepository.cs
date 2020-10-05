@@ -1,145 +1,120 @@
-﻿namespace JsonApiDotNetCore.MongoDb.Data
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.Repositories;
+using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.MongoDb.Extensions;
+using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
+using JsonApiDotNetCore.Queries.Expressions;
+using JsonApiDotNetCore.Queries;
+using JsonApiDotNetCore.Resources.Annotations;
+
+namespace JsonApiDotNetCore.MongoDb.Data
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using JsonApiDotNetCore.Data;
-    using JsonApiDotNetCore.Extensions;
-    using JsonApiDotNetCore.Internal.Query;
-    using JsonApiDotNetCore.Models;
-    using JsonApiDotNetCore.MongoDb.Extensions;
-    using JsonApiDotNetCore.Services;
-    using MongoDB.Bson;
-    using MongoDB.Driver;
-
-    public class MongoEntityRepository<TEntity, TId>
-        : IEntityRepository<TEntity, TId>
-        where TEntity : class, IIdentifiable<TId>
+    public class MongoEntityRepository<TResource, TId>
+        : IResourceRepository<TResource, TId>
+        where TResource : class, IIdentifiable<TId>
     {
-        private readonly IMongoDatabase db;
-
+        private readonly MongoDatabaseBase db;
         private readonly string collectionName;
+        private readonly ITargetedFields targetedFields;
+        private readonly IResourceGraph resourceGraph;
+        private readonly IResourceFactory resourceFactory;
+        private readonly IEnumerable<IQueryConstraintProvider> constraintProviders;
 
-        private readonly IJsonApiContext jsonApiContext;
-
-        public MongoEntityRepository(IMongoDatabase db, string collectionName, IJsonApiContext jsonApiContext)
+        public MongoEntityRepository(
+            MongoDatabaseBase db,
+            string collectionName,
+            ITargetedFields targetedFields,
+            IResourceGraph resourceGraph,
+            IResourceFactory resourceFactory,
+            IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
             this.db = db;
             this.collectionName = collectionName;
-            this.jsonApiContext = jsonApiContext;
+            this.targetedFields = targetedFields;
+            this.resourceGraph = resourceGraph;
+            this.resourceFactory = resourceFactory;
+            this.constraintProviders = constraintProviders;
         }
 
-        private IMongoCollection<TEntity> Collection => this.db.GetCollection<TEntity>(this.collectionName);
+        private IMongoCollection<TResource> Collection => db.GetCollection<TResource>(collectionName);
+        private IMongoQueryable<TResource> Entities => this.Collection.AsQueryable();
 
-        private IQueryable<TEntity> Entities => this.Collection.AsQueryable();
-
-        public async Task<int> CountAsync(IQueryable<TEntity> entities)
+        public virtual Task<int> CountAsync(FilterExpression topFilter)
         {
-            return (int)await this.Collection.CountAsync(Builders<TEntity>.Filter.Empty);
+            var resourceContext = resourceGraph.GetResourceContext<TResource>();
+            var layer = new QueryLayer(resourceContext)
+            {
+                Filter = topFilter
+            };
+
+            var query = (IMongoQueryable<TResource>)ApplyQueryLayer(layer);
+            return query.CountAsync();
         }
 
-        public async Task<TEntity> CreateAsync(TEntity entity)
+        public virtual Task CreateAsync(TResource resource)
         {
-            await this.Collection.InsertOneAsync(entity);
-
-            return entity;
+            return Collection.InsertOneAsync(resource);
         }
 
-        public async Task<bool> DeleteAsync(TId id)
+        public virtual async Task<bool> DeleteAsync(TId id)
         {
-            var result = await this.Collection.DeleteOneAsync(Builders<TEntity>.Filter.Eq(e => e.Id, id));
-
+            var result = await this.Collection.DeleteOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, id));
             return result.IsAcknowledged && result.DeletedCount > 0;
         }
 
-        public IQueryable<TEntity> Filter(IQueryable<TEntity> entities, FilterQuery filterQuery)
-        {
-            return entities.Filter(this.jsonApiContext, filterQuery);
-        }
-
-        public Task<TEntity> FirstOrDefaultAsync(IQueryable<TEntity> entities)
-        {
-            return entities.FirstOrDefaultAsync();
-        }
-
-        public IQueryable<TEntity> Get()
-        {
-            List<string> fields = this.jsonApiContext.QuerySet?.Fields;
-            if (fields?.Any() ?? false)
-            {
-                return this.Entities.Select(fields);
-            }
-
-            return this.Entities;
-        }
-
-        public Task<TEntity> GetAndIncludeAsync(TId id, string relationshipName)
-        {
-            // this is a document DB, no relations!
-            return this.GetAsync(id);
-        }
-
-        public Task<TEntity> GetAsync(TId id)
-        {
-            return this.Collection.Find(Builders<TEntity>.Filter.Eq(e => e.Id, id)).SingleOrDefaultAsync();
-        }
-
-        public IQueryable<TEntity> Include(IQueryable<TEntity> entities, string relationshipName)
-        {
-            // this is a document DB, no relations!
-            return entities;
-        }
-
-        public async Task<IEnumerable<TEntity>> PageAsync(IQueryable<TEntity> entities, int pageSize, int pageNumber)
-        {
-            return await entities.PageForward(pageSize, pageNumber).ToListAsync();
-        }
-
-        public Task<TEntity> SingleOrDefaultAsync(IQueryable<TEntity> queryable)
-        {
-            return queryable.SingleOrDefaultAsync();
-        }
-
-        public IQueryable<TEntity> Sort(IQueryable<TEntity> entities, List<SortQuery> sortQueries)
-        {
-            return entities.Sort(sortQueries);
-        }
-
-        public Task<IReadOnlyList<TEntity>> ToListAsync(IQueryable<TEntity> entities)
-        {
-            return entities.ToListAsync();
-        }
-
-        public async Task<TEntity> UpdateAsync(TId id, TEntity entity)
-        {
-            var existingEntity = await this.GetAsync(id);
-
-            if (existingEntity == null)
-            {
-                return null;
-            }
-
-            foreach (var attr in this.jsonApiContext.AttributesToUpdate)
-            {
-                attr.Key.SetValue(existingEntity, attr.Value);
-            }
-
-            foreach (var relationship in this.jsonApiContext.RelationshipsToUpdate)
-            {
-                relationship.Key.SetValue(existingEntity, relationship.Value);
-            }
-
-            await this.Collection.ReplaceOneAsync(Builders<TEntity>.Filter.Eq(e => e.Id, id), existingEntity);
-
-            return existingEntity;
-        }
-
-        public Task UpdateRelationshipsAsync(object parent, RelationshipAttribute relationship, IEnumerable<string> relationshipIds)
+        public virtual void FlushFromCache(TResource resource)
         {
             throw new NotImplementedException();
         }
 
-        internal IEnumerable<TEntity> GetAllDocuments() => this.Collection.Find(new BsonDocument()).ToEnumerable();
+        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer)
+        {
+            IQueryable<TResource> query = ApplyQueryLayer(layer);
+            return await query.ToListAsync();
+        }
+
+        public virtual async Task UpdateAsync(TResource requestResource, TResource databaseResource)
+        {
+            foreach (var attr in targetedFields.Attributes)
+                attr.SetValue(databaseResource, attr.GetValue(requestResource));
+
+            await Collection.ReplaceOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, requestResource.Id), databaseResource);
+        }
+
+        public virtual Task UpdateRelationshipAsync(object parent, RelationshipAttribute relationship, IReadOnlyCollection<string> relationshipIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
+        {
+            if (layer == null) throw new ArgumentNullException(nameof(layer));
+
+            IMongoQueryable<TResource> source = Entities;
+
+            var queryableHandlers = constraintProviders
+                .SelectMany(p => p.GetConstraints())
+                .Where(expressionInScope => expressionInScope.Scope == null)
+                .Select(expressionInScope => expressionInScope.Expression)
+                .OfType<QueryableHandlerExpression>()
+                .ToArray();
+
+            foreach (var queryableHandler in queryableHandlers)
+            {
+                source = (IMongoQueryable<TResource>)queryableHandler.Apply(source);
+            }
+
+            var nameFactory = new JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaParameterNameFactory();
+            var builder = new QueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, resourceFactory, resourceGraph);
+
+            var expression = builder.ApplyQuery(layer);
+            return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
+        }
     }
 }
