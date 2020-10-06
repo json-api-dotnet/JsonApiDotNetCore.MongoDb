@@ -20,7 +20,6 @@ namespace JsonApiDotNetCore.MongoDb.Data
         where TResource : class, IIdentifiable<TId>
     {
         private readonly IMongoDatabase db;
-        private readonly string collectionName;
         private readonly ITargetedFields targetedFields;
         private readonly IResourceGraph resourceGraph;
         private readonly IResourceFactory resourceFactory;
@@ -28,21 +27,19 @@ namespace JsonApiDotNetCore.MongoDb.Data
 
         public MongoEntityRepository(
             IMongoDatabase db,
-            string collectionName,
             ITargetedFields targetedFields,
             IResourceGraph resourceGraph,
             IResourceFactory resourceFactory,
             IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
             this.db = db;
-            this.collectionName = collectionName;
             this.targetedFields = targetedFields;
             this.resourceGraph = resourceGraph;
             this.resourceFactory = resourceFactory;
             this.constraintProviders = constraintProviders;
         }
 
-        private IMongoCollection<TResource> Collection => db.GetCollection<TResource>(collectionName);
+        private IMongoCollection<TResource> Collection => db.GetCollection<TResource>(typeof(TResource).Name);
         private IMongoQueryable<TResource> Entities => this.Collection.AsQueryable();
 
         public virtual Task<int> CountAsync(FilterExpression topFilter)

@@ -20,7 +20,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
         private IResourceRepository<Book, string> Repository { get; set; }
         private IMongoDatabase Database { get; set; }
 
-        private IMongoCollection<Book> Books => Database.GetCollection<Book>("books");
+        private IMongoCollection<Book> Books => Database.GetCollection<Book>(nameof(Book));
 
         [TestInitialize]
         public void BeforeEach()
@@ -36,7 +36,6 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
 
             Repository = new MongoEntityRepository<Book, string>(
                 Database,
-                collectionName: "books",
                 targetedFields.Object,
                 resourceGraph.Object,
                 resourceFactory.Object,
