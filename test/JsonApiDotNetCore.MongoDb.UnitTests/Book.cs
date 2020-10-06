@@ -6,12 +6,12 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCore.MongoDb.UnitTests.Models
 {
-    public sealed class Book : Identifiable<string>
+    public sealed class Book : IIdentifiable<string>
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         [Attr]
-        public override string Id { get; set; }
+        public string Id { get; set; }
 
         [Attr]
         public string Name { get; set; }
@@ -24,5 +24,8 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests.Models
 
         [Attr]
         public string Author { get; set; }
+        
+        [BsonIgnore]
+        public string StringId { get => Id; set => Id = value; }
     }
 }

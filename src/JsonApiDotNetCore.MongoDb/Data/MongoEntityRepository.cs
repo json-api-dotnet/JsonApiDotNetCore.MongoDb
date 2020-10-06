@@ -19,7 +19,7 @@ namespace JsonApiDotNetCore.MongoDb.Data
         : IResourceRepository<TResource, TId>
         where TResource : class, IIdentifiable<TId>
     {
-        private readonly MongoDatabaseBase db;
+        private readonly IMongoDatabase db;
         private readonly string collectionName;
         private readonly ITargetedFields targetedFields;
         private readonly IResourceGraph resourceGraph;
@@ -27,7 +27,7 @@ namespace JsonApiDotNetCore.MongoDb.Data
         private readonly IEnumerable<IQueryConstraintProvider> constraintProviders;
 
         public MongoEntityRepository(
-            MongoDatabaseBase db,
+            IMongoDatabase db,
             string collectionName,
             ITargetedFields targetedFields,
             IResourceGraph resourceGraph,
