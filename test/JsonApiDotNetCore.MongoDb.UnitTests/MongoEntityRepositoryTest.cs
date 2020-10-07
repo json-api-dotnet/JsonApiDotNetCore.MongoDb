@@ -5,11 +5,14 @@ using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.Resources.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace JsonApiDotNetCore.MongoDb.UnitTests
@@ -18,6 +21,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
     public class MongoEntityRepositoryTests
     {
         private IResourceRepository<Book, string> Repository { get; set; }
+        private IResourceGraph ResourceGraph { get; set; }
         private IMongoDatabase Database { get; set; }
 
         private IMongoCollection<Book> Books => Database.GetCollection<Book>(nameof(Book));
@@ -34,6 +38,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var resourceFactory = new Mock<IResourceFactory>();
             var constraintProviders = new List<IQueryConstraintProvider>();
 
+            ResourceGraph = resourceGraph.Object;
             Repository = new MongoEntityRepository<Book, string>(
                 Database,
                 targetedFields.Object,
@@ -170,5 +175,84 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var result = await Repository.DeleteAsync("5f67c7718b884bb81fb0812e");
             Assert.IsFalse(result);
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(NotImplementedException))]
+        public void ShouldThrowNotImplementedException()
+        {
+            // As far as I know MongoDB does not manage no cache
+            // and therefore there is no cache to flush
+
+            var book = new Book
+            {
+                Name = "Basic Philosophy",
+                Author = "Some boring philosopher",
+                Category = "Philosophy",
+                Price = 2.00M,
+            };
+
+            Repository.FlushFromCache(book);
+        }
+
+        [TestMethod]
+        public async Task ShouldReturnEmptyEnumerable()
+        {
+            var resourceContext = ResourceGraph.GetResourceContext<Book>();
+            var result = await Repository.GetAsync(new QueryLayer(resourceContext));
+
+            Assert.IsTrue(result.Count == 0);
+        }
+
+        [TestMethod]
+        public async Task ShouldReturnThreeBooks()
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                var book = new Book
+                {
+                    Name = $"Book {i + 1}",
+                    Author = $"Author {i + 1}",
+                    Category = $"Cat {i + 1}",
+                    Price = 14.99M,
+                };
+
+                await Books.InsertOneAsync(book);
+            }
+
+            var resourceContext = ResourceGraph.GetResourceContext<Book>();
+            var result = await Repository.GetAsync(new QueryLayer(resourceContext));
+
+            Assert.AreEqual(3, result.Count);
+        }
+
+        // [TestMethod]
+        // public async Task ShouldUpdateBookPrice()
+        // {
+        //     var book = new Book
+        //     {
+        //         Name = "Basic Philosophy",
+        //         Author = "Some boring philosopher",
+        //         Category = "Philosophy",
+        //         Price = 2.00M,
+        //     };
+
+        //     await Books.InsertOneAsync(book);
+
+        //     var query = Books.AsQueryable();
+        //     var oldDoc = await query.FirstOrDefaultAsync();
+
+        //     var newDoc = new Book
+        //     {
+        //         Name = "Basic Philosophy",
+        //         Author = "Some boring philosopher",
+        //         Category = "Philosophy",
+        //         Price = 5.00M,
+        //     };
+
+        //     await Repository.UpdateAsync(newDoc, oldDoc);
+
+        //     var saved = await query.FirstOrDefaultAsync();
+        //     Assert.AreEqual(5.00M, saved.Price);
+        // }
     }
 }
