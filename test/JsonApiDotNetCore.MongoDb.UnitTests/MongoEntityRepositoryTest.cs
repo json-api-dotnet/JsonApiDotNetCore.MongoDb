@@ -6,6 +6,7 @@ using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
 using Moq;
@@ -33,18 +34,47 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             Database = client.GetDatabase("JsonApiDotNet_MongoDb_Test");
 
             var targetedFields = new Mock<ITargetedFields>();
-            var resourceGraph = new Mock<IResourceGraph>();
-            resourceGraph.Setup(g => g.GetResourceContext<Book>()).Returns(new Mock<ResourceContext>().Object);
+            targetedFields.Setup(tf => tf.Attributes).Returns(new List<AttrAttribute>());
+            var resourceGraph = BuildGraph();
             var resourceFactory = new Mock<IResourceFactory>();
             var constraintProviders = new List<IQueryConstraintProvider>();
 
-            ResourceGraph = resourceGraph.Object;
+            ResourceGraph = resourceGraph;
             Repository = new MongoEntityRepository<Book, string>(
                 Database,
                 targetedFields.Object,
-                resourceGraph.Object,
+                resourceGraph,
                 resourceFactory.Object,
                 constraintProviders);
+        }
+
+        // private IList<AttrAttribute> BookAttributes()
+        // {
+        //     var ret = new List<AttrAttribute>();
+
+        //     foreach (var property in typeof(Book).GetProperties())
+        //     {
+        //         var attr = (AttrAttribute)property
+        //             .GetCustomAttributes()
+        //             .Where(attr => attr.GetType() == typeof(AttrAttribute))
+        //             .FirstOrDefault();
+
+        //         if (attr != null)
+        //         {
+        //             var mock = new Mock<ResourceFieldAttribute>();
+        //             mock.Setup(p => p.Property).Returns(property);
+        //             ret.Add((AttrAttribute)mock.Object);
+        //         }
+        //     }
+
+        //     return ret;
+        // }
+
+        private IResourceGraph BuildGraph()
+        {
+            var resourceGraphBuilder = new ResourceGraphBuilder(new JsonApiOptions(), NullLoggerFactory.Instance);
+            resourceGraphBuilder.Add<Book, string>();
+            return resourceGraphBuilder.Build();
         }
 
         [TestCleanup]
@@ -178,7 +208,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
 
         [TestMethod]
         [ExpectedException(typeof(NotImplementedException))]
-        public void ShouldThrowNotImplementedException()
+        public void ShouldThrowNotImplementedExceptionFlushFromCache()
         {
             // As far as I know MongoDB does not manage no cache
             // and therefore there is no cache to flush
@@ -225,6 +255,36 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             Assert.AreEqual(3, result.Count);
         }
 
+        [TestMethod]
+        public async Task ShouldNotUpdate()
+        {
+            var book = new Book
+            {
+                Name = "Basic Philosophy",
+                Author = "Some boring philosopher",
+                Category = "Philosophy",
+                Price = 2.00M,
+            };
+
+            await Books.InsertOneAsync(book);
+
+            var query = Books.AsQueryable();
+            var oldDoc = await query.FirstOrDefaultAsync();
+
+            var newDoc = new Book
+            {
+                Name = "Basic Philosophy",
+                Author = "Some boring philosopher",
+                Category = "Philosophy",
+                Price = 5.00M,
+            };
+
+            await Repository.UpdateAsync(newDoc, oldDoc);
+
+            var saved = await query.FirstOrDefaultAsync();
+            Assert.AreEqual(book.Price, saved.Price);
+        }
+
         // [TestMethod]
         // public async Task ShouldUpdateBookPrice()
         // {
@@ -254,5 +314,12 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
         //     var saved = await query.FirstOrDefaultAsync();
         //     Assert.AreEqual(5.00M, saved.Price);
         // }
+
+        [TestMethod]
+        [ExpectedException(typeof(NotImplementedException))]
+        public async Task ShouldThrowNotImplementedExceptionUpdateRelationships()
+        {
+            await Repository.UpdateRelationshipAsync(null, null, null);
+        }
     }
 }
