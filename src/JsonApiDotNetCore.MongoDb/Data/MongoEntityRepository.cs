@@ -81,7 +81,7 @@ namespace JsonApiDotNetCore.MongoDb.Data
             foreach (var attr in targetedFields.Attributes)
                 attr.SetValue(databaseResource, attr.GetValue(requestResource));
 
-            await Collection.ReplaceOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, requestResource.Id), databaseResource);
+            await Collection.ReplaceOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, databaseResource.Id), databaseResource);
         }
 
         public virtual Task UpdateRelationshipAsync(object parent, RelationshipAttribute relationship, IReadOnlyCollection<string> relationshipIds)

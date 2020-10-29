@@ -19,13 +19,15 @@ using System.Threading.Tasks;
 namespace JsonApiDotNetCore.MongoDb.UnitTests
 {
     [TestClass]
-    public class MongoEntityRepositoryTests
+    public sealed class MongoEntityRepositoryTests
     {
         private IResourceRepository<Book, string> Repository { get; set; }
         private IResourceGraph ResourceGraph { get; set; }
         private IMongoDatabase Database { get; set; }
 
         private IMongoCollection<Book> Books => Database.GetCollection<Book>(nameof(Book));
+
+        private Mock<ITargetedFields> TargetedFields { get; set; }
 
         [TestInitialize]
         public void BeforeEach()
@@ -39,6 +41,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var resourceFactory = new Mock<IResourceFactory>();
             var constraintProviders = new List<IQueryConstraintProvider>();
 
+            TargetedFields = targetedFields;
             ResourceGraph = resourceGraph;
             Repository = new MongoEntityRepository<Book, string>(
                 Database,
@@ -47,28 +50,6 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
                 resourceFactory.Object,
                 constraintProviders);
         }
-
-        // private IList<AttrAttribute> BookAttributes()
-        // {
-        //     var ret = new List<AttrAttribute>();
-
-        //     foreach (var property in typeof(Book).GetProperties())
-        //     {
-        //         var attr = (AttrAttribute)property
-        //             .GetCustomAttributes()
-        //             .Where(attr => attr.GetType() == typeof(AttrAttribute))
-        //             .FirstOrDefault();
-
-        //         if (attr != null)
-        //         {
-        //             var mock = new Mock<ResourceFieldAttribute>();
-        //             mock.Setup(p => p.Property).Returns(property);
-        //             ret.Add((AttrAttribute)mock.Object);
-        //         }
-        //     }
-
-        //     return ret;
-        // }
 
         private IResourceGraph BuildGraph()
         {
@@ -285,35 +266,48 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             Assert.AreEqual(book.Price, saved.Price);
         }
 
-        // [TestMethod]
-        // public async Task ShouldUpdateBookPrice()
-        // {
-        //     var book = new Book
-        //     {
-        //         Name = "Basic Philosophy",
-        //         Author = "Some boring philosopher",
-        //         Category = "Philosophy",
-        //         Price = 2.00M,
-        //     };
+        [TestMethod]
+        public async Task ShouldUpdateBookPrice()
+        {
+            TargetedFields.Setup(tf => tf.Attributes).Returns(BookAttributes());
 
-        //     await Books.InsertOneAsync(book);
+            var book = new Book
+            {
+                Name = "Basic Philosophy",
+                Author = "Some boring philosopher",
+                Category = "Philosophy",
+                Price = 2.00M,
+            };
 
-        //     var query = Books.AsQueryable();
-        //     var oldDoc = await query.FirstOrDefaultAsync();
+            await Books.InsertOneAsync(book);
 
-        //     var newDoc = new Book
-        //     {
-        //         Name = "Basic Philosophy",
-        //         Author = "Some boring philosopher",
-        //         Category = "Philosophy",
-        //         Price = 5.00M,
-        //     };
+            var newDoc = new Book
+            {
+                Name = "Basic Philosophy",
+                Author = "Some boring philosopher",
+                Category = "Philosophy",
+                Price = 5.00M,
+            };
 
-        //     await Repository.UpdateAsync(newDoc, oldDoc);
+            await Repository.UpdateAsync(newDoc, book);
 
-        //     var saved = await query.FirstOrDefaultAsync();
-        //     Assert.AreEqual(5.00M, saved.Price);
-        // }
+            var saved = await Books.AsQueryable().FirstOrDefaultAsync();
+            Assert.AreEqual(5.00M, saved.Price);
+        }
+
+        private IList<AttrAttribute> BookAttributes()
+        {
+            var priceAttr = new AttrAttribute
+            {
+                PublicName = "price"
+            };
+
+            typeof(AttrAttribute)
+                .GetProperty(nameof(AttrAttribute.Property))
+                .SetValue(priceAttr, typeof(Book).GetProperty(nameof(Book.Price)));            
+
+            return new List<AttrAttribute> { priceAttr };
+        }
 
         [TestMethod]
         [ExpectedException(typeof(NotImplementedException))]

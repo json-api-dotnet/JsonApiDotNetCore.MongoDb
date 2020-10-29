@@ -139,8 +139,8 @@ FNH:2
 end_of_record
 SF:/Users/mrnkr/Documents/code/JsonApiDotNetCore.MongoDb/src/JsonApiDotNetCore.MongoDb/Data/MongoEntityRepository.cs
 FN:41,MongoDB.Driver.IMongoCollection`1<TResource> JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::get_Collection()
-FNDA:10,MongoDB.Driver.IMongoCollection`1<TResource> JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::get_Collection()
-DA:42,10
+FNDA:11,MongoDB.Driver.IMongoCollection`1<TResource> JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::get_Collection()
+DA:42,11
 FN:42,MongoDB.Driver.Linq.IMongoQueryable`1<TResource> JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::get_Entities()
 FNDA:4,MongoDB.Driver.Linq.IMongoQueryable`1<TResource> JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::get_Entities()
 DA:43,4
@@ -199,20 +199,20 @@ BRDA:98,113,1,4
 BRDA:105,198,1,0
 BRDA:105,198,0,4
 FN:27,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::.ctor(MongoDB.Driver.IMongoDatabase,JsonApiDotNetCore.Resources.ITargetedFields,JsonApiDotNetCore.Configuration.IResourceGraph,JsonApiDotNetCore.Resources.IResourceFactory,System.Collections.Generic.IEnumerable`1<JsonApiDotNetCore.Queries.IQueryConstraintProvider>)
-FNDA:12,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::.ctor(MongoDB.Driver.IMongoDatabase,JsonApiDotNetCore.Resources.ITargetedFields,JsonApiDotNetCore.Configuration.IResourceGraph,JsonApiDotNetCore.Resources.IResourceFactory,System.Collections.Generic.IEnumerable`1<JsonApiDotNetCore.Queries.IQueryConstraintProvider>)
-DA:28,12
-DA:29,12
-DA:30,12
-DA:31,12
-DA:32,12
-DA:33,12
-DA:34,12
-DA:35,12
-DA:36,12
-DA:37,12
-DA:38,12
-DA:39,12
-DA:40,12
+FNDA:13,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2::.ctor(MongoDB.Driver.IMongoDatabase,JsonApiDotNetCore.Resources.ITargetedFields,JsonApiDotNetCore.Configuration.IResourceGraph,JsonApiDotNetCore.Resources.IResourceFactory,System.Collections.Generic.IEnumerable`1<JsonApiDotNetCore.Queries.IQueryConstraintProvider>)
+DA:28,13
+DA:29,13
+DA:30,13
+DA:31,13
+DA:32,13
+DA:33,13
+DA:34,13
+DA:35,13
+DA:36,13
+DA:37,13
+DA:38,13
+DA:39,13
+DA:40,13
 FN:62,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2/<DeleteAsync>d__12::MoveNext()
 FNDA:3,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2/<DeleteAsync>d__12::MoveNext()
 DA:63,3
@@ -228,18 +228,18 @@ DA:75,2
 DA:76,2
 DA:77,2
 FN:79,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2/<UpdateAsync>d__15::MoveNext()
-FNDA:1,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2/<UpdateAsync>d__15::MoveNext()
-DA:80,1
-DA:81,0
-DA:82,0
-DA:84,1
-DA:85,1
-BRDA:81,128,1,0
-BRDA:81,128,0,1
+FNDA:2,System.Void JsonApiDotNetCore.MongoDb.Data.MongoEntityRepository`2/<UpdateAsync>d__15::MoveNext()
+DA:80,2
+DA:81,8
+DA:82,1
+DA:84,2
+DA:85,2
+BRDA:81,128,1,1
+BRDA:81,128,0,2
 LF:62
-LH:52
+LH:54
 BRF:14
-BRH:10
+BRH:11
 FNF:11
 FNH:11
 end_of_record
