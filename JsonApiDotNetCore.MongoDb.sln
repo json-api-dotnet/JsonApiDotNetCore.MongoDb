@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{444F32D6-E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCore.MongoDb.UnitTests", "test\JsonApiDotNetCore.MongoDb.UnitTests\JsonApiDotNetCore.MongoDb.UnitTests.csproj", "{4ACC5E5A-9B74-484D-A685-7D77D9C81D39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "src\Example\Example.csproj", "{348B8A87-830B-4246-A969-D62FF2ACD44B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,9 +50,22 @@ Global
 		{4ACC5E5A-9B74-484D-A685-7D77D9C81D39}.Release|x64.Build.0 = Release|Any CPU
 		{4ACC5E5A-9B74-484D-A685-7D77D9C81D39}.Release|x86.ActiveCfg = Release|Any CPU
 		{4ACC5E5A-9B74-484D-A685-7D77D9C81D39}.Release|x86.Build.0 = Release|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Debug|x64.Build.0 = Debug|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Debug|x86.Build.0 = Debug|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Release|x64.ActiveCfg = Release|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Release|x64.Build.0 = Release|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Release|x86.ActiveCfg = Release|Any CPU
+		{348B8A87-830B-4246-A969-D62FF2ACD44B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{60414F69-78A8-46CB-84F6-914B33A5F54B} = {C9B4CDB0-2411-44A7-946C-CFE758D1FDC0}
 		{4ACC5E5A-9B74-484D-A685-7D77D9C81D39} = {444F32D6-E3D7-4CBE-82DA-98B2EB10C46E}
+		{348B8A87-830B-4246-A969-D62FF2ACD44B} = {C9B4CDB0-2411-44A7-946C-CFE758D1FDC0}
 	EndGlobalSection
 EndGlobal

@@ -5,17 +5,18 @@
    "version": "0.2.0",
    "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core Launch (webapi)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/test/JsonApiDotNetCore.MongoDb.UnitTests/bin/Debug/netcoreapp3.1/JsonApiDotNetCore.MongoDb.UnitTests.dll",
+            "program": "${workspaceFolder}/src/Example/bin/Debug/netcoreapp3.1/Example.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/test/JsonApiDotNetCore.MongoDb.UnitTests",
+            "cwd": "${workspaceFolder}/src/Example",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "requireExactSource": false
         },
         {
             "name": ".NET Core Attach",

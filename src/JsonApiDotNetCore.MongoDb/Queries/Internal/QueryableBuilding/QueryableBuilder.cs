@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,7 +74,10 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
 
         private Expression ApplyInclude(Expression source, IncludeExpression include, ResourceContext resourceContext)
         {
-            throw new NotImplementedException();
+            using var lambdaScope = _lambdaScopeFactory.CreateScope(_elementType);
+
+            var builder = new IncludeClauseBuilder(source, lambdaScope, resourceContext, _resourceContextProvider);
+            return builder.ApplyInclude(include);
         }
 
         private Expression ApplyFilter(Expression source, FilterExpression filter)
