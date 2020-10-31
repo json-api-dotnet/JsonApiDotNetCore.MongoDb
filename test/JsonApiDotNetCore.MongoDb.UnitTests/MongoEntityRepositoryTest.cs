@@ -7,19 +7,17 @@ using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace JsonApiDotNetCore.MongoDb.UnitTests
 {
-    [TestClass]
-    public sealed class MongoEntityRepositoryTests
+    public sealed class MongoEntityRepositoryTests : IAsyncLifetime
     {
         private IResourceRepository<Book, string> Repository { get; set; }
         private IResourceGraph ResourceGraph { get; set; }
@@ -29,8 +27,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
 
         private Mock<ITargetedFields> TargetedFields { get; set; }
 
-        [TestInitialize]
-        public void BeforeEach()
+        public MongoEntityRepositoryTests()
         {
             var client = new MongoClient("mongodb://localhost:27017");
             Database = client.GetDatabase("JsonApiDotNet_MongoDb_Test");
@@ -58,13 +55,11 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             return resourceGraphBuilder.Build();
         }
 
-        [TestCleanup]
-        public async Task AfterEach()
-        {
-            await Books.DeleteManyAsync(Builders<Book>.Filter.Empty);
-        }
+        public Task InitializeAsync() => Task.CompletedTask;
 
-        [TestMethod]
+        public async Task DisposeAsync() => await Books.DeleteManyAsync(Builders<Book>.Filter.Empty);
+
+        [Fact]
         public async Task ShouldCountZero()
         {
             var result = await Repository.CountAsync(
@@ -73,10 +68,10 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
                     new LiteralConstantExpression(bool.FalseString),
                     new LiteralConstantExpression(bool.FalseString)));
 
-            Assert.AreEqual(0, result);
+            Assert.Equal(0, result);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldCountThree()
         {
             for (var i = 0; i < 3; i++)
@@ -98,10 +93,10 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
                     new LiteralConstantExpression(bool.FalseString),
                     new LiteralConstantExpression(bool.FalseString)));
 
-            Assert.AreEqual(3, result);
+            Assert.Equal(3, result);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldSaveDocument()
         {
             var book = new Book
@@ -117,10 +112,10 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var query = Books.AsQueryable();
             var saved = await query.FirstOrDefaultAsync();
 
-            Assert.AreEqual(book.Name, saved.Name);
+            Assert.Equal(book.Name, saved.Name);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldGenerateObjectIdForNewDocument()
         {
             var book = new Book
@@ -136,10 +131,10 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var query = Books.AsQueryable();
             var saved = await query.FirstOrDefaultAsync();
 
-            Assert.IsNotNull(saved.Id);
+            Assert.NotNull(saved.Id);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldReturnTrue()
         {
             var book = new Book
@@ -156,10 +151,10 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var saved = await query.FirstOrDefaultAsync();
 
             var result = await Repository.DeleteAsync(saved.Id);
-            Assert.IsTrue(result);
+            Assert.True(result);
         }
         
-        [TestMethod]
+        [Fact]
         public async Task ShouldDeleteDocument()
         {
             var book = new Book
@@ -177,18 +172,17 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
 
             await Repository.DeleteAsync(saved.Id);
 
-            Assert.IsFalse(query.Any(b => b.Id == saved.Id));
+            Assert.False(query.Any(b => b.Id == saved.Id));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldReturnFalse()
         {
             var result = await Repository.DeleteAsync("5f67c7718b884bb81fb0812e");
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(NotImplementedException))]
+        [Fact]
         public void ShouldThrowNotImplementedExceptionFlushFromCache()
         {
             // As far as I know MongoDB does not manage no cache
@@ -202,19 +196,22 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
                 Price = 2.00M,
             };
 
-            Repository.FlushFromCache(book);
+            Assert.Throws<NotImplementedException>(() =>
+            {
+                Repository.FlushFromCache(book);
+            });
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldReturnEmptyEnumerable()
         {
             var resourceContext = ResourceGraph.GetResourceContext<Book>();
             var result = await Repository.GetAsync(new QueryLayer(resourceContext));
 
-            Assert.IsTrue(result.Count == 0);
+            Assert.True(result.Count == 0);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldReturnThreeBooks()
         {
             for (var i = 0; i < 3; i++)
@@ -233,10 +230,10 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             var resourceContext = ResourceGraph.GetResourceContext<Book>();
             var result = await Repository.GetAsync(new QueryLayer(resourceContext));
 
-            Assert.AreEqual(3, result.Count);
+            Assert.Equal(3, result.Count);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldNotUpdate()
         {
             var book = new Book
@@ -263,12 +260,16 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             await Repository.UpdateAsync(newDoc, oldDoc);
 
             var saved = await query.FirstOrDefaultAsync();
-            Assert.AreEqual(book.Price, saved.Price);
+            Assert.Equal(book.Price, saved.Price);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ShouldUpdateBookPrice()
         {
+            // TODO: Rewrite this test
+            // This test is not done properly, it can fail at times
+            // It is not independent of the context it's run on
+
             TargetedFields.Setup(tf => tf.Attributes).Returns(BookAttributes());
 
             var book = new Book
@@ -292,7 +293,7 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             await Repository.UpdateAsync(newDoc, book);
 
             var saved = await Books.AsQueryable().FirstOrDefaultAsync();
-            Assert.AreEqual(5.00M, saved.Price);
+            Assert.Equal(5.00M, saved.Price);
         }
 
         private IList<AttrAttribute> BookAttributes()
@@ -309,11 +310,13 @@ namespace JsonApiDotNetCore.MongoDb.UnitTests
             return new List<AttrAttribute> { priceAttr };
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(NotImplementedException))]
+        [Fact]
         public async Task ShouldThrowNotImplementedExceptionUpdateRelationships()
         {
-            await Repository.UpdateRelationshipAsync(null, null, null);
+            await Assert.ThrowsAsync<NotImplementedException>(async () =>
+            {
+                await Repository.UpdateRelationshipAsync(null, null, null);
+            });
         }
     }
 }
