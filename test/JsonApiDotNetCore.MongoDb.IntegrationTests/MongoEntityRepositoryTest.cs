@@ -1,6 +1,5 @@
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Data;
-using JsonApiDotNetCore.MongoDb.UnitTests.Models;
+using JsonApiDotNetCore.MongoDb.IntegrationTests.Models;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Repositories;
@@ -15,7 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace JsonApiDotNetCore.MongoDb.UnitTests
+namespace JsonApiDotNetCore.MongoDb.IntegrationTests
 {
     public sealed class MongoEntityRepositoryTests : IAsyncLifetime
     {

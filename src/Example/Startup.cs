@@ -1,6 +1,6 @@
 using GettingStarted.Models;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Data;
+using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.Repositories;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.Builder;

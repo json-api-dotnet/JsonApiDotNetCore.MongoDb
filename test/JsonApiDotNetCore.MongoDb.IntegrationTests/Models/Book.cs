@@ -4,7 +4,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCore.MongoDb.UnitTests.Models
+namespace JsonApiDotNetCore.MongoDb.IntegrationTests.Models
 {
     public sealed class Book : IIdentifiable<string>
     {

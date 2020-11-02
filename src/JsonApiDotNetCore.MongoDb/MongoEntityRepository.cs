@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.Repositories;
-using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.MongoDb.Extensions;
 using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
+using JsonApiDotNetCore.Repositories;
+using JsonApiDotNetCore.Resources;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries;
+using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Resources.Annotations;
 
-namespace JsonApiDotNetCore.MongoDb.Data
+namespace JsonApiDotNetCore.MongoDb
 {
     public class MongoEntityRepository<TResource, TId>
         : IResourceRepository<TResource, TId>
@@ -54,10 +54,8 @@ namespace JsonApiDotNetCore.MongoDb.Data
             return query.CountAsync();
         }
 
-        public virtual Task CreateAsync(TResource resource)
-        {
-            return Collection.InsertOneAsync(resource);
-        }
+        public virtual Task CreateAsync(TResource resource) =>
+            Collection.InsertOneAsync(resource);
 
         public virtual async Task<bool> DeleteAsync(TId id)
         {
@@ -65,16 +63,11 @@ namespace JsonApiDotNetCore.MongoDb.Data
             return result.IsAcknowledged && result.DeletedCount > 0;
         }
 
-        public virtual void FlushFromCache(TResource resource)
-        {
+        public virtual void FlushFromCache(TResource resource) =>
             throw new NotImplementedException();
-        }
 
-        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer)
-        {
-            IQueryable<TResource> query = ApplyQueryLayer(layer);
-            return await query.ToListAsync();
-        }
+        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer) =>
+            await ApplyQueryLayer(layer).ToListAsync();
 
         public virtual async Task UpdateAsync(TResource requestResource, TResource databaseResource)
         {
@@ -84,14 +77,12 @@ namespace JsonApiDotNetCore.MongoDb.Data
             await Collection.ReplaceOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, databaseResource.Id), databaseResource);
         }
 
-        public virtual Task UpdateRelationshipAsync(object parent, RelationshipAttribute relationship, IReadOnlyCollection<string> relationshipIds)
-        {
+        public virtual Task UpdateRelationshipAsync(object parent, RelationshipAttribute relationship, IReadOnlyCollection<string> relationshipIds) =>
             throw new NotImplementedException();
-        }
 
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
-            if (layer == null) throw new ArgumentNullException(nameof(layer));
+            layer = layer ?? throw new ArgumentNullException(nameof(layer));
 
             IMongoQueryable<TResource> source = Entities;
 
