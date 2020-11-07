@@ -82,49 +82,46 @@ FNDA:26,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Int
 DA:38,26
 DA:39,26
 DA:41,26
-DA:43,26
+DA:42,14
+DA:43,14
 DA:44,14
-DA:45,14
-DA:46,14
-DA:48,26
+DA:46,26
+DA:47,12
+DA:48,12
 DA:49,12
-DA:50,12
-DA:51,12
-DA:53,26
+DA:51,26
+DA:52,12
+DA:53,12
 DA:54,12
-DA:55,12
-DA:56,12
-DA:58,26
-DA:59,26
-BRDA:39,3,0,0
-BRDA:39,3,1,26
-BRDA:43,37,0,14
-BRDA:43,37,1,26
-BRDA:48,66,0,12
-BRDA:48,66,1,26
-BRDA:53,95,0,12
-BRDA:53,95,1,26
-FN:61,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplyFilter(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.FilterExpression)
+DA:56,26
+DA:57,26
+BRDA:41,19,0,14
+BRDA:41,19,1,26
+BRDA:46,48,0,12
+BRDA:46,48,1,26
+BRDA:51,77,0,12
+BRDA:51,77,1,26
+FN:59,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplyFilter(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.FilterExpression)
 FNDA:14,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplyFilter(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.FilterExpression)
-DA:62,14
+DA:60,14
+DA:61,14
 DA:63,14
+DA:64,14
 DA:65,14
-DA:66,14
-DA:67,14
-FN:69,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplySort(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.SortExpression)
+FN:67,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplySort(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.SortExpression)
 FNDA:12,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplySort(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.SortExpression)
-DA:70,12
+DA:68,12
+DA:69,12
 DA:71,12
+DA:72,12
 DA:73,12
-DA:74,12
-DA:75,12
-FN:77,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplyPagination(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.PaginationExpression)
+FN:75,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplyPagination(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.PaginationExpression)
 FNDA:12,System.Linq.Expressions.Expression JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::ApplyPagination(System.Linq.Expressions.Expression,JsonApiDotNetCore.Queries.Expressions.PaginationExpression)
-DA:78,12
+DA:76,12
+DA:77,12
 DA:79,12
+DA:80,12
 DA:81,12
-DA:82,12
-DA:83,12
 FN:23,System.Void JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::.ctor(System.Linq.Expressions.Expression,System.Type,System.Type,JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaParameterNameFactory,JsonApiDotNetCore.Resources.IResourceFactory,JsonApiDotNetCore.Configuration.IResourceContextProvider,JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaScopeFactory)
 FNDA:26,System.Void JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding.QueryableBuilder::.ctor(System.Linq.Expressions.Expression,System.Type,System.Type,JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaParameterNameFactory,JsonApiDotNetCore.Resources.IResourceFactory,JsonApiDotNetCore.Configuration.IResourceContextProvider,JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaScopeFactory)
 DA:24,26
@@ -153,10 +150,10 @@ BRDA:33,124,0,0
 BRDA:33,124,1,26
 BRDA:34,147,0,26
 BRDA:34,147,1,26
-LF:44
-LH:44
-BRF:22
-BRH:15
+LF:43
+LH:43
+BRF:20
+BRH:14
 FNF:5
 FNH:5
 end_of_record
@@ -245,20 +242,20 @@ FNH:3
 end_of_record
 SF:/Users/mrnkr/Documents/code/JsonApiDotNetCore.MongoDb/src/Example/Models/Book.cs
 FN:12,System.String Example.Models.Book::get_Id()
-FNDA:1470,System.String Example.Models.Book::get_Id()
-DA:13,1470
+FNDA:1481,System.String Example.Models.Book::get_Id()
+DA:13,1481
 FN:15,System.String Example.Models.Book::get_Name()
-FNDA:936,System.String Example.Models.Book::get_Name()
-DA:16,936
+FNDA:942,System.String Example.Models.Book::get_Name()
+DA:16,942
 FN:19,System.Decimal Example.Models.Book::get_Price()
-FNDA:1184,System.Decimal Example.Models.Book::get_Price()
-DA:20,1184
+FNDA:1187,System.Decimal Example.Models.Book::get_Price()
+DA:20,1187
 FN:22,System.String Example.Models.Book::get_Category()
-FNDA:906,System.String Example.Models.Book::get_Category()
-DA:23,906
+FNDA:912,System.String Example.Models.Book::get_Category()
+DA:23,912
 FN:25,System.String Example.Models.Book::get_Author()
-FNDA:906,System.String Example.Models.Book::get_Author()
-DA:26,906
+FNDA:912,System.String Example.Models.Book::get_Author()
+DA:26,912
 FN:28,System.String Example.Models.Book::get_StringId()
 FNDA:0,System.String Example.Models.Book::get_StringId()
 DA:29,0
