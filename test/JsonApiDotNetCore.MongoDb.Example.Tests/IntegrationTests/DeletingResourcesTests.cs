@@ -69,5 +69,12 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests
             
             Assert.Equal(HttpStatusCode.NoContent, deleteStatusCode);
         }
+
+        [Fact]
+        public async Task ShouldReturnNotFound()
+        {
+            var (httpResponse, _) = await _testContext.ExecuteDeleteAsync<Document>($"/api/Books/5fa6eff63d1508a204d1b161");
+            Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        }
     }
 }

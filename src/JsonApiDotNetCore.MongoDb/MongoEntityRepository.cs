@@ -82,21 +82,7 @@ namespace JsonApiDotNetCore.MongoDb
 
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
-            layer = layer ?? throw new ArgumentNullException(nameof(layer));
-
             var source = Entities;
-
-            var queryableHandlers = _constraintProviders
-                .SelectMany(p => p.GetConstraints())
-                .Where(expressionInScope => expressionInScope.Scope == null)
-                .Select(expressionInScope => expressionInScope.Expression)
-                .OfType<QueryableHandlerExpression>()
-                .ToArray();
-
-            foreach (var queryableHandler in queryableHandlers)
-            {
-                source = (IMongoQueryable<TResource>)queryableHandler.Apply(source);
-            }
 
             var nameFactory = new JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaParameterNameFactory();
             var builder = new QueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory, _resourceGraph);

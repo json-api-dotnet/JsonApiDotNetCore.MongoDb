@@ -12,12 +12,6 @@ namespace JsonApiDotNetCore.MongoDb.Extensions
         public static async Task<IReadOnlyList<T>> ToListAsync<T>(this IQueryable<T> queryable) =>
             await IAsyncCursorSourceExtensions.ToListAsync(ToMongoQueryable(queryable));
 
-        public static Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> queryable) =>
-            IAsyncCursorSourceExtensions.SingleOrDefaultAsync(ToMongoQueryable(queryable));
-
-        public static Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> queryable) =>
-            IAsyncCursorSourceExtensions.FirstOrDefaultAsync(ToMongoQueryable(queryable));
-
         private static IMongoQueryable<T> ToMongoQueryable<T>(IQueryable<T> queryable) =>
             (queryable is IMongoQueryable<T> mongoQueryable) ?
                 mongoQueryable :

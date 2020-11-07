@@ -30,31 +30,10 @@ FNDA:0,MongoDB.Driver.Linq.IMongoQueryable`1<TResource> JsonApiDotNetCore.MongoD
 DA:84,0
 DA:85,0
 DA:87,0
-DA:89,0
+DA:88,0
 DA:90,0
 DA:91,0
 DA:92,0
-DA:93,0
-DA:94,0
-DA:96,0
-DA:97,0
-DA:98,0
-DA:99,0
-DA:101,0
-DA:102,0
-DA:104,0
-DA:105,0
-DA:106,0
-BRDA:85,3,0,0
-BRDA:85,3,1,0
-BRDA:89,38,0,0
-BRDA:89,38,1,0
-BRDA:89,74,0,0
-BRDA:89,74,1,0
-BRDA:89,110,0,0
-BRDA:89,110,1,0
-BRDA:96,195,1,0
-BRDA:96,195,0,0
 FN:27,System.Void JsonApiDotNetCore.MongoDb.MongoEntityRepository`2::.ctor(MongoDB.Driver.IMongoDatabase,JsonApiDotNetCore.Resources.ITargetedFields,JsonApiDotNetCore.Configuration.IResourceGraph,JsonApiDotNetCore.Resources.IResourceFactory,System.Collections.Generic.IEnumerable`1<JsonApiDotNetCore.Queries.IQueryConstraintProvider>)
 FNDA:3,System.Void JsonApiDotNetCore.MongoDb.MongoEntityRepository`2::.ctor(MongoDB.Driver.IMongoDatabase,JsonApiDotNetCore.Resources.ITargetedFields,JsonApiDotNetCore.Configuration.IResourceGraph,JsonApiDotNetCore.Resources.IResourceFactory,System.Collections.Generic.IEnumerable`1<JsonApiDotNetCore.Queries.IQueryConstraintProvider>)
 DA:28,3
@@ -90,9 +69,9 @@ DA:77,1
 DA:78,1
 BRDA:74,128,1,1
 BRDA:74,128,0,1
-LF:55
+LF:44
 LH:21
-BRF:14
+BRF:4
 BRH:2
 FNF:11
 FNH:5
@@ -182,26 +161,20 @@ FNF:5
 FNH:0
 end_of_record
 SF:/Users/mrnkr/Documents/code/JsonApiDotNetCore.MongoDb/src/JsonApiDotNetCore.MongoDb/Extensions/MongoIQueryableExtensions.cs
-FN:15,System.Threading.Tasks.Task`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::SingleOrDefaultAsync(System.Linq.IQueryable`1<T>)
-FNDA:0,System.Threading.Tasks.Task`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::SingleOrDefaultAsync(System.Linq.IQueryable`1<T>)
-DA:16,0
-FN:18,System.Threading.Tasks.Task`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::FirstOrDefaultAsync(System.Linq.IQueryable`1<T>)
-FNDA:0,System.Threading.Tasks.Task`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::FirstOrDefaultAsync(System.Linq.IQueryable`1<T>)
-DA:19,0
-FN:21,MongoDB.Driver.Linq.IMongoQueryable`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::ToMongoQueryable(System.Linq.IQueryable`1<T>)
+FN:15,MongoDB.Driver.Linq.IMongoQueryable`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::ToMongoQueryable(System.Linq.IQueryable`1<T>)
 FNDA:0,MongoDB.Driver.Linq.IMongoQueryable`1<T> JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions::ToMongoQueryable(System.Linq.IQueryable`1<T>)
-DA:22,0
-DA:23,0
-DA:24,0
-BRDA:22,8,0,0
-BRDA:22,8,1,0
+DA:16,0
+DA:17,0
+DA:18,0
+BRDA:16,8,0,0
+BRDA:16,8,1,0
 FN:12,System.Void JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions/<ToListAsync>d__0`1::MoveNext()
 FNDA:0,System.Void JsonApiDotNetCore.MongoDb.Extensions.MongoIQueryableExtensions/<ToListAsync>d__0`1::MoveNext()
 DA:13,0
-LF:6
+LF:4
 LH:0
 BRF:2
 BRH:0
-FNF:4
+FNF:2
 FNH:0
 end_of_record
