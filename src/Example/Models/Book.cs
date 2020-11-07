@@ -3,7 +3,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace GettingStarted.Models
+namespace Example.Models
 {
     public sealed class Book : IIdentifiable<string>
     {
@@ -16,6 +16,7 @@ namespace GettingStarted.Models
         public string Name { get; set; }
 
         [Attr]
+        [BsonRepresentation(BsonType.Decimal128)]
         public decimal Price { get; set; }
 
         [Attr]

@@ -1,10 +1,10 @@
-using GettingStarted.Models;
+using Example.Models;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Controllers;
 using JsonApiDotNetCore.Services;
 using Microsoft.Extensions.Logging;
 
-namespace GettingStarted.Controllers
+namespace Example.Controllers
 {
     public sealed class BooksController : JsonApiController<Book, string>
     {

@@ -1,15 +1,15 @@
-using GettingStarted.Models;
+using Example.Models;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.Repositories;
-using MongoDB.Driver;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 
-namespace GettingStarted
+namespace Example
 {
     public sealed class Startup
     {
@@ -18,12 +18,12 @@ namespace GettingStarted
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IMongoDatabase>(sp =>
+            services.AddSingleton(sp =>
             {
                 var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
                 return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);

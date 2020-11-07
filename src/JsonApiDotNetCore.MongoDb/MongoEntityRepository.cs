@@ -19,11 +19,11 @@ namespace JsonApiDotNetCore.MongoDb
         : IResourceRepository<TResource, TId>
         where TResource : class, IIdentifiable<TId>
     {
-        private readonly IMongoDatabase db;
-        private readonly ITargetedFields targetedFields;
-        private readonly IResourceGraph resourceGraph;
-        private readonly IResourceFactory resourceFactory;
-        private readonly IEnumerable<IQueryConstraintProvider> constraintProviders;
+        private readonly IMongoDatabase _db;
+        private readonly ITargetedFields _targetedFields;
+        private readonly IResourceGraph _resourceGraph;
+        private readonly IResourceFactory _resourceFactory;
+        private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
 
         public MongoEntityRepository(
             IMongoDatabase db,
@@ -32,25 +32,25 @@ namespace JsonApiDotNetCore.MongoDb
             IResourceFactory resourceFactory,
             IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
-            this.db = db;
-            this.targetedFields = targetedFields;
-            this.resourceGraph = resourceGraph;
-            this.resourceFactory = resourceFactory;
-            this.constraintProviders = constraintProviders;
+            _db = db;
+            _targetedFields = targetedFields;
+            _resourceGraph = resourceGraph;
+            _resourceFactory = resourceFactory;
+            _constraintProviders = constraintProviders;
         }
 
-        private IMongoCollection<TResource> Collection => db.GetCollection<TResource>(typeof(TResource).Name);
-        private IMongoQueryable<TResource> Entities => this.Collection.AsQueryable();
+        private IMongoCollection<TResource> Collection => _db.GetCollection<TResource>(typeof(TResource).Name);
+        private IMongoQueryable<TResource> Entities => Collection.AsQueryable();
 
         public virtual Task<int> CountAsync(FilterExpression topFilter)
         {
-            var resourceContext = resourceGraph.GetResourceContext<TResource>();
+            var resourceContext = _resourceGraph.GetResourceContext<TResource>();
             var layer = new QueryLayer(resourceContext)
             {
                 Filter = topFilter
             };
 
-            var query = (IMongoQueryable<TResource>)ApplyQueryLayer(layer);
+            var query = ApplyQueryLayer(layer);
             return query.CountAsync();
         }
 
@@ -59,7 +59,7 @@ namespace JsonApiDotNetCore.MongoDb
 
         public virtual async Task<bool> DeleteAsync(TId id)
         {
-            var result = await this.Collection.DeleteOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, id));
+            var result = await Collection.DeleteOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, id));
             return result.IsAcknowledged && result.DeletedCount > 0;
         }
 
@@ -71,7 +71,7 @@ namespace JsonApiDotNetCore.MongoDb
 
         public virtual async Task UpdateAsync(TResource requestResource, TResource databaseResource)
         {
-            foreach (var attr in targetedFields.Attributes)
+            foreach (var attr in _targetedFields.Attributes)
                 attr.SetValue(databaseResource, attr.GetValue(requestResource));
 
             await Collection.ReplaceOneAsync(Builders<TResource>.Filter.Eq(e => e.Id, databaseResource.Id), databaseResource);
@@ -84,9 +84,9 @@ namespace JsonApiDotNetCore.MongoDb
         {
             layer = layer ?? throw new ArgumentNullException(nameof(layer));
 
-            IMongoQueryable<TResource> source = Entities;
+            var source = Entities;
 
-            var queryableHandlers = constraintProviders
+            var queryableHandlers = _constraintProviders
                 .SelectMany(p => p.GetConstraints())
                 .Where(expressionInScope => expressionInScope.Scope == null)
                 .Select(expressionInScope => expressionInScope.Expression)
@@ -99,7 +99,7 @@ namespace JsonApiDotNetCore.MongoDb
             }
 
             var nameFactory = new JsonApiDotNetCore.Queries.Internal.QueryableBuilding.LambdaParameterNameFactory();
-            var builder = new QueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, resourceFactory, resourceGraph);
+            var builder = new QueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory, _resourceGraph);
 
             var expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);

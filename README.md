@@ -44,22 +44,22 @@ public class Startup
 {
     public IServiceProvider ConfigureServices(IServiceCollection services) {
         services.AddSingleton<IMongoDatabase>(sp =>
-            {
-                var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
-                return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
-            });
+        {
+            var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
+            return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
+        });
 
-            services.AddScoped<IResourceRepository<Book, string>, MongoEntityRepository<Book, string>>();
-            services.AddJsonApi(options =>
-            {
-                options.Namespace = "api";
-                options.UseRelativeLinks = true;
-                options.IncludeTotalResourceCount = true;
-                options.SerializerSettings.Formatting = Formatting.Indented;
-            }, resources: builder =>
-            {
-                builder.Add<Book, string>();
-            });
+        services.AddScoped<IResourceRepository<Book, string>, MongoEntityRepository<Book, string>>();
+        services.AddJsonApi(options =>
+        {
+            options.Namespace = "api";
+            options.UseRelativeLinks = true;
+            options.IncludeTotalResourceCount = true;
+            options.SerializerSettings.Formatting = Formatting.Indented;
+        }, resources: builder =>
+        {
+            builder.Add<Book, string>();
+        });
         // ...
     }
 
