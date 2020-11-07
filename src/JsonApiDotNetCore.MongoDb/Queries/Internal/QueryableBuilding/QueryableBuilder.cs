@@ -36,9 +36,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
 
         public Expression ApplyQuery(QueryLayer layer)
         {
-            layer = layer ?? throw new ArgumentNullException(nameof(layer));
-
-            Expression expression = _source;
+            var expression = _source;
 
             if (layer.Filter != null)
             {

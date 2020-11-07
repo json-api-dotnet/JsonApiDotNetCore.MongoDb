@@ -25,7 +25,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69681b7e-d6cc-4285-8a2b-58ceae1c14e1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Directory.Build.props" beforeDir="false" afterPath="$PROJECT_DIR$/Directory.Build.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/JsonApiDotNetCore.MongoDb.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/JsonApiDotNetCore.MongoDb.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +42,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/Queries/Internal/QueryableBuilding/QueryableBuilder.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/Models/Book.cs" />
         <option value="$PROJECT_DIR$/src/Example/Program.cs" />
         <option value="$PROJECT_DIR$/src/Example/Controllers/BooksController.cs" />
@@ -63,6 +63,12 @@
         <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/MongoEntityRepository.cs" />
         <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/Extensions/MongoIQueryableExtensions.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" />
+        <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/Queries/Internal/QueryableBuilding/QueryableBuilder.cs" />
+        <option value="$PROJECT_DIR$/.travis.yml" />
+        <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/LICENSE" />
+        <option value="$PROJECT_DIR$/Directory.Build.props" />
+        <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/JsonApiDotNetCore.MongoDb.csproj" />
       </list>
     </option>
   </component>
@@ -166,7 +172,7 @@
       <updated>1604674714591</updated>
       <workItem from="1604674720809" duration="1096000" />
       <workItem from="1604756306670" duration="6595000" />
-      <workItem from="1604771408212" duration="9494000" />
+      <workItem from="1604771408212" duration="10414000" />
     </task>
     <servers />
   </component>
@@ -191,6 +197,10 @@
     </state>
     <state x="360" y="214" width="1071" height="739" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1792.1120@0.0.1792.1120" timestamp="1604770996021" />
     <state x="360" y="233" width="1071" height="700" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1792.1097/-77.-1057.1920.1057@0.23.1792.1097" timestamp="1604675368697" />
+    <state x="616" y="369" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1604782226289">
+      <screen x="0" y="0" width="1792" height="1120" />
+    </state>
+    <state x="616" y="369" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1792.1120/-77.-1080.1920.1080@0.0.1792.1120" timestamp="1604782226289" />
     <state width="1750" height="419" key="GridCell.Tab.0.bottom" timestamp="1604779439643">
       <screen x="0" y="0" width="1792" height="1120" />
     </state>
