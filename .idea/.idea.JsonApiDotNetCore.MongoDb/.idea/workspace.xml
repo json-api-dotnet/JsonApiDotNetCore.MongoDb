@@ -25,7 +25,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69681b7e-d6cc-4285-8a2b-58ceae1c14e1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/IntegrationTests/DeletingResourcesTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/IntegrationTests/DeletingResourcesTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" beforeDir="false" afterPath="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,11 +46,9 @@
         <option value="$PROJECT_DIR$/src/Example/Program.cs" />
         <option value="$PROJECT_DIR$/src/Example/Controllers/BooksController.cs" />
         <option value="$PROJECT_DIR$/src/Example/Properties/launchSettings.json" />
-        <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/MongoEntityRepository.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/UnitTest1.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/JsonApiDotNetCore.MongoDb.Example.Tests.csproj" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/Factories/IntegrationTestWebApplicationFactory.cs" />
-        <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" />
         <option value="$PROJECT_DIR$/src/Example/Models/Book.cs" />
         <option value="$PROJECT_DIR$/src/Example/Startup.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/IntegrationTests/BaseIntegrationTest.cs" />
@@ -62,6 +60,9 @@
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/IntegrationTests/CreatingResourcesTests.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/IntegrationTests/FetchingResourcesTests.cs" />
         <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.Example.Tests/IntegrationTests/DeletingResourcesTests.cs" />
+        <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/MongoEntityRepository.cs" />
+        <option value="$PROJECT_DIR$/src/JsonApiDotNetCore.MongoDb/Extensions/MongoIQueryableExtensions.cs" />
+        <option value="$PROJECT_DIR$/test/JsonApiDotNetCore.MongoDb.IntegrationTests/MongoEntityRepositoryTest.cs" />
       </list>
     </option>
   </component>
@@ -165,7 +166,7 @@
       <updated>1604674714591</updated>
       <workItem from="1604674720809" duration="1096000" />
       <workItem from="1604756306670" duration="6595000" />
-      <workItem from="1604771408212" duration="9167000" />
+      <workItem from="1604771408212" duration="9494000" />
     </task>
     <servers />
   </component>

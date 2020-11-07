@@ -101,9 +101,7 @@ namespace JsonApiDotNetCore.MongoDb.IntegrationTests
         public void FlushFromCache_ShouldThrowNotImplementedException()
         {
             Assert.Throws<NotImplementedException>(() =>
-            {
-                _repository.FlushFromCache(null);
-            });
+                _repository.FlushFromCache(null));
         }
 
         [Fact]
