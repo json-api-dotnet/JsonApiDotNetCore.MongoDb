@@ -2,52 +2,80 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Example;
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Middleware;
-using JsonApiDotNetCore.MongoDb.Example.Tests.Factories;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Mongo2Go;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace JsonApiDotNetCore.MongoDb.Example.Tests
 {
     public sealed class IntegrationTestContext<TStartup> : IDisposable
         where TStartup : class
     {
-        private readonly Lazy<WebApplicationFactory<Startup>> _lazyFactory;
+        private readonly Lazy<WebApplicationFactory<EmptyStartup>> _lazyFactory;
         
         private Action<IServiceCollection> _beforeServicesConfiguration;
         private Action<IServiceCollection> _afterServicesConfiguration;
+        private Action<ResourceGraphBuilder> _registerResources;
+        private readonly MongoDbRunner _runner;
 
-        private WebApplicationFactory<Startup> Factory => _lazyFactory.Value;
+        public WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
 
         public IntegrationTestContext()
         {
-            _lazyFactory = new Lazy<WebApplicationFactory<Startup>>(CreateFactory);
+            _lazyFactory = new Lazy<WebApplicationFactory<EmptyStartup>>(CreateFactory);
+            _runner = MongoDbRunner.Start();
         }
         
-        private WebApplicationFactory<Startup> CreateFactory()
+        private WebApplicationFactory<EmptyStartup> CreateFactory()
         {
-            var factory = new IntegrationTestWebApplicationFactory<Startup>();
+            var factory = new IntegrationTestWebApplicationFactory();
             
-            factory.ConfigureServicesBeforeStartup(_beforeServicesConfiguration);
-
-            factory.ConfigureServicesAfterStartup(services =>
+            factory.ConfigureServicesBeforeStartup(services =>
             {
-                _afterServicesConfiguration?.Invoke(services);
+                _beforeServicesConfiguration?.Invoke(services);
+                
+                services.AddSingleton(sp =>
+                {
+                    var client = new MongoClient(_runner.ConnectionString);
+                    return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{new Random().Next()}_Test");
+                });
+
+                services.AddJsonApi(
+                    options =>
+                    {
+                        options.IncludeExceptionStackTraceInErrors = true;
+                        options.SerializerSettings.Formatting = Formatting.Indented;
+                        options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                    }, resources: _registerResources);
             });
+
+            factory.ConfigureServicesAfterStartup(_afterServicesConfiguration);
 
             return factory;
         }
 
-        public void Dispose() => Factory.Dispose();
+        public void Dispose()
+        {
+            _runner.Dispose();
+            Factory.Dispose();
+        }
 
         public void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration) =>
             _beforeServicesConfiguration = servicesConfiguration;
 
         public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration) =>
             _afterServicesConfiguration = servicesConfiguration;
+
+        public void RegisterResources(Action<ResourceGraphBuilder> resources) =>
+            _registerResources = resources;
 
         public async Task RunOnDatabaseAsync(Func<IMongoDatabase, Task> asyncAction)
         {
@@ -108,6 +136,41 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests
             catch (JsonException exception)
             {
                 throw new FormatException($"Failed to deserialize response body to JSON:\n{responseText}", exception);
+            }
+        }
+        
+        private sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<EmptyStartup>
+        {
+            private Action<IServiceCollection> _beforeServicesConfiguration;
+            private Action<IServiceCollection> _afterServicesConfiguration;
+
+            public void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration)
+            {
+                _beforeServicesConfiguration = servicesConfiguration;
+            }
+
+            public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration)
+            {
+                _afterServicesConfiguration = servicesConfiguration;
+            }
+
+            protected override IHostBuilder CreateHostBuilder()
+            {
+                return Host.CreateDefaultBuilder(null)
+                    .ConfigureWebHostDefaults(webBuilder =>
+                    {
+                        webBuilder.ConfigureTestServices(services =>
+                        {
+                            _beforeServicesConfiguration?.Invoke(services);
+                        });
+                    
+                        webBuilder.UseStartup<TStartup>();
+
+                        webBuilder.ConfigureTestServices(services =>
+                        {
+                            _afterServicesConfiguration?.Invoke(services);
+                        });
+                    });
             }
         }
     }

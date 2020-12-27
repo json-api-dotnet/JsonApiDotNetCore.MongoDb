@@ -2,11 +2,9 @@ language: csharp
 mono: none
 dotnet: 3.1.100
 solution: JsonApiDotNetCore.MongoDb.sln
-services:
-  - mongodb
 script:
   - dotnet restore
-  - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/lcov-coverage
+  - dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/lcov-coverage /p:Include="[JsonApiDotNetCore.MongoDb]*"
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 before_deploy:
