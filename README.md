@@ -50,7 +50,8 @@ public sealed class BooksController : JsonApiController<Book, string>
 ```cs
 public class Startup
 {
-    public IServiceProvider ConfigureServices(IServiceCollection services) {
+    public IServiceProvider ConfigureServices(IServiceCollection services)
+    {
         services.AddSingleton<IMongoDatabase>(sp =>
         {
             var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
@@ -71,14 +72,33 @@ public class Startup
         // ...
     }
 
-    public void Configure(IApplicationBuilder app)  {
+    public void Configure(IApplicationBuilder app)
+    {
+        app.UseRouting();
         app.UseJsonApi();
+        app.UseEndpoints(endpoints => endpoints.MapControllers());
         // ...
     }
 }
 ```
 
+## Running tests and examples
+
+Integration tests use the [`Mongo2Go`](https://github.com/Mongo2Go/Mongo2Go) package so they don't require a running instance of MongoDb on your machine.
+
+Just run the following command to run all tests:
+
+```bash
+dotnet test
+```
+
+To run the examples you are indeed going to want to have a running instance of MongoDb on your device. Fastest way to get one running is using docker:
+
+```bash
+docker run -p 27017:27017 -d mongo:latest
+dotnet run
+```
+
 ## Limitations
 
 - Relations are not supported (yet)
-- Projections are not supported (yet)

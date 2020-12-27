@@ -2,8 +2,8 @@
   <PropertyGroup>
     <NetCoreAppVersion>netcoreapp3.1</NetCoreAppVersion>
     <AspNetCoreVersion>3.1.*</AspNetCoreVersion>
-    <JsonApiDotNetCoreVersion>4.0.0-beta1</JsonApiDotNetCoreVersion>
-    <MongoDBDriverVersion>2.11.2</MongoDBDriverVersion>
+    <JsonApiDotNetCoreVersion>4.0.*</JsonApiDotNetCoreVersion>
+    <MongoDBDriverVersion>2.11.*</MongoDBDriverVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
