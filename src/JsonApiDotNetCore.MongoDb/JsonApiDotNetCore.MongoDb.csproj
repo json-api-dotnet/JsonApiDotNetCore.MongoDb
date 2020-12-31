@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>4.0.0-rc</VersionPrefix>
+    <VersionPrefix>4.0.0</VersionPrefix>
     <TargetFramework>$(NetCoreAppVersion)</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageTags>jsonapi;json:api;dotnet;core;MongoDB</PackageTags>
-    <Description>Persistence layer implementation for use of mongodb in applications using JsonApiDotNetCore</Description>
+    <Description>Persistence layer implementation for use of MongoDB in applications using JsonApiDotNetCore</Description>
     <PackageProjectUrl>https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

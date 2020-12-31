@@ -1,8 +1,12 @@
 # JsonApiDotNetCore MongoDB Repository
 
-Plug-n-play implementation of `IResourceRepository<TResource, TId>` allowing you to use MongoDb with your `JsonApiDotNetCore` APIs.
+Plug-n-play implementation of `IResourceRepository<TResource, TId>` allowing you to use MongoDB with your `JsonApiDotNetCore` APIs.
 
 ## Installation and Usage
+
+```bash
+dotnet add package JsonApiDotNetCore.MongoDb
+```
 
 ### Models
 
@@ -47,18 +51,12 @@ public class Startup
             return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
         });
 
-        services.AddScoped<IResourceRepository<Book, string>, MongoEntityRepository<Book, string>>();
-        services.AddJsonApi(options =>
-        {
-            options.Namespace = "api";
-            options.UseRelativeLinks = true;
-            options.IncludeTotalResourceCount = true;
-            options.SerializerSettings.Formatting = Formatting.Indented;
-        }, resources: builder =>
+        services.AddResourceRepository<MongoDbRepository<Book>>();
+        
+        services.AddJsonApi(resources: builder =>
         {
             builder.Add<Book, string>();
         });
-        // ...
     }
 
     public void Configure(IApplicationBuilder app)
@@ -66,11 +64,10 @@ public class Startup
         app.UseRouting();
         app.UseJsonApi();
         app.UseEndpoints(endpoints => endpoints.MapControllers());
-        // ...
     }
 }
 ```
 
 ## Limitations
 
-- Relations are not supported
+- Relationships are not supported

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Extensions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
@@ -17,33 +16,42 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace JsonApiDotNetCore.MongoDb
 {
-    public class MongoEntityRepository<TResource, TId>
+    /// <summary>
+    /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
+    /// </summary>
+    public class MongoDbRepository<TResource, TId>
         : IResourceRepository<TResource, TId>
         where TResource : class, IIdentifiable<TId>
     {
-        private readonly IMongoDatabase _db;
+        private readonly IMongoDatabase _mongoDatabase;
         private readonly ITargetedFields _targetedFields;
         private readonly IResourceContextProvider _resourceContextProvider;
         private readonly IResourceFactory _resourceFactory;
         
-        public MongoEntityRepository(
-            IMongoDatabase db,
+        public MongoDbRepository(
+            IMongoDatabase mongoDatabase,
             ITargetedFields targetedFields,
             IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory)
         {
-            _db = db;
-            _targetedFields = targetedFields;
-            _resourceContextProvider = resourceContextProvider;
-            _resourceFactory = resourceFactory;
+            _mongoDatabase = mongoDatabase ?? throw new ArgumentNullException(nameof(mongoDatabase));
+            _targetedFields = targetedFields ?? throw new ArgumentNullException(nameof(targetedFields));
+            _resourceContextProvider = resourceContextProvider ?? throw new ArgumentNullException(nameof(resourceContextProvider));
+            _resourceFactory = resourceFactory ?? throw new ArgumentNullException(nameof(resourceFactory));
         }
 
-        private IMongoCollection<TResource> Collection => _db.GetCollection<TResource>(typeof(TResource).Name);
-        private IMongoQueryable<TResource> Entities => Collection.AsQueryable();
+        protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
 
-        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer, CancellationToken cancellationToken) =>
-            await ApplyQueryLayer(layer).ToListAsync();
+        /// <inheritdoc />
+        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer,
+            CancellationToken cancellationToken)
+        {
+            if (layer == null) throw new ArgumentNullException(nameof(layer));
+            var list = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
+            return list.AsReadOnly();
+        }
 
+        /// <inheritdoc />
         public virtual Task<int> CountAsync(FilterExpression topFilter, CancellationToken cancellationToken)
         {
             var resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
@@ -55,79 +63,12 @@ namespace JsonApiDotNetCore.MongoDb
             var query = ApplyQueryLayer(layer);
             return query.CountAsync(cancellationToken);
         }
-
-        public virtual Task<TResource> GetForCreateAsync(TId id, CancellationToken cancellationToken)
-        {
-            var resource = _resourceFactory.CreateInstance<TResource>();
-            resource.Id = id;
-
-            return Task.FromResult(resource);
-        }
-
-        public virtual Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
-            CancellationToken cancellationToken)
-        {
-            if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
-            if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
-            
-            foreach (var attribute in _targetedFields.Attributes)
-            {
-                attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
-            }
-
-            return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
-        }
-
-        public virtual async Task<TResource> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
-        {
-            var resources = await GetAsync(queryLayer, cancellationToken);
-            return resources.FirstOrDefault();
-        }
-
-        public virtual async Task UpdateAsync(TResource requestResource, TResource databaseResource, CancellationToken cancellationToken)
-        {
-            foreach (var attr in _targetedFields.Attributes)
-                attr.SetValue(databaseResource, attr.GetValue(requestResource));
-
-            await Collection.ReplaceOneAsync(
-                Builders<TResource>.Filter.Eq(e => e.Id, databaseResource.Id),
-                databaseResource,
-                new ReplaceOptions(),
-                cancellationToken);
-        }
-
-        public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
-        {
-            var result = await Collection.DeleteOneAsync(
-                Builders<TResource>.Filter.Eq(e => e.Id, id),
-                new DeleteOptions(),
-                cancellationToken);
-
-            if (!result.IsAcknowledged || result.DeletedCount == 0)
-            {
-                throw new DataStoreUpdateException(new Exception());
-            }
-        }
-
-        public virtual Task SetRelationshipAsync(TResource primaryResource, object secondaryResourceIds, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual Task AddToToManyRelationshipAsync(TId primaryId, ISet<IIdentifiable> secondaryResourceIds, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual Task RemoveFromToManyRelationshipAsync(TResource primaryResource, ISet<IIdentifiable> secondaryResourceIds,
-            CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
-            var source = Entities;
+            if (layer == null) throw new ArgumentNullException(nameof(layer));
+            
+            var source = GetAll();
 
             var nameFactory = new LambdaParameterNameFactory();
             var builder = new QueryableBuilder(
@@ -142,12 +83,121 @@ namespace JsonApiDotNetCore.MongoDb
             var expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
         }
+        
+        protected virtual IQueryable<TResource> GetAll()
+        {
+            return Collection.AsQueryable();
+        }
+
+        /// <inheritdoc />
+        public virtual Task<TResource> GetForCreateAsync(TId id, CancellationToken cancellationToken)
+        {
+            var resource = _resourceFactory.CreateInstance<TResource>();
+            resource.Id = id;
+
+            return Task.FromResult(resource);
+        }
+
+        /// <inheritdoc />
+        public virtual Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
+            CancellationToken cancellationToken)
+        {
+            if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
+            if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
+            
+            foreach (var attribute in _targetedFields.Attributes)
+            {
+                attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
+            }
+
+            return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<TResource> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
+        {
+            var resources = await GetAsync(queryLayer, cancellationToken);
+            return resources.FirstOrDefault();
+        }
+
+        /// <inheritdoc />
+        public virtual async Task UpdateAsync(TResource resourceFromRequest, TResource resourceFromDatabase, CancellationToken cancellationToken)
+        {
+            if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
+            if (resourceFromDatabase == null) throw new ArgumentNullException(nameof(resourceFromDatabase));
+            
+            foreach (var attr in _targetedFields.Attributes)
+                attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
+
+            await Collection.ReplaceOneAsync(
+                Builders<TResource>.Filter.Eq(e => e.Id, resourceFromDatabase.Id),
+                resourceFromDatabase,
+                new ReplaceOptions(),
+                cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
+        {
+            var result = await Collection.DeleteOneAsync(
+                Builders<TResource>.Filter.Eq(e => e.Id, id),
+                new DeleteOptions(),
+                cancellationToken);
+
+            if (!result.IsAcknowledged)
+            {
+                throw new DataStoreUpdateException(new Exception("Delete operation was not acknowledged by MongoDB"));
+            }
+
+            if (result.DeletedCount == 0)
+            {
+                throw new DataStoreUpdateException(new Exception($"No documents were deleted. The id that was being sought was: {id}"));
+            }
+        }
+
+        /// <inheritdoc />
+        public virtual Task SetRelationshipAsync(TResource primaryResource, object secondaryResourceIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public virtual Task AddToToManyRelationshipAsync(TId primaryId, ISet<IIdentifiable> secondaryResourceIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public virtual Task RemoveFromToManyRelationshipAsync(TResource primaryResource,
+            ISet<IIdentifiable> secondaryResourceIds,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    
+    /// <summary>
+    /// Implements the foundational repository implementation that uses MongoDB.
+    /// </summary>
+    public class MongoDbRepository<TResource> : MongoDbRepository<TResource, string>
+        where TResource : class, IIdentifiable<string>
+    {
+        public MongoDbRepository(
+            IMongoDatabase mongoDatabase,
+            ITargetedFields targetedFields,
+            IResourceContextProvider resourceContextProvider,
+            IResourceFactory resourceFactory)
+            : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory)
+        {
+        }
     }
 
     internal sealed class DummyModel : IModel
     {
         public static IModel Instance { get; } = new DummyModel();
 
+        public object this[string name] => throw new NotImplementedException();
+        
         private DummyModel()
         {
         }
@@ -161,8 +211,6 @@ namespace JsonApiDotNetCore.MongoDb
         {
             throw new NotImplementedException();
         }
-
-        public object this[string name] => throw new NotImplementedException();
 
         public IEnumerable<IEntityType> GetEntityTypes()
         {
