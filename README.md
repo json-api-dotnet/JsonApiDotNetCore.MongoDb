@@ -71,6 +71,35 @@ public class Startup
 }
 ```
 
+
+## Development
+
+Restore all NuGet packages with:
+
+```bash
+dotnet restore
+```
+
+### Testing
+
+You don't need to have a running instance of MongoDB on your machine. To run the tests just type the following command in your terminal:
+
+```bash
+dotnet test
+```
+
+If you want to run the examples and explore them on your own **you are** going to need that running instance of MongoDB. If you have docker installed you can launch it like this:
+
+```bash
+docker run -p 27017:27017 -d mongo:latest
+```
+
+And then to run the API:
+
+```bash
+dotnet run
+```
+
 ## Limitations
 
 - Relationships are not supported
