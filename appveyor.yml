@@ -1,0 +1,44 @@
+version: '{build}'
+os: Visual Studio 2019
+
+pull_requests:
+  do_not_increment_build_number: true
+
+branches:
+  only:
+  - master
+  - /release\/.+/
+
+nuget:
+  disable_publish_on_pr: true
+
+services:  
+  - mongodb
+
+build_script:
+- pwsh: dotnet --version
+- pwsh: .\Build.ps1
+
+test: off
+
+artifacts:
+- path: .\**\artifacts\**\*.nupkg
+  name: NuGet
+
+deploy:
+- provider: NuGet
+  name: production
+  skip_symbols: false
+  api_key:
+    secure: ogA5YOVPy9v1Vd623/Jf79dzYlCb5NrXb1e7uHolnyVYTWVz7MporZ+KTVFpAQci
+  on:
+    branch: master
+    appveyor_repo_tag: true
+
+- provider: NuGet
+  skip_symbols: false
+  api_key:
+    secure: ogA5YOVPy9v1Vd623/Jf79dzYlCb5NrXb1e7uHolnyVYTWVz7MporZ+KTVFpAQci
+  on:
+    branch: /release\/.+/
+    appveyor_repo_tag: true
