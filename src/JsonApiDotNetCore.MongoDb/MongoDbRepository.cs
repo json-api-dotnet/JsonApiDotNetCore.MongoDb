@@ -47,8 +47,9 @@ namespace JsonApiDotNetCore.MongoDb
             CancellationToken cancellationToken)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
-            var list = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
-            return list.AsReadOnly();
+            
+            var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
+            return resources.AsReadOnly();
         }
 
         /// <inheritdoc />
@@ -146,12 +147,12 @@ namespace JsonApiDotNetCore.MongoDb
 
             if (!result.IsAcknowledged)
             {
-                throw new DataStoreUpdateException(new Exception("Delete operation was not acknowledged by MongoDB"));
+                throw new DataStoreUpdateException(new Exception($"Failed to delete document with id '{id}', because the operation was not acknowledged by MongoDB."));
             }
 
             if (result.DeletedCount == 0)
             {
-                throw new DataStoreUpdateException(new Exception($"No documents were deleted. The id that was being sought was: {id}"));
+                throw new DataStoreUpdateException(new Exception($"Failed to delete document with id '{id}', because it does not exist."));
             }
         }
 
@@ -177,7 +178,7 @@ namespace JsonApiDotNetCore.MongoDb
     }
     
     /// <summary>
-    /// Implements the foundational repository implementation that uses MongoDB.
+    /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
     public class MongoDbRepository<TResource> : MongoDbRepository<TResource, string>
         where TResource : class, IIdentifiable<string>
