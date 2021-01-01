@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <NetCoreAppVersion>netcoreapp3.1</NetCoreAppVersion>
+    <AspNetCoreVersion>3.1.*</AspNetCoreVersion>
+    <JsonApiDotNetCoreVersion>4.0.*</JsonApiDotNetCoreVersion>
+    <MongoDBDriverVersion>2.11.*</MongoDBDriverVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Test Project Dependencies -->
+  <PropertyGroup>
+    <XUnitVersion>2.4.1</XUnitVersion>
+    <FluentAssertionsVersion>5.10.3</FluentAssertionsVersion>
+    <BogusVersion>31.0.3</BogusVersion>
+    <MoqVersion>4.14.6</MoqVersion>
+  </PropertyGroup>
+</Project>
