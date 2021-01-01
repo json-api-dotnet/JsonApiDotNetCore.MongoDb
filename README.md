@@ -1,6 +1,6 @@
-# JsonApiDotNetCore MongoDB Repository
+# MongoDB support for JsonApiDotNetCore
 
-Plug-n-play implementation of `IResourceRepository<TResource, TId>` allowing you to use MongoDB with your `JsonApiDotNetCore` APIs.
+Plug-n-play implementation of `IResourceRepository<TResource, TId>` allowing you to use [MongoDB](https://www.mongodb.com/) with your [JsonApiDotNetCore](https://github.com/json-api-dotnet/JsonApiDotNetCore) APIs.
 
 ## Installation and Usage
 
