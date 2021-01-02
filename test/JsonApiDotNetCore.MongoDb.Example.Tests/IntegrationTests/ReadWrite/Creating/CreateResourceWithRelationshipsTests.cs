@@ -83,7 +83,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
             responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("include");
         }
 
         [Fact]
@@ -130,7 +129,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
             responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("include");
         }
 
         [Fact]
@@ -172,7 +170,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
             responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("include");
         }
     }
 }

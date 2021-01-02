@@ -91,7 +91,7 @@ namespace JsonApiDotNetCore.MongoDb
 
         private void AssertNoInclude(QueryLayer layer)
         {
-            if (layer.Include != null)
+            if (layer.Include != null && layer.Include.Elements.Count > 0)
             {
                 throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
                 {
@@ -125,12 +125,29 @@ namespace JsonApiDotNetCore.MongoDb
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
             
+            AssertNoRelationship(resourceFromRequest);
+            
             foreach (var attribute in _targetedFields.Attributes)
             {
                 attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
             }
 
             return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
+        }
+
+        private void AssertNoRelationship(TResource resourceFromRequest)
+        {
+            foreach (var relationship in _targetedFields.Relationships)
+            {
+                var rightResources = relationship.GetValue(resourceFromRequest);
+                if (rightResources != null)
+                {
+                    throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
+                    {
+                        Title = "Relationships are not supported when using MongoDB."
+                    });
+                }
+            }
         }
 
         /// <inheritdoc />

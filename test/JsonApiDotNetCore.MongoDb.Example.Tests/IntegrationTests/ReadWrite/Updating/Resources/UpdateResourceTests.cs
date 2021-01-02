@@ -245,7 +245,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Upd
             responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
             responseDocument.SingleData.Attributes["priority"].Should().Be(existingWorkItem.Priority.ToString("G"));
             responseDocument.SingleData.Attributes.Should().ContainKey("concurrencyToken");
-            // responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {

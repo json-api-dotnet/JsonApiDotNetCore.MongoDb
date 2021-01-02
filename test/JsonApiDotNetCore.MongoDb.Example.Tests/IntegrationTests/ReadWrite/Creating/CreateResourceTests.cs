@@ -104,7 +104,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
             responseDocument.SingleData.Attributes["dueAt"].Should().Be(newWorkItem.DueAt);
-            // responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -152,7 +151,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.SingleData.Should().NotBeNull();
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
-            // responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -200,7 +198,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.SingleData.Should().NotBeNull();
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes.Should().NotBeEmpty();
-            // responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
