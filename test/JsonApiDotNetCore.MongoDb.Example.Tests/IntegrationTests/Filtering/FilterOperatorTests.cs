@@ -64,12 +64,31 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
             responseDocument.ManyData.Should().HaveCount(1);
             responseDocument.ManyData[0].Attributes["someString"].Should().Be(resource.SomeString);
         }
-
+        
         [Fact]
-        public async Task Cannot_filter_equality_on_two_attributes_of_incompatible_types()
+        public async Task Cannot_filter_equality_on_two_attributes()
         {
             // Arrange
-            var route = "/filterableResources?filter=equals(someDouble,someTimeSpan)";
+            var resource = new FilterableResource
+            {
+                SomeInt32 = 5,
+                OtherInt32 = 5
+            };
+
+            var otherResource = new FilterableResource
+            {
+                SomeInt32 = 5,
+                OtherInt32 = 10
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                var collection = db.GetCollection<FilterableResource>(nameof(FilterableResource));
+                await collection.DeleteManyAsync(Builders<FilterableResource>.Filter.Empty);
+                await collection.InsertManyAsync(new[] {resource, otherResource});
+            });
+
+            var route = "/filterableResources?filter=equals(someInt32,otherInt32)";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -79,9 +98,8 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
 
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Query creation failed due to incompatible types.");
-            responseDocument.Errors[0].Detail.Should().Be("No coercion operator is defined between types 'System.TimeSpan' and 'System.Double'.");
-            responseDocument.Errors[0].Source.Parameter.Should().BeNull();
+            responseDocument.Errors[0].Title.Should().Be("MongoDB does not allow comparing two fields to each other, only constants.");
+            responseDocument.Errors[0].Detail.Should().Be("Unsupported filter: ({document}{SomeInt32} == {document}{OtherInt32}).");
         }
 
         [Theory]

@@ -50,9 +50,20 @@ namespace JsonApiDotNetCore.MongoDb
             CancellationToken cancellationToken)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
-            
-            var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
-            return resources.AsReadOnly();
+
+            try
+            {
+                var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
+                return resources.AsReadOnly();
+            }
+            catch (ArgumentException e)
+            {
+                throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
+                {
+                    Title = "MongoDB does not allow comparing two fields to each other, only constants.",
+                    Detail = e.Message
+                });
+            }
         }
 
         /// <inheritdoc />
