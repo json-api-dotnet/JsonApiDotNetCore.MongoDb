@@ -3,6 +3,7 @@ using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
 {
@@ -21,6 +22,11 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
 
         [Attr]
         public WorkItemPriority Priority { get; set; }
+        
+        [HasOne]
+        [BsonIgnore]
+        public UserAccount Assignee { get; set; }
+        public MongoDBRef AssigneeId => new MongoDBRef(nameof(UserAccount), Assignee.Id);
 
         [BsonIgnore]
         [Attr(Capabilities = ~(AttrCapabilities.AllowCreate | AttrCapabilities.AllowChange))]

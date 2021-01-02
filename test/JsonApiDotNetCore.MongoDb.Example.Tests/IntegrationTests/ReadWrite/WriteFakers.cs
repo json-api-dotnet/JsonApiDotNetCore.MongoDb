@@ -23,6 +23,12 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
             new Faker<RgbColor>()
                 .UseSeed(GetFakerSeed())
                 .RuleFor(color => color.DisplayName, f => f.Lorem.Word()));
+        
+        private readonly Lazy<Faker<WorkItemGroup>> _lazyWorkItemGroupFaker = new Lazy<Faker<WorkItemGroup>>(() =>
+            new Faker<WorkItemGroup>()
+                .UseSeed(GetFakerSeed())
+                .RuleFor(group => group.Name, f => f.Lorem.Word())
+                .RuleFor(group => group.IsPublic, f => f.Random.Bool()));
 
         private readonly Lazy<Faker<Movie>> _lazyMovieFaker = new Lazy<Faker<Movie>>(() =>
             new Faker<Movie>()
@@ -35,6 +41,7 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
         public Faker<WorkItem> WorkItem => _lazyWorkItemFaker.Value;
         public Faker<UserAccount> UserAccount => _lazyUserAccountFaker.Value;
         public Faker<RgbColor> RgbColor => _lazyRgbColorFaker.Value;
+        public Faker<WorkItemGroup> WorkItemGroup => _lazyWorkItemGroupFaker.Value;
         public Faker<Movie> Movie => _lazyMovieFaker.Value;
         public Faker<Director> Director => _lazyDirectorFaker.Value;
     }
