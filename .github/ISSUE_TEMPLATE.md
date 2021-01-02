@@ -15,6 +15,6 @@ _Consider to include your code here, such as models, controllers, resource servi
 #### ACTUAL BEHAVIOR
 
 #### VERSIONS USED
-- JsonApiDotNetCore version:
+- JsonApiDotNetCore.MongoDB version:
 - ASP.NET Core version:
 - MongoDB version:
