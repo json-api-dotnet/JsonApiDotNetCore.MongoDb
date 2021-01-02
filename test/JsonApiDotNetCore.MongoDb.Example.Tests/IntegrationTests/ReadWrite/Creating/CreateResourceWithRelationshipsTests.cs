@@ -171,5 +171,54 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Cre
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
             responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
         }
+
+        [Fact]
+        public async Task Cannot_create_HasMany_relationship()
+        {
+            // Arrange
+            var existingUserAccounts = _fakers.UserAccount.Generate(2);
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertManyAsync(existingUserAccounts));
+
+            var requestBody = new
+            {
+                data = new
+                {
+                    type = "workItems",
+                    relationships = new
+                    {
+                        subscribers = new
+                        {
+                            data = new[]
+                            {
+                                new
+                                {
+                                    type = "userAccounts",
+                                    id = existingUserAccounts[0].StringId
+                                },
+                                new
+                                {
+                                    type = "userAccounts",
+                                    id = existingUserAccounts[1].StringId
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var route = "/workItems";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+            
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+            
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+        }
     }
 }
