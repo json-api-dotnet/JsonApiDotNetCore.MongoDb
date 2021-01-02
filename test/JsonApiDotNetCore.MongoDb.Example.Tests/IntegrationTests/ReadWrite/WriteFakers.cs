@@ -1,5 +1,6 @@
 using System;
 using Bogus;
+using JsonApiDotNetCore.MongoDb.Example.Tests.Helpers.Models;
 
 namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
 {
@@ -23,8 +24,18 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
                 .UseSeed(GetFakerSeed())
                 .RuleFor(color => color.DisplayName, f => f.Lorem.Word()));
 
+        private readonly Lazy<Faker<Movie>> _lazyMovieFaker = new Lazy<Faker<Movie>>(() =>
+            new Faker<Movie>()
+                .RuleFor(movie => movie.Name, f => f.Lorem.Sentence()));
+        
+        private readonly Lazy<Faker<Director>> _lazyDirectorFaker = new Lazy<Faker<Director>>(() =>
+            new Faker<Director>()
+                .RuleFor(director => director.Name, f => f.Name.FindName()));
+
         public Faker<WorkItem> WorkItem => _lazyWorkItemFaker.Value;
         public Faker<UserAccount> UserAccount => _lazyUserAccountFaker.Value;
         public Faker<RgbColor> RgbColor => _lazyRgbColorFaker.Value;
+        public Faker<Movie> Movie => _lazyMovieFaker.Value;
+        public Faker<Director> Director => _lazyDirectorFaker.Value;
     }
 }

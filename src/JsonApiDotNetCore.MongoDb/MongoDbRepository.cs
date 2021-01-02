@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
@@ -11,6 +13,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
+using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -68,6 +71,7 @@ namespace JsonApiDotNetCore.MongoDb
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
+            AssertNoInclude(layer);
             
             var source = GetAll();
 
@@ -83,6 +87,21 @@ namespace JsonApiDotNetCore.MongoDb
 
             var expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
+        }
+
+        private void AssertNoInclude(QueryLayer layer)
+        {
+            if (layer.Include != null)
+            {
+                throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
+                {
+                    Title = "Relationships are not supported when using MongoDB.",
+                    Source = new ErrorSource
+                    {
+                        Parameter = "include"
+                    }
+                });
+            }
         }
         
         protected virtual IQueryable<TResource> GetAll()

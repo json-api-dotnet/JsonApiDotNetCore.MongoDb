@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Example.Tests.Helpers.Models;
 using JsonApiDotNetCore.Serialization.Objects;
 using MongoDB.Driver;
 using Xunit;
@@ -21,11 +22,14 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Fet
             
             _testContext.RegisterResources(builder =>
             {
+                builder.Add<Director, string>();
+                builder.Add<Movie, string>();
                 builder.Add<WorkItem, string>();
             });
             
             _testContext.ConfigureServicesAfterStartup(services =>
             {
+                services.AddResourceRepository<MongoDbRepository<Movie>>();
                 services.AddResourceRepository<MongoDbRepository<WorkItem>>();
             });
         }
@@ -136,6 +140,33 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite.Fet
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.NotFound);
             responseDocument.Errors[0].Title.Should().Be("The requested resource does not exist.");
             responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID '5f88857c4aa60defec6a4999' does not exist.");
+        }
+        
+        [Fact]
+        public async Task Cannot_get_secondary_HasOne_resource()
+        {
+            // Arrange
+            var director = _fakers.Director.Generate();
+            await _testContext.RunOnDatabaseAsync(async db =>
+                await db.GetCollection<Director>(nameof(Director)).InsertOneAsync(director));
+
+            var movie = _fakers.Movie.Generate();
+            movie.Director = director;
+            await _testContext.RunOnDatabaseAsync(async db =>
+                await db.GetCollection<Movie>(nameof(Movie)).InsertOneAsync(movie));
+
+            var route = $"/movies/{movie.StringId}/director";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Source.Parameter.Should().Be("include");
         }
     }
 }
