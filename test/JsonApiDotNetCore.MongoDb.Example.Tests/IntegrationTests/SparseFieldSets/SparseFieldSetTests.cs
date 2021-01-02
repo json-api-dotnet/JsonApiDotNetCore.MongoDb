@@ -228,5 +228,30 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.SparseFieldSe
             responseDocument.Errors[0].Detail.Should().Be("Retrieving the attribute 'password' is not allowed.");
             responseDocument.Errors[0].Source.Parameter.Should().Be("fields[users]");
         }
+        
+        [Fact]
+        public async Task Cannot_retrieve_all_properties_when_fieldset_contains_readonly_attribute()
+        {
+            // Arrange
+            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+            store.Clear();
+
+            var todoItem = new TodoItem
+            {
+                Description = "Pending work..."
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+                await db.GetCollection<TodoItem>(nameof(TodoItem)).InsertOneAsync(todoItem));
+
+            var route = $"/api/v1/todoItems/{todoItem.StringId}?fields[todoItems]=calculatedValue";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+        }
+
     }
 }
