@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Errors;
-using JsonApiDotNetCore.MongoDb.Internal;
 using JsonApiDotNetCore.MongoDb.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
@@ -48,9 +47,6 @@ namespace JsonApiDotNetCore.MongoDb
             CancellationToken cancellationToken)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
-            
-            var queryExpressionValidator = new MongoDbQueryExpressionValidator();
-            queryExpressionValidator.Validate(layer);
 
             var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
             return resources.AsReadOnly();
@@ -113,7 +109,7 @@ namespace JsonApiDotNetCore.MongoDb
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
             
-            AssertNoRelationship(resourceFromRequest);
+            AssertNoRelationshipsAreTargeted();
             
             foreach (var attribute in _targetedFields.Attributes)
             {
@@ -123,15 +119,11 @@ namespace JsonApiDotNetCore.MongoDb
             return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
         }
 
-        private void AssertNoRelationship(TResource resourceFromRequest)
+        private void AssertNoRelationshipsAreTargeted()
         {
-            foreach (var relationship in _targetedFields.Relationships)
+            if (_targetedFields.Relationships.Any())
             {
-                var rightResources = relationship.GetValue(resourceFromRequest);
-                if (rightResources != null)
-                {
-                    throw new UnsupportedRelationshipException();
-                }
+                throw new UnsupportedRelationshipException();
             }
         }
 
@@ -148,7 +140,7 @@ namespace JsonApiDotNetCore.MongoDb
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceFromDatabase == null) throw new ArgumentNullException(nameof(resourceFromDatabase));
             
-            AssertNoRelationship(resourceFromRequest);
+            AssertNoRelationshipsAreTargeted();
             
             foreach (var attr in _targetedFields.Attributes)
                 attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));

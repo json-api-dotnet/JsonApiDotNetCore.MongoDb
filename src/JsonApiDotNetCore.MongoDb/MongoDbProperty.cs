@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace JsonApiDotNetCore.MongoDb.Internal
+namespace JsonApiDotNetCore.MongoDb
 {
     internal sealed class MongoDbProperty : IProperty
     {

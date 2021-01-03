@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Configuration;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace JsonApiDotNetCore.MongoDb.Internal
+namespace JsonApiDotNetCore.MongoDb
 {
     internal sealed class MongoEntityType : IEntityType
     {

@@ -54,8 +54,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Expressions
         {
             if (expression?.Left is ResourceFieldChainExpression && expression.Right is ResourceFieldChainExpression)
             {
-                // https://jira.mongodb.org/browse/CSHARP-1592
-                throw new UnsupportedComparisonExpressionException();
+                throw new AttributeComparisonInFilterNotSupportedException();
             }
 
             return base.VisitComparison(expression, argument);
