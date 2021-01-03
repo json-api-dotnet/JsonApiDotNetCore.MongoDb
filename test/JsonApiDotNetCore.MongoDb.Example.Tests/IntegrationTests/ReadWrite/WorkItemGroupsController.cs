@@ -1,5 +1,6 @@
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Controllers;
+using JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite;
 using JsonApiDotNetCore.Services;
 using Microsoft.Extensions.Logging;
 

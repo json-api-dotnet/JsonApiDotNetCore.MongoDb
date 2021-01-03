@@ -18,7 +18,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.Helpers.Models
         [HasOne]
         [BsonIgnore]
         public Director Director { get; set; }
-        public MongoDBRef DirectorId => Director != null ? new MongoDBRef(nameof(Director), Director.Id) : null;
 
         [BsonIgnore]
         public string StringId { get => Id; set => Id = value; }

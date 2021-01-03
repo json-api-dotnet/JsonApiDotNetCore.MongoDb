@@ -1,12 +1,10 @@
 using System;
-using JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
 
-namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests
+namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.ReadWrite
 {
     public class WorkItemGroup : IIdentifiable<string>
     {
@@ -28,8 +26,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests
         [HasOne]
         [BsonIgnore]
         public RgbColor Color { get; set; }
-
-        public MongoDBRef ColorId => new MongoDBRef(nameof(RgbColor), Color.Id);
 
         [BsonIgnore]
         public string StringId { get => Id; set => Id = value; }
