@@ -230,7 +230,7 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.SparseFieldSe
         }
         
         [Fact]
-        public async Task Cannot_retrieve_all_properties_when_fieldset_contains_readonly_attribute()
+        public async Task Retrieves_all_properties_when_fieldset_contains_readonly_attribute()
         {
             // Arrange
             var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
@@ -247,10 +247,20 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.SparseFieldSe
             var route = $"/api/v1/todoItems/{todoItem.StringId}?fields[todoItems]=calculatedValue";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+            responseDocument.SingleData.Should().NotBeNull();
+            responseDocument.SingleData.Id.Should().Be(todoItem.StringId);
+            responseDocument.SingleData.Attributes.Should().HaveCount(1);
+            responseDocument.SingleData.Attributes["calculatedValue"].Should().Be(todoItem.CalculatedValue);
+            responseDocument.SingleData.Relationships.Should().BeNull();
+
+            var todoItemCaptured = (TodoItem) store.Resources.Should().ContainSingle(x => x is TodoItem).And.Subject.Single();
+            todoItemCaptured.CalculatedValue.Should().Be(todoItem.CalculatedValue);
+            todoItemCaptured.Description.Should().Be(todoItem.Description);
         }
 
     }

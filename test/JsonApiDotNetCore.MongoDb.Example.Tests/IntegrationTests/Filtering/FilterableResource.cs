@@ -49,7 +49,9 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
         [Attr] public DayOfWeek SomeEnum { get; set; }
         [Attr] public DayOfWeek? SomeNullableEnum { get; set; }
 
-        [HasMany] public ICollection<FilterableResource> Children { get; set; }
+        [HasMany]
+        [BsonIgnore]
+        public ICollection<FilterableResource> Children { get; set; }
         
         [BsonIgnore]
         public string StringId { get => Id; set => Id = value; }

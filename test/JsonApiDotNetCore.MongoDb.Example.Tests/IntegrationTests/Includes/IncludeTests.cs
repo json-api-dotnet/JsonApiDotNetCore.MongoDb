@@ -73,7 +73,6 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Includes
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
             responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("include");
         }
     }
 }

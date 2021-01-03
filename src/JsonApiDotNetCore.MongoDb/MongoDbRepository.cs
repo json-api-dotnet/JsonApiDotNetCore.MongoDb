@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.Errors;
+using JsonApiDotNetCore.MongoDb.Errors;
+using JsonApiDotNetCore.MongoDb.Internal;
+using JsonApiDotNetCore.MongoDb.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
@@ -13,9 +14,6 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
-using JsonApiDotNetCore.Serialization.Objects;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace JsonApiDotNetCore.MongoDb
 {
@@ -30,7 +28,7 @@ namespace JsonApiDotNetCore.MongoDb
         private readonly ITargetedFields _targetedFields;
         private readonly IResourceContextProvider _resourceContextProvider;
         private readonly IResourceFactory _resourceFactory;
-        
+
         public MongoDbRepository(
             IMongoDatabase mongoDatabase,
             ITargetedFields targetedFields,
@@ -50,20 +48,12 @@ namespace JsonApiDotNetCore.MongoDb
             CancellationToken cancellationToken)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
+            
+            var queryExpressionValidator = new MongoDbQueryExpressionValidator();
+            queryExpressionValidator.Validate(layer);
 
-            try
-            {
-                var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
-                return resources.AsReadOnly();
-            }
-            catch (ArgumentException e)
-            {
-                throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
-                {
-                    Title = "MongoDB does not allow comparing two fields to each other, only constants.",
-                    Detail = e.Message
-                });
-            }
+            var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
+            return resources.AsReadOnly();
         }
 
         /// <inheritdoc />
@@ -82,7 +72,9 @@ namespace JsonApiDotNetCore.MongoDb
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
-            AssertNoInclude(layer);
+
+            var queryExpressionValidator = new MongoDbQueryExpressionValidator();
+            queryExpressionValidator.Validate(layer);
             
             var source = GetAll();
 
@@ -94,25 +86,10 @@ namespace JsonApiDotNetCore.MongoDb
                 nameFactory,
                 _resourceFactory,
                 _resourceContextProvider,
-                DummyModel.Instance);
+                new MongoDbModel(_resourceContextProvider));
 
             var expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
-        }
-
-        private void AssertNoInclude(QueryLayer layer)
-        {
-            if (layer.Include != null && layer.Include.Elements.Count > 0)
-            {
-                throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
-                {
-                    Title = "Relationships are not supported when using MongoDB.",
-                    Source = new ErrorSource
-                    {
-                        Parameter = "include"
-                    }
-                });
-            }
         }
         
         protected virtual IQueryable<TResource> GetAll()
@@ -153,10 +130,7 @@ namespace JsonApiDotNetCore.MongoDb
                 var rightResources = relationship.GetValue(resourceFromRequest);
                 if (rightResources != null)
                 {
-                    throw new JsonApiException(new Error(HttpStatusCode.BadRequest)
-                    {
-                        Title = "Relationships are not supported when using MongoDB."
-                    });
+                    throw new UnsupportedRelationshipException();
                 }
             }
         }
@@ -173,6 +147,8 @@ namespace JsonApiDotNetCore.MongoDb
         {
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceFromDatabase == null) throw new ArgumentNullException(nameof(resourceFromDatabase));
+            
+            AssertNoRelationship(resourceFromRequest);
             
             foreach (var attr in _targetedFields.Attributes)
                 attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
@@ -237,42 +213,6 @@ namespace JsonApiDotNetCore.MongoDb
             IResourceFactory resourceFactory)
             : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory)
         {
-        }
-    }
-
-    internal sealed class DummyModel : IModel
-    {
-        public static IModel Instance { get; } = new DummyModel();
-
-        public object this[string name] => throw new NotImplementedException();
-        
-        private DummyModel()
-        {
-        }
-
-        public IAnnotation FindAnnotation(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<IAnnotation> GetAnnotations()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<IEntityType> GetEntityTypes()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEntityType FindEntityType(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEntityType FindEntityType(string name, string definingNavigationName, IEntityType definingEntityType)
-        {
-            throw new NotImplementedException();
         }
     }
 }

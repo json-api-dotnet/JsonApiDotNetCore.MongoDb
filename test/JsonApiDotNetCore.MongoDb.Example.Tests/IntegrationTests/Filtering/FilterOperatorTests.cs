@@ -98,8 +98,7 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
 
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("MongoDB does not allow comparing two fields to each other, only constants.");
-            responseDocument.Errors[0].Detail.Should().Be("Unsupported filter: ({document}{SomeInt32} == {document}{OtherInt32}).");
+            responseDocument.Errors[0].Title.Should().Be("Comparing attributes against each other is not supported when using MongoDB.");
         }
 
         [Theory]
@@ -299,7 +298,7 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
         }
 
         [Fact]
-        public async Task Can_filter_on_has()
+        public async Task Cannot_filter_on_has()
         {
             // Arrange
             var resource = new FilterableResource
@@ -320,17 +319,18 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
             var route = "/filterableResources?filter=has(children)";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(resource.StringId);
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
         }
 
         [Fact]
-        public async Task Can_filter_on_count()
+        public async Task Cannot_filter_on_count()
         {
             // Arrange
             var resource = new FilterableResource
@@ -352,13 +352,14 @@ namespace JsonApiDotNetCore.MongoDb.Example.Tests.IntegrationTests.Filtering
             var route = "/filterableResources?filter=equals(count(children),'2')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(resource.StringId);
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
         }
 
         [Theory]
