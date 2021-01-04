@@ -14,18 +14,10 @@ dotnet add package JsonApiDotNetCore.MongoDb
 ### Models
 
 ```cs
-public sealed class Book : IIdentifiable<string>
+public sealed class Book : MongoDbIdentifiable
 {
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    [Attr]
-    public string Id { get; set; }
-
     [Attr]
     public string Name { get; set; }
-
-    [BsonIgnore]
-    public string StringId { get => Id; set => Id = value; }
 }
 ```
 
