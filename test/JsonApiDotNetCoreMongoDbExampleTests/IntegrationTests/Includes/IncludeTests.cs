@@ -1,0 +1,64 @@
+using System.Net;
+using System.Threading.Tasks;
+using FluentAssertions;
+using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb;
+using JsonApiDotNetCore.Serialization.Objects;
+using JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
+{
+    public sealed class IncludeTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    {
+        private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly WriteFakers _fakers = new WriteFakers();
+
+        public IncludeTests(IntegrationTestContext<TestableStartup> testContext)
+        {
+            _testContext = testContext;
+            
+            _testContext.RegisterResources(builder =>
+            {
+                builder.Add<WorkItem, string>();
+                builder.Add<UserAccount, string>();
+            });
+            
+            _testContext.ConfigureServicesAfterStartup(services =>
+            {
+                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
+            });
+            
+            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            options.MaximumIncludeDepth = null;
+        }
+
+        [Fact]
+        public async Task Cannot_include_in_primary_resources()
+        {
+            // Arrange
+            var workItem = _fakers.WorkItem.Generate();
+            workItem.Assignee = _fakers.UserAccount.Generate();
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(workItem.Assignee);
+                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(workItem);
+            });
+
+            var route = "/workItems?include=assignee";
+            
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+            
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+    }
+}

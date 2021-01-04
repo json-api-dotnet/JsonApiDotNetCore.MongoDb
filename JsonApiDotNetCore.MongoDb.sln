@@ -5,15 +5,15 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7E29AA10-F938-4CF8-9CAB-7ACD2D6DC784}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCore.MongoDb.GettingStarted", "src\JsonApiDotNetCore.MongoDb.GettingStarted\JsonApiDotNetCore.MongoDb.GettingStarted.csproj", "{600A3E66-E63F-427D-A991-4CD2067041F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GettingStarted", "src\GettingStarted\GettingStarted.csproj", "{600A3E66-E63F-427D-A991-4CD2067041F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCore.MongoDb", "src\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj", "{FD312677-2A62-4B8F-A965-879B059F1755}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{19A533AA-E006-496D-A476-364DF2B637A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCore.MongoDb.Example.Tests", "test\JsonApiDotNetCore.MongoDb.Example.Tests\JsonApiDotNetCore.MongoDb.Example.Tests.csproj", "{24CE53FA-9C49-4E20-A060-4A43DFB8C8F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCoreMongoDbExampleTests", "test\JsonApiDotNetCoreMongoDbExampleTests\JsonApiDotNetCoreMongoDbExampleTests.csproj", "{24CE53FA-9C49-4E20-A060-4A43DFB8C8F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCore.MongoDb.Example", "src\JsonApiDotNetCore.MongoDb.Example\JsonApiDotNetCore.MongoDb.Example.csproj", "{743C32A5-2584-4FA0-987B-B4E97CDAADE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonApiDotNetCoreMongoDbExample", "src\JsonApiDotNetCoreMongoDbExample\JsonApiDotNetCoreMongoDbExample.csproj", "{743C32A5-2584-4FA0-987B-B4E97CDAADE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
