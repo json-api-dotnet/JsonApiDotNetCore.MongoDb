@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -93,33 +94,70 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
             await asyncAction(db);
         }
 
-        public Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteGetAsync<TResponseDocument>(string requestUrl) =>
-            ExecuteRequestAsync<TResponseDocument>(HttpMethod.Get, requestUrl);
+        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)>
+            ExecuteGetAsync<TResponseDocument>(string requestUrl,
+                IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
+        {
+            return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Get, requestUrl, null, null, acceptHeaders);
+        }
 
-        public Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePostAsync<TResponseDocument>(string requestUrl, object requestBody) =>
-            ExecuteRequestAsync<TResponseDocument>(HttpMethod.Post, requestUrl, requestBody);
+        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)>
+            ExecutePostAsync<TResponseDocument>(string requestUrl, object requestBody,
+                string contentType = HeaderConstants.MediaType,
+                IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
+        {
+            return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Post, requestUrl, requestBody, contentType,
+                acceptHeaders);
+        }
 
-        public Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePatchAsync<TResponseDocument>(string requestUrl, object requestBody) =>
-            ExecuteRequestAsync<TResponseDocument>(HttpMethod.Patch, requestUrl, requestBody);
+        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)>
+            ExecutePatchAsync<TResponseDocument>(string requestUrl, object requestBody,
+                string contentType = HeaderConstants.MediaType,
+                IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
+        {
+            return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Patch, requestUrl, requestBody, contentType,
+                acceptHeaders);
+        }
 
-        public Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteDeleteAsync<TResponseDocument>(string requestUrl) =>
-            ExecuteRequestAsync<TResponseDocument>(HttpMethod.Delete, requestUrl);
+        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)>
+            ExecuteDeleteAsync<TResponseDocument>(string requestUrl, object requestBody = null,
+                string contentType = HeaderConstants.MediaType,
+                IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
+        {
+            return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Delete, requestUrl, requestBody, contentType,
+                acceptHeaders);
+        }
 
-        private async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteRequestAsync<TResponseDocument>(HttpMethod method, string requestUrl, object requestBody = null)
+        private async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)>
+            ExecuteRequestAsync<TResponseDocument>(HttpMethod method, string requestUrl, object requestBody,
+                string contentType, IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders)
         {
             var request = new HttpRequestMessage(method, requestUrl);
-            var requestText = SerializeRequest(requestBody);
+            string requestText = SerializeRequest(requestBody);
 
             if (!string.IsNullOrEmpty(requestText))
             {
                 request.Content = new StringContent(requestText);
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue(HeaderConstants.MediaType);
+
+                if (contentType != null)
+                {
+                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                }
             }
 
-            using var client = Factory.CreateClient();
-            var responseMessage = await client.SendAsync(request);
+            using HttpClient client = Factory.CreateClient();
 
-            var responseText = await responseMessage.Content.ReadAsStringAsync();
+            if (acceptHeaders != null)
+            {
+                foreach (var acceptHeader in acceptHeaders)
+                {
+                    client.DefaultRequestHeaders.Accept.Add(acceptHeader);
+                }
+            }
+
+            HttpResponseMessage responseMessage = await client.SendAsync(request);
+
+            string responseText = await responseMessage.Content.ReadAsStringAsync();
             var responseDocument = DeserializeResponse<TResponseDocument>(responseText);
 
             return (responseMessage, responseDocument);
