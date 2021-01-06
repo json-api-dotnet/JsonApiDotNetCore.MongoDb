@@ -17,7 +17,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
     public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<Startup>>
     {
         private readonly IntegrationTestContext<Startup> _testContext;
-        private readonly Faker<User> _userFaker;
 
         public SparseFieldSetTests(IntegrationTestContext<Startup> testContext)
         {
@@ -34,10 +33,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
                 services.AddScoped<IResourceService<Article, string>, JsonApiResourceService<Article, string>>();
             });
-            
-            _userFaker = new Faker<User>()
-                .RuleFor(u => u.UserName, f => f.Internet.UserName())
-                .RuleFor(u => u.Password, f => f.Internet.Password());
         }
 
         [Fact]
@@ -210,27 +205,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.Errors[0].Title.Should().Be("The specified fieldset is invalid.");
             responseDocument.Errors[0].Detail.Should().Be("Resource type 'doesNotExist' does not exist.");
             responseDocument.Errors[0].Source.Parameter.Should().Be("fields[doesNotExist]");
-        }
-
-        [Fact]
-        public async Task Cannot_select_attribute_with_blocked_capability()
-        {
-            // Arrange
-            var user = _userFaker.Generate();
-
-            var route = $"/api/v1/users/{user.Id}?fields[users]=password";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Retrieving the requested attribute is not allowed.");
-            responseDocument.Errors[0].Detail.Should().Be("Retrieving the attribute 'password' is not allowed.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("fields[users]");
         }
         
         [Fact]

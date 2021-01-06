@@ -43,7 +43,6 @@ namespace JsonApiDotNetCoreMongoDbExample
                     builder.Add<Blog, string>();
                     builder.Add<Person, string>();
                     builder.Add<TodoItem, string>();
-                    builder.Add<User, string>();
                 });
             
             services.AddResourceRepository<MongoDbRepository<Article>>();
@@ -51,7 +50,6 @@ namespace JsonApiDotNetCoreMongoDbExample
             services.AddResourceRepository<MongoDbRepository<Blog>>();
             services.AddResourceRepository<MongoDbRepository<Person>>();
             services.AddResourceRepository<MongoDbRepository<TodoItem>>();
-            services.AddResourceRepository<MongoDbRepository<User>>();
 
             // once all tests have been moved to WebApplicationFactory format we can get rid of this line below
             services.AddClientSerialization();
