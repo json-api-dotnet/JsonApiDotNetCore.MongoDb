@@ -41,11 +41,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             {
                 var collection = db.GetCollection<TodoItem>(nameof(TodoItem));
                 await collection.DeleteManyAsync(Builders<TodoItem>.Filter.Empty);
-
-                foreach (var todoItem in todoItems)
-                {
-                    await collection.InsertOneAsync(todoItem);
-                }
+                await collection.InsertManyAsync(todoItems);
             });
 
             var route = "/api/v1/todoItems";
