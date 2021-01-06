@@ -46,12 +46,12 @@ public class Startup
             return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
         });
 
-        services.AddResourceRepository<MongoDbRepository<Book>>();
-        
         services.AddJsonApi(resources: builder =>
         {
             builder.Add<Book, string>();
         });
+
+        services.AddResourceRepository<MongoDbRepository<Book>>();
     }
 
     public void Configure(IApplicationBuilder app)
