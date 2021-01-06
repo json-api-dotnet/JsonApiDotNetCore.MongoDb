@@ -2,11 +2,11 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
@@ -31,9 +31,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<TodoItem>(nameof(TodoItem));
-                await collection.DeleteManyAsync(Builders<TodoItem>.Filter.Empty);
-                await collection.InsertOneAsync(todoItem);
+                await db.ClearCollectionAsync<TodoItem>();
+                await db.GetCollection<TodoItem>().InsertOneAsync(todoItem);
             });
 
             var route = "/api/v1/todoItems";
@@ -54,7 +53,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             // Arrange
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<TodoItem>(nameof(TodoItem)).DeleteManyAsync(Builders<TodoItem>.Filter.Empty);
+                await db.ClearCollectionAsync<TodoItem>();
             });
 
             var route = "/api/v1/todoItems";
@@ -104,7 +103,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<TodoItem>(nameof(TodoItem)).InsertOneAsync(todoItem);
+                await db.GetCollection<TodoItem>().InsertOneAsync(todoItem);
             });
 
             var requestBody = new
@@ -112,7 +111,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
                 data = new
                 {
                     type = "todoItems",
-                    id = todoItem.Id,
+                    id = todoItem.StringId,
                     attributes = new
                     {
                         description = "Something else"

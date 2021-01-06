@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
-using MongoDB.Driver;
+using MongoDB.Bson;
 using Xunit;
 using Person = JsonApiDotNetCoreMongoDbExample.Models.Person;
 
@@ -33,9 +34,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertManyAsync(articles);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
             var route = "/api/v1/articles?sort=caption";
@@ -51,100 +51,41 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
             responseDocument.ManyData[1].Id.Should().Be(articles[0].StringId);
             responseDocument.ManyData[2].Id.Should().Be(articles[2].StringId);
         }
-
-        [Fact]
-        public async Task Cannot_sort_in_single_primary_resource()
-        {
-            // Arrange
-            var article = new Article
-            {
-                Caption = "X"
-            };
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<Article>(nameof(Article)).InsertOneAsync(article);
-            });
-
-            var route = $"/api/v1/articles/{article.StringId}?sort=id";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified sort is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("sort");
-        }
-
-        [Fact]
-        public async Task Cannot_sort_in_single_secondary_resource()
-        {
-            // Arrange
-            var article = new Article
-            {
-                Caption = "X"
-            };
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<Article>(nameof(Article)).InsertOneAsync(article);
-            });
-
-            var route = $"/api/v1/articles/{article.StringId}/author?sort=id";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified sort is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("sort");
-        }
-
-        [Fact]
-        public async Task Cannot_sort_on_attribute_with_blocked_capability()
-        {
-            // Arrange
-            var route = "/api/v1/todoItems?sort=achievedDate";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-            
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Sorting on the requested attribute is not allowed.");
-            responseDocument.Errors[0].Detail.Should().Be("Sorting on attribute 'achievedDate' is not allowed.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("sort");
-        }
-
+        
         [Fact]
         public async Task Can_sort_descending_by_ID()
         {
             // Arrange
+            var ids = new List<string>();
+
+            for (int i = 0; i < 3; i++)
+            {
+                ids.Add(ObjectId.GenerateNewId().ToString());
+            }
+            
             var persons = new List<Person>
             {
-                new Person {LastName = "B"},
-                new Person {LastName = "A"},
-                new Person {LastName = "A"}
+                new Person
+                {
+                    Id = ids[2],
+                    LastName = "B"
+                },
+                new Person
+                {
+                    Id = ids[1],
+                    LastName = "A"
+                },
+                new Person
+                {
+                    Id = ids[0],
+                    LastName = "A"
+                },
             };
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Person>(nameof(Person));
-                await collection.DeleteManyAsync(Builders<Person>.Filter.Empty);
-                await collection.InsertManyAsync(persons);
+                await db.ClearCollectionAsync<Person>();
+                await db.GetCollection<Person>().InsertManyAsync(persons);
             });
 
             var route = "/api/v1/people?sort=lastName,-id";
@@ -154,13 +95,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-
-            persons.Sort((a, b) => a.LastName.CompareTo(b.LastName) + b.Id.CompareTo(a.Id));
             
             responseDocument.ManyData.Should().HaveCount(3);
-            responseDocument.ManyData[0].Id.Should().Be(persons[0].StringId);
-            responseDocument.ManyData[1].Id.Should().Be(persons[1].StringId);
-            responseDocument.ManyData[2].Id.Should().Be(persons[2].StringId);
+            responseDocument.ManyData[0].Id.Should().Be(persons[1].StringId);
+            responseDocument.ManyData[1].Id.Should().Be(persons[2].StringId);
+            responseDocument.ManyData[2].Id.Should().Be(persons[0].StringId);
         }
 
         [Fact]
@@ -169,17 +108,16 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
             // Arrange
             var persons = new List<Person>
             {
-                new Person {},
-                new Person {},
-                new Person {},
-                new Person {}
+                new Person { Id = ObjectId.GenerateNewId().ToString() },
+                new Person { Id = ObjectId.GenerateNewId().ToString() },
+                new Person { Id = ObjectId.GenerateNewId().ToString() },
+                new Person { Id = ObjectId.GenerateNewId().ToString() }
             };
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Person>(nameof(Person));
-                await collection.DeleteManyAsync(Builders<Person>.Filter.Empty);
-                await collection.InsertManyAsync(persons);
+                await db.ClearCollectionAsync<Person>();
+                await db.GetCollection<Person>().InsertManyAsync(persons);
             });
 
             var route = "/api/v1/people";
@@ -189,14 +127,66 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-
-            persons.Sort((a, b) => a.Id.CompareTo(b.Id));
-
+            
             responseDocument.ManyData.Should().HaveCount(4);
             responseDocument.ManyData[0].Id.Should().Be(persons[0].StringId);
             responseDocument.ManyData[1].Id.Should().Be(persons[1].StringId);
             responseDocument.ManyData[2].Id.Should().Be(persons[2].StringId);
             responseDocument.ManyData[3].Id.Should().Be(persons[3].StringId);
+        }
+        
+        [Fact]
+        public async Task Cannot_sort_on_HasMany_relationship()
+        {
+            // Arrange
+            var route = "/api/v1/blogs?sort=count(articles)";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+            
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+        
+        [Fact]
+        public async Task Cannot_sort_on_HasManyThrough_relationship()
+        {
+            // Arrange
+            var route = "/api/v1/articles?sort=-count(tags)";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+        
+        [Fact]
+        public async Task Cannot_sort_on_HasOne_relationship()
+        {
+            // Arrange
+            var route = "/api/v1/articles?sort=-author.lastName";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
         }
     }
 }

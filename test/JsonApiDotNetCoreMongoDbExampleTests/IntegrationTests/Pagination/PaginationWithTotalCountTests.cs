@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Bogus;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
@@ -49,9 +49,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertManyAsync(articles);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
             var route = "/api/v1/articles?page[number]=2&page[size]=1";
@@ -72,34 +71,95 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
             responseDocument.Links.Prev.Should().Be(responseDocument.Links.First);
             responseDocument.Links.Next.Should().BeNull();
         }
-
+        
         [Fact]
-        public async Task Cannot_paginate_in_single_primary_resource()
+        public async Task Uses_default_page_number_and_size()
         {
             // Arrange
-            var article = new Article
+            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            options.DefaultPageSize = new PageSize(2);
+
+            var articles = new[]
             {
-                Caption = "X"
+                new Article
+                {
+                    Caption = "One"
+                },
+                new Article
+                {
+                    Caption = "Two"
+                },
+                new Article
+                {
+                    Caption = "Three"
+                }
             };
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<Article>(nameof(Article)).InsertOneAsync(article);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = $"/api/v1/articles/{article.StringId}?page[number]=2";
+            var route = $"/api/v1/articles";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified paging is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("page[number]");
+            responseDocument.ManyData.Should().HaveCount(2);
+            responseDocument.ManyData[0].Id.Should().Be(articles[0].StringId);
+            responseDocument.ManyData[1].Id.Should().Be(articles[1].StringId);
+
+            responseDocument.Links.Should().NotBeNull();
+            responseDocument.Links.Self.Should().Be("http://localhost" + route);
+            responseDocument.Links.First.Should().Be(responseDocument.Links.Self);
+            responseDocument.Links.Last.Should().Be($"http://localhost/api/v1/articles?page[number]=2");
+            responseDocument.Links.Prev.Should().BeNull();
+            responseDocument.Links.Next.Should().Be($"http://localhost/api/v1/articles?page[number]=2");
+        }
+        
+        [Fact]
+        public async Task Returns_all_resources_when_paging_is_disabled()
+        {
+            // Arrange
+            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            options.DefaultPageSize = null;
+
+            var articles = new List<Article>();
+
+            for (int index = 0; index < 25; index++)
+            {
+                articles.Add(new Article
+                {
+                    Caption = $"Item {index:D3}"
+                });
+            }
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
+            });
+
+            var route = $"/api/v1/articles";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+            responseDocument.ManyData.Should().HaveCount(25);
+
+            responseDocument.Links.Should().NotBeNull();
+            responseDocument.Links.Self.Should().Be("http://localhost" + route);
+            responseDocument.Links.First.Should().BeNull();
+            responseDocument.Links.Last.Should().BeNull();
+            responseDocument.Links.Prev.Should().BeNull();
+            responseDocument.Links.Next.Should().BeNull();
         }
     }
 }

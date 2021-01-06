@@ -2,7 +2,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;

@@ -3,10 +3,8 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
-using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetching
@@ -41,9 +39,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<WorkItem>(nameof(WorkItem));
-                await collection.DeleteManyAsync(Builders<WorkItem>.Filter.Empty);
-                await collection.InsertManyAsync(workItems);
+                await db.ClearCollectionAsync<WorkItem>();
+                await db.GetCollection<WorkItem>().InsertManyAsync(workItems);
             });
 
             var route = "/workItems";
@@ -92,7 +89,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(workItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 
             var route = "/workItems/" + workItem.StringId;
@@ -153,8 +150,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(workItem.Assignee);
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(workItem);
+                await db.GetCollection<UserAccount>().InsertOneAsync(workItem.Assignee);
+                await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 
             var route = $"/workItems/{workItem.StringId}/assignee";

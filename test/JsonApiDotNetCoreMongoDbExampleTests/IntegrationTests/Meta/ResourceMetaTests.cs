@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
@@ -39,9 +40,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<TodoItem>(nameof(TodoItem));
-                await collection.DeleteManyAsync(Builders<TodoItem>.Filter.Empty);
-                await collection.InsertManyAsync(todoItems);
+                await db.ClearCollectionAsync<TodoItem>();
+                await db.GetCollection<TodoItem>().InsertManyAsync(todoItems);
             });
 
             var route = "/api/v1/todoItems";

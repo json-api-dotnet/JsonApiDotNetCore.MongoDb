@@ -2,7 +2,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using MongoDB.Driver;
@@ -39,7 +38,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var route = "/workItems/" + existingWorkItem.StringId;

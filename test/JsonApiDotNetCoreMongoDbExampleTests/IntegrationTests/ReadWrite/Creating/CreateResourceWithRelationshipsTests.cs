@@ -2,7 +2,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,8 +50,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<RgbColor>(nameof(RgbColor)).InsertOneAsync(color);
-                await db.GetCollection<WorkItemGroup>(nameof(WorkItemGroup)).InsertOneAsync(group);
+                await db.GetCollection<RgbColor>().InsertOneAsync(color);
+                await db.GetCollection<WorkItemGroup>().InsertOneAsync(group);
             });
 
             var requestBody = new
@@ -100,7 +99,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<RgbColor>(nameof(RgbColor)).InsertOneAsync(color);
+                await db.GetCollection<RgbColor>().InsertOneAsync(color);
             });
 
             var requestBody = new
@@ -145,7 +144,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(existingUserAccount);
+                await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
             });
 
             var requestBody = new
@@ -189,7 +188,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertManyAsync(existingUserAccounts);
+                await db.GetCollection<UserAccount>().InsertManyAsync(existingUserAccounts);
             });
 
             var requestBody = new

@@ -2,7 +2,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +44,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItemGroup>(nameof(WorkItemGroup)).InsertOneAsync(existingGroup);
+                await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
             });
             
             // Arrange

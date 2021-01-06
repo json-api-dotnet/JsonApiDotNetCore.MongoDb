@@ -2,11 +2,9 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
@@ -30,9 +28,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
             {
                 services.AddResourceRepository<MongoDbRepository<WorkItem>>();
             });
-            
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-            options.MaximumIncludeDepth = null;
         }
 
         [Fact]
@@ -44,8 +39,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(workItem.Assignee);
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(workItem);
+                await db.GetCollection<UserAccount>().InsertOneAsync(workItem.Assignee);
+                await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 
             var route = "/workItems?include=assignee";

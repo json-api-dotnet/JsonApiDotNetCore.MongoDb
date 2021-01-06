@@ -1,15 +1,14 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Bogus;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCore.Services;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
@@ -50,9 +49,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertOneAsync(article);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
             var route = "/api/v1/articles?fields[articles]=caption"; // TODO: once relationships are implemented select author field too
@@ -67,6 +65,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.ManyData[0].Id.Should().Be(article.StringId);
             responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
             responseDocument.ManyData[0].Attributes["caption"].Should().Be(article.Caption);
+            responseDocument.ManyData[0].Relationships.Should().BeNull();
 
             var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
             articleCaptured.Caption.Should().Be(article.Caption);
@@ -88,9 +87,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertOneAsync(article);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
             var route = "/api/v1/articles?fields[articles]=caption";
@@ -127,7 +125,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<Article>(nameof(Article)).InsertOneAsync(article);
+                await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
             var route = $"/api/v1/articles/{article.StringId}?fields[articles]=url"; // TODO: once relationships are implemented select author field too
@@ -142,6 +140,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.SingleData.Id.Should().Be(article.StringId);
             responseDocument.SingleData.Attributes.Should().HaveCount(1);
             responseDocument.SingleData.Attributes["url"].Should().Be(article.Url);
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
             articleCaptured.Url.Should().Be(article.Url);
@@ -163,9 +162,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertOneAsync(article);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
             var route = "/api/v1/articles?fields[articles]=id,caption";
@@ -189,25 +187,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         }
 
         [Fact]
-        public async Task Cannot_select_on_unknown_resource_type()
-        {
-            // Arrange
-            var route = "/api/v1/people?fields[doesNotExist]=id";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified fieldset is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("Resource type 'doesNotExist' does not exist.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("fields[doesNotExist]");
-        }
-        
-        [Fact]
         public async Task Retrieves_all_properties_when_fieldset_contains_readonly_attribute()
         {
             // Arrange
@@ -221,7 +200,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<TodoItem>(nameof(TodoItem)).InsertOneAsync(todoItem);
+                await db.GetCollection<TodoItem>().InsertOneAsync(todoItem);
             });
 
             var route = $"/api/v1/todoItems/{todoItem.StringId}?fields[todoItems]=calculatedValue";
@@ -242,6 +221,5 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             todoItemCaptured.CalculatedValue.Should().Be(todoItem.CalculatedValue);
             todoItemCaptured.Description.Should().Be(todoItem.Description);
         }
-
     }
 }

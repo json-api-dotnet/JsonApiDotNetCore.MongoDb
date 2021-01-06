@@ -3,11 +3,11 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Xunit;
 using Tag = JsonApiDotNetCoreMongoDbExample.Models.Tag;
 
@@ -43,9 +43,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertManyAsync(articles);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
             var route = "/api/v1/articles?filter=equals(caption,'Two')";
@@ -71,7 +70,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<Article>(nameof(Article)).InsertOneAsync(article);
+                await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
             var route = $"/api/v1/articles/{article.StringId}?filter=equals(caption,'Two')";
@@ -115,12 +114,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertManyAsync(articles);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles?include=author&filter=equals(author.lastName,'Smith')";
+            var route = "/api/v1/articles?filter=equals(author.lastName,'Smith')";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -155,9 +153,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Blog>(nameof(Blog));
-                await collection.DeleteManyAsync(Builders<Blog>.Filter.Empty);
-                await collection.InsertManyAsync(blogs);
+                await db.ClearCollectionAsync<Blog>();
+                await db.GetCollection<Blog>().InsertManyAsync(blogs);
             });
 
             var route = "/api/v1/blogs?filter=greaterThan(count(articles),'0')";
@@ -202,9 +199,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Article>(nameof(Article));
-                await collection.DeleteManyAsync(Builders<Article>.Filter.Empty);
-                await collection.InsertManyAsync(articles);
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
             var route = "/api/v1/articles?filter=has(tags)";

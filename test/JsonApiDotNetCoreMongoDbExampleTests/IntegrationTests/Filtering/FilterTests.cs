@@ -2,11 +2,11 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
@@ -34,9 +34,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<Person>(nameof(Person));
-                await collection.DeleteManyAsync(Builders<Person>.Filter.Empty);
-                await collection.InsertManyAsync(new[] {person, new Person()});
+                await db.ClearCollectionAsync<Person>();
+                await db.GetCollection<Person>().InsertManyAsync(new[] {person, new Person()});
             });
 
             var route = $"/api/v1/people?filter=equals(id,'{person.StringId}')";

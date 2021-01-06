@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson;
@@ -7,13 +8,8 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 {
-    public sealed class FilterableResource : IIdentifiable<string>
+    public sealed class FilterableResource : MongoDbIdentifiable
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        [Attr]
-        public string Id { get; set; }
-        
         [Attr] public string SomeString { get; set; }
 
         [Attr] public bool SomeBoolean { get; set; }
@@ -52,8 +48,5 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         [HasMany]
         [BsonIgnore]
         public ICollection<FilterableResource> Children { get; set; }
-        
-        [BsonIgnore]
-        public string StringId { get => Id; set => Id = value; }
     }
 }

@@ -209,14 +209,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
                 return Host.CreateDefaultBuilder(null)
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
-                        webBuilder.ConfigureTestServices(services =>
+                        webBuilder.ConfigureServices(services =>
                         {
                             _beforeServicesConfiguration?.Invoke(services);
                         });
                     
                         webBuilder.UseStartup<TStartup>();
 
-                        webBuilder.ConfigureTestServices(services =>
+                        webBuilder.ConfigureServices(services =>
                         {
                             _afterServicesConfiguration?.Invoke(services);
                         });

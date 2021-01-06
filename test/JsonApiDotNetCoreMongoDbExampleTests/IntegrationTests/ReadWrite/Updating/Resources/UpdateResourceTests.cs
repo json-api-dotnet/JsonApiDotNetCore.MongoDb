@@ -50,7 +50,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(existingUserAccount);
+                await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
             });
 
             var requestBody = new
@@ -88,7 +88,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(existingUserAccount);
+                await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
             });
 
             var requestBody = new
@@ -135,7 +135,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<RgbColor>(nameof(RgbColor)).InsertOneAsync(existingColor);
+                await db.GetCollection<RgbColor>().InsertOneAsync(existingColor);
             });
 
             var requestBody = new
@@ -183,7 +183,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>(nameof(UserAccount)).InsertOneAsync(existingUserAccount);
+                await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
             });
 
             var requestBody = new
@@ -230,7 +230,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -284,7 +284,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -337,7 +337,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = string.Empty;
@@ -364,7 +364,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -397,7 +397,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -431,7 +431,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -464,7 +464,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -522,7 +522,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -556,7 +556,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertManyAsync(existingWorkItems);
+                await db.GetCollection<WorkItem>().InsertManyAsync(existingWorkItems);
             });
 
             var requestBody = new
@@ -590,7 +590,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -628,7 +628,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = "{ \"data\" {";
@@ -655,7 +655,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new
@@ -693,7 +693,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkItem>(nameof(WorkItem)).InsertOneAsync(existingWorkItem);
+                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
             var requestBody = new

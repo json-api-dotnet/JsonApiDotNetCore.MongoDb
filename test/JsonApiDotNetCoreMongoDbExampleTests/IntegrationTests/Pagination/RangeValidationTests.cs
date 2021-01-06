@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using Bogus;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
@@ -28,58 +28,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
             options.MaximumPageSize = null;
             options.MaximumPageNumber = null;
         }
-
-        [Fact]
-        public async Task When_page_number_is_negative_it_must_fail()
-        {
-            // Arrange
-            var route = "/api/v1/todoItems?page[number]=-1";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified paging is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("Page number cannot be negative or zero.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("page[number]");
-        }
-
-        [Fact]
-        public async Task When_page_number_is_zero_it_must_fail()
-        {
-            // Arrange
-            var route = "/api/v1/todoItems?page[number]=0";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified paging is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("Page number cannot be negative or zero.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("page[number]");
-        }
-
-        [Fact]
-        public async Task When_page_number_is_positive_it_must_succeed()
-        {
-            // Arrange
-            var route = "/api/v1/todoItems?page[number]=20";
-
-            // Act
-            var (httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-        }
-
+        
         [Fact]
         public async Task When_page_number_is_too_high_it_must_return_empty_set_of_resources()
         {
@@ -88,9 +37,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var collection = db.GetCollection<TodoItem>(nameof(TodoItem));
-                await collection.DeleteManyAsync(Builders<TodoItem>.Filter.Empty);
-                await collection.InsertManyAsync(todoItems);
+                await db.ClearCollectionAsync<TodoItem>();
+                await db.GetCollection<TodoItem>().InsertManyAsync(todoItems);
             });
 
             var route = "/api/v1/todoItems?sort=id&page[size]=3&page[number]=2";
@@ -102,25 +50,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
             responseDocument.ManyData.Should().BeEmpty();
-        }
-
-        [Fact]
-        public async Task When_page_size_is_negative_it_must_fail()
-        {
-            // Arrange
-            var route = "/api/v1/todoItems?page[size]=-1";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified paging is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("Page size cannot be negative.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("page[size]");
         }
 
         [Fact]
