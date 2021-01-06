@@ -7,6 +7,7 @@ using FluentAssertions;
 using Humanizer;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;

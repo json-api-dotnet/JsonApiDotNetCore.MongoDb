@@ -5,16 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Errors;
-using JsonApiDotNetCore.MongoDb.Queries.Expressions;
+using JsonApiDotNetCore.Queries;
+using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using JsonApiDotNetCore.Queries;
-using JsonApiDotNetCore.Queries.Expressions;
 
-namespace JsonApiDotNetCore.MongoDb
+namespace JsonApiDotNetCore.MongoDb.Repositories
 {
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.

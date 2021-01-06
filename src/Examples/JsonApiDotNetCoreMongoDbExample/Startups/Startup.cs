@@ -1,6 +1,7 @@
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCoreMongoDbExample.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,8 @@ namespace JsonApiDotNetCoreMongoDbExample
 
         public override void ConfigureServices(IServiceCollection services)
         {
+            ConfigureClock(services);
+            
             // TryAddSingleton will only register the IMongoDatabase if there is no
             // previously registered instance - will make tests use individual dbs
             services.TryAddSingleton(sp =>
@@ -54,6 +57,11 @@ namespace JsonApiDotNetCoreMongoDbExample
             services.AddClientSerialization();
         }
 
+        protected virtual void ConfigureClock(IServiceCollection services)
+        {
+            services.AddSingleton<ISystemClock, SystemClock>();
+        }
+        
         protected virtual void ConfigureJsonApiOptions(JsonApiOptions options)
         {
             options.IncludeExceptionStackTraceInErrors = true;

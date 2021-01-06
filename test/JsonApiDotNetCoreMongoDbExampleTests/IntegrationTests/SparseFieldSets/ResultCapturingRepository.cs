@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb;
+using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Resources;
 using MongoDB.Driver;

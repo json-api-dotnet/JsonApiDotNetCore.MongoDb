@@ -1,14 +1,11 @@
 using System;
 using System.Linq;
-using System.Net;
-using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Resources.Annotations;
-using JsonApiDotNetCore.Serialization.Objects;
 
-namespace JsonApiDotNetCore.MongoDb.Queries.Expressions
+namespace JsonApiDotNetCore.MongoDb.Repositories
 {
     internal sealed class MongoDbQueryExpressionValidator : QueryExpressionRewriter<object>
     {

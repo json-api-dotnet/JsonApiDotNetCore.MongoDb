@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\JsonApiDotNetCoreMongoDbExample\JsonApiDotNetCoreMongoDbExample.csproj" />
+      <ProjectReference Include="..\..\src\Examples\JsonApiDotNetCoreMongoDbExample\JsonApiDotNetCoreMongoDbExample.csproj" />
     </ItemGroup>
 
 </Project>

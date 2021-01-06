@@ -9,6 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj" />
+    <ProjectReference Include="..\..\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj" />
   </ItemGroup>
 </Project>
