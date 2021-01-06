@@ -6,7 +6,6 @@ using System.Web;
 using FluentAssertions;
 using Humanizer;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -36,7 +35,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.EnableLegacyFilterNotation = false;
-            options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
         }
 
         [Fact]
@@ -66,7 +64,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             responseDocument.ManyData.Should().HaveCount(1);
             responseDocument.ManyData[0].Attributes["someString"].Should().Be(resource.SomeString);
         }
-        
+
         [Fact]
         public async Task Cannot_filter_equality_on_two_attributes()
         {
@@ -200,12 +198,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             // Arrange
             var resource = new FilterableResource
             {
-                SomeDateTime = DateTime.ParseExact(matchingDateTime, "yyyy-MM-dd", null)
+                SomeDateTime = DateTime.SpecifyKind(DateTime.ParseExact(matchingDateTime, "yyyy-MM-dd", null), DateTimeKind.Utc)
             };
 
             var otherResource = new FilterableResource
             {
-                SomeDateTime = DateTime.ParseExact(nonMatchingDateTime, "yyyy-MM-dd", null)
+                SomeDateTime = DateTime.SpecifyKind(DateTime.ParseExact(nonMatchingDateTime, "yyyy-MM-dd", null), DateTimeKind.Utc)
             };
 
             await _testContext.RunOnDatabaseAsync(async db =>
@@ -224,7 +222,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
             responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Attributes["someDateTime"].Should().Be(resource.SomeDateTime.ToString("yyyy-MM-dd"));
+            responseDocument.ManyData[0].Attributes["someDateTime"].Should().Be(resource.SomeDateTime);
         }
 
         [Theory]

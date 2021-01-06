@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Errors;
+using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
@@ -47,7 +48,8 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
 
-            var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
+            var query = ApplyQueryLayer(layer);
+            var resources = await query.ToListAsync(cancellationToken);
             return resources.AsReadOnly();
         }
 
@@ -74,7 +76,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             var source = GetAll();
 
             var nameFactory = new LambdaParameterNameFactory();
-            var builder = new QueryableBuilder(
+            var builder = new MongoDbQueryableBuilder(
                 source.Expression,
                 source.ElementType,
                 typeof(Queryable),
