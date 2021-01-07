@@ -139,6 +139,40 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
         public async Task Cannot_sort_on_HasMany_relationship()
         {
             // Arrange
+            var blogs = new List<Blog>
+            {
+                new Blog
+                {
+                    Articles = new List<Article>
+                    {
+                        new Article
+                        {
+                            Caption = "A"
+                        },
+                        new Article
+                        {
+                            Caption = "B"
+                        }
+                    }
+                },
+                new Blog
+                {
+                    Articles = new List<Article>
+                    {
+                        new Article
+                        {
+                            Caption = "C"
+                        }
+                    }
+                }
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.ClearCollectionAsync<Blog>();
+                await db.GetCollection<Blog>().InsertManyAsync(blogs);
+            });
+            
             var route = "/api/v1/blogs?sort=count(articles)";
 
             // Act
