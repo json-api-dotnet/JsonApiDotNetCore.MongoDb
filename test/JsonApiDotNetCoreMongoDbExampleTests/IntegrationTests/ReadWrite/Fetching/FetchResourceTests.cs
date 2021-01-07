@@ -67,21 +67,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         }
 
         [Fact]
-        public async Task Cannot_get_primary_resources_for_unknown_type()
-        {
-            // Arrange
-            var route = "/doesNotExist";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<string>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
-
-            responseDocument.Should().BeEmpty();
-        }
-
-        [Fact]
         public async Task Can_get_primary_resource_by_ID()
         {
             // Arrange

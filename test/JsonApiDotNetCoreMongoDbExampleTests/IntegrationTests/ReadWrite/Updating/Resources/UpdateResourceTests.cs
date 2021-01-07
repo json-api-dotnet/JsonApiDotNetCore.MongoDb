@@ -330,100 +330,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         }
 
         [Fact]
-        public async Task Cannot_update_resource_for_missing_request_body()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = string.Empty;
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Missing request body.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task Cannot_update_resource_for_missing_type()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    id = existingWorkItem.StringId
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body: Request body must include 'type' element.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Expected 'type' element in 'data' element. - Request body: <<");
-        }
-
-        [Fact]
-        public async Task Cannot_update_resource_for_unknown_type()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "doesNotExist",
-                    id = existingWorkItem.StringId
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body: Request body includes unknown resource type.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Resource type 'doesNotExist' does not exist. - Request body: <<");
-        }
-
-        [Fact]
         public async Task Cannot_update_resource_for_missing_ID()
         {
             // Arrange
@@ -457,37 +363,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         }
 
         [Fact]
-        public async Task Cannot_update_resource_on_unknown_resource_type_in_url()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    id = existingWorkItem.StringId
-                }
-            };
-
-            var route = "/doesNotExist/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
-
-            responseDocument.Should().BeEmpty();
-        }
-
-        [Fact]
         public async Task Cannot_update_resource_on_unknown_resource_ID_in_url()
         {
             // Arrange
@@ -512,40 +387,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.NotFound);
             responseDocument.Errors[0].Title.Should().Be("The requested resource does not exist.");
             responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID '5f88857c4aa60defec6a4999' does not exist.");
-        }
-
-        [Fact]
-        public async Task Cannot_update_on_resource_type_mismatch_between_url_and_body()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "rgbColors",
-                    id = existingWorkItem.StringId
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.Conflict);
-            responseDocument.Errors[0].Title.Should().Be("Resource type mismatch between request body and endpoint URL.");
-            responseDocument.Errors[0].Detail.Should().Be($"Expected resource of type 'workItems' in PATCH request body at endpoint '/workItems/{existingWorkItem.StringId}', instead of 'rgbColors'.");
         }
 
         [Fact]
@@ -580,71 +421,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.Conflict);
             responseDocument.Errors[0].Title.Should().Be("Resource ID mismatch between request body and endpoint URL.");
             responseDocument.Errors[0].Detail.Should().Be($"Expected resource ID '{existingWorkItems[1].StringId}' in PATCH request body at endpoint '/workItems/{existingWorkItems[1].StringId}', instead of '{existingWorkItems[0].StringId}'.");
-        }
-
-        [Fact]
-        public async Task Cannot_update_resource_attribute_with_blocked_capability()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    id = existingWorkItem.StringId,
-                    attributes = new
-                    {
-                        concurrencyToken = "274E1D9A-91BE-4A42-B648-CA75E8B2945E"
-                    }
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body: Changing the value of the requested attribute is not allowed.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Changing the value of 'concurrencyToken' is not allowed. - Request body:");
-        }
-
-        [Fact]
-        public async Task Cannot_update_resource_for_broken_JSON_request_body()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = "{ \"data\" {";
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Invalid character after parsing");
         }
 
         [Fact]
