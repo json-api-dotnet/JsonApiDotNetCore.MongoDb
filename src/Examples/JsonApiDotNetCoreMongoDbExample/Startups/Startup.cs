@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Tag = JsonApiDotNetCoreMongoDbExample.Models.Tag;
 
 namespace JsonApiDotNetCoreMongoDbExample
 {
@@ -42,6 +43,7 @@ namespace JsonApiDotNetCoreMongoDbExample
                     builder.Add<Author, string>();
                     builder.Add<Blog, string>();
                     builder.Add<Person, string>();
+                    builder.Add<Tag, string>();
                     builder.Add<TodoItem, string>();
                 });
             

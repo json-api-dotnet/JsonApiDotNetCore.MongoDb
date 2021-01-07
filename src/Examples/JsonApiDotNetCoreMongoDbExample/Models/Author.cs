@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCoreMongoDbExample.Models
 {
@@ -17,5 +19,9 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
 
         [Attr]
         public string BusinessEmail { get; set; }
+        
+        [HasMany]
+        [BsonIgnore]
+        public IList<Article> Articles { get; set; }
     }
 }

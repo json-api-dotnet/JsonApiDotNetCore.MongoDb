@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Bogus;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
@@ -16,6 +18,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
     public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<Startup>>
     {
         private readonly IntegrationTestContext<Startup> _testContext;
+        private readonly Faker<Article> _articleFaker;
+        private readonly Faker<Author> _authorFaker;
 
         public SparseFieldSetTests(IntegrationTestContext<Startup> testContext)
         {
@@ -32,6 +36,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
                 services.AddScoped<IResourceService<Article, string>, JsonApiResourceService<Article, string>>();
             });
+            
+            _articleFaker = new Faker<Article>()
+                .RuleFor(a => a.Caption, f => f.Random.AlphaNumeric(10));
+            
+            _authorFaker = new Faker<Author>()
+                .RuleFor(a => a.LastName, f => f.Random.Words(2));
         }
 
         [Fact]
@@ -148,6 +158,118 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         }
 
         [Fact]
+        public async Task Cannot_select_fields_of_HasOne_relationship()
+        {
+            // Arrange
+            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+            store.Clear();
+
+            var article = _articleFaker.Generate();
+            article.Caption = "Some";
+            article.Author = new Author
+            {
+                FirstName = "Joe",
+                LastName = "Smith",
+                BusinessEmail = "nospam@email.com"
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<Article>().InsertOneAsync(article);
+            });
+
+            var route = $"/api/v1/articles/{article.StringId}?include=author&fields[authors]=lastName,businessEmail";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+        
+        [Fact]
+        public async Task Can_select_fields_of_HasMany_relationship()
+        {
+            // Arrange
+            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+            store.Clear();
+
+            var author = _authorFaker.Generate();
+            author.LastName = "Smith";
+            author.Articles = new List<Article>
+            {
+                new Article
+                {
+                    Caption = "One",
+                    Url = "https://one.domain.com"
+                }
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<Author>().InsertOneAsync(author);
+            });
+
+            var route = $"/api/v1/authors/{author.StringId}?include=articles&fields[articles]=caption,tags";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+        
+        [Fact]
+        public async Task Can_select_fields_of_HasManyThrough_relationship()
+        {
+            // Arrange
+            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+            store.Clear();
+
+            var article = _articleFaker.Generate();
+            article.Caption = "Some";
+            article.ArticleTags = new HashSet<ArticleTag>
+            {
+                new ArticleTag
+                {
+                    Tag = new Tag
+                    {
+                        Name = "Hot",
+                        Color = TagColor.Red
+                    }
+                }
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<Article>().InsertOneAsync(article);
+            });
+
+            var route = $"/api/v1/articles/{article.StringId}?include=tags&fields[tags]=color";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+        
+        [Fact]
         public async Task Can_select_ID()
         {
             // Arrange
@@ -221,5 +343,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             todoItemCaptured.CalculatedValue.Should().Be(todoItem.CalculatedValue);
             todoItemCaptured.Description.Should().Be(todoItem.Description);
         }
+        
+        
     }
 }
