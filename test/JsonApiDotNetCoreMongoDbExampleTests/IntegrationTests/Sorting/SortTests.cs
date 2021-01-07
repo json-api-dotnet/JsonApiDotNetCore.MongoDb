@@ -56,28 +56,21 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
         public async Task Can_sort_descending_by_ID()
         {
             // Arrange
-            var ids = new List<string>();
-
-            for (int i = 0; i < 3; i++)
-            {
-                ids.Add(ObjectId.GenerateNewId().ToString());
-            }
-            
-            var persons = new List<Person>
+            var people = new List<Person>
             {
                 new Person
                 {
-                    Id = ids[2],
+                    Id = "5ff752c4f7c9a9a8373991b2",
                     LastName = "B"
                 },
                 new Person
                 {
-                    Id = ids[1],
+                    Id = "5ff752c3f7c9a9a8373991b1",
                     LastName = "A"
                 },
                 new Person
                 {
-                    Id = ids[0],
+                    Id = "5ff752c2f7c9a9a8373991b0",
                     LastName = "A"
                 },
             };
@@ -85,7 +78,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<Person>();
-                await db.GetCollection<Person>().InsertManyAsync(persons);
+                await db.GetCollection<Person>().InsertManyAsync(people);
             });
 
             var route = "/api/v1/people?sort=lastName,-id";
@@ -97,9 +90,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
             
             responseDocument.ManyData.Should().HaveCount(3);
-            responseDocument.ManyData[0].Id.Should().Be(persons[1].StringId);
-            responseDocument.ManyData[1].Id.Should().Be(persons[2].StringId);
-            responseDocument.ManyData[2].Id.Should().Be(persons[0].StringId);
+            responseDocument.ManyData[0].Id.Should().Be(people[1].StringId);
+            responseDocument.ManyData[1].Id.Should().Be(people[2].StringId);
+            responseDocument.ManyData[2].Id.Should().Be(people[0].StringId);
         }
 
         [Fact]
