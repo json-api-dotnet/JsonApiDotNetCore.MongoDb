@@ -27,17 +27,20 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         private readonly ITargetedFields _targetedFields;
         private readonly IResourceContextProvider _resourceContextProvider;
         private readonly IResourceFactory _resourceFactory;
+        private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
 
         public MongoDbRepository(
             IMongoDatabase mongoDatabase,
             ITargetedFields targetedFields,
             IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory)
+            IResourceFactory resourceFactory,
+            IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
             _mongoDatabase = mongoDatabase ?? throw new ArgumentNullException(nameof(mongoDatabase));
             _targetedFields = targetedFields ?? throw new ArgumentNullException(nameof(targetedFields));
             _resourceContextProvider = resourceContextProvider ?? throw new ArgumentNullException(nameof(resourceContextProvider));
             _resourceFactory = resourceFactory ?? throw new ArgumentNullException(nameof(resourceFactory));
+            _constraintProviders = constraintProviders ?? throw new ArgumentNullException(nameof(constraintProviders));
         }
 
         protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
@@ -74,6 +77,18 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             queryExpressionValidator.Validate(layer);
             
             var source = GetAll();
+            
+            var queryableHandlers = _constraintProviders
+                .SelectMany(p => p.GetConstraints())
+                .Where(expressionInScope => expressionInScope.Scope == null)
+                .Select(expressionInScope => expressionInScope.Expression)
+                .OfType<QueryableHandlerExpression>()
+                .ToArray();
+
+            foreach (var queryableHandler in queryableHandlers)
+            {
+                source = queryableHandler.Apply(source);
+            }
 
             var nameFactory = new LambdaParameterNameFactory();
             var builder = new MongoDbQueryableBuilder(
@@ -203,8 +218,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             IMongoDatabase mongoDatabase,
             ITargetedFields targetedFields,
             IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory)
-            : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory)
+            IResourceFactory resourceFactory,
+            IEnumerable<IQueryConstraintProvider> constraintProviders)
+            : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
         }
     }

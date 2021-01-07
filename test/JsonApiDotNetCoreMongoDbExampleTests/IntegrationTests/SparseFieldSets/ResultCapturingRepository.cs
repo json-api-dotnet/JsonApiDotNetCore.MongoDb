@@ -23,8 +23,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             ITargetedFields targetedFields,
             IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory,
+            IEnumerable<IQueryConstraintProvider> constraintProviders,
             ResourceCaptureStore captureStore)
-            : base(db, targetedFields, resourceContextProvider, resourceFactory)
+            : base(db, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
             _captureStore = captureStore;
         }
