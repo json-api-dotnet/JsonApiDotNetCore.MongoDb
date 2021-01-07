@@ -45,7 +45,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         }
 
         [Fact]
-        public async Task Can_select_fields_in_primary_resources()
+        public async Task Cannot_select_fields_with_relationship_in_primary_resources()
         {
             // Arrange
             var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
@@ -63,23 +63,18 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = "/api/v1/articles?fields[articles]=caption"; // TODO: once relationships are implemented select author field too
+            var route = "/api/v1/articles?fields[articles]=caption,author";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-
-            responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(article.StringId);
-            responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
-            responseDocument.ManyData[0].Attributes["caption"].Should().Be(article.Caption);
-            responseDocument.ManyData[0].Relationships.Should().BeNull();
-
-            var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
-            articleCaptured.Caption.Should().Be(article.Caption);
-            articleCaptured.Url.Should().BeNull();
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+            
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
         }
 
         [Fact]
@@ -120,6 +115,46 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             articleCaptured.Url.Should().BeNull();
         }
 
+        [Fact]
+        public async Task Cannot_select_relationship_in_primary_resources()
+        {
+            // Arrange
+            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+            store.Clear();
+
+            var article = new Article
+            {
+                Caption = "One",
+                Url = "https://one.domain.com"
+            };
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.ClearCollectionAsync<Article>();
+                await db.GetCollection<Article>().InsertOneAsync(article);
+            });
+
+            var route = "/api/v1/articles?fields[articles]=author";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+            responseDocument.ManyData.Should().HaveCount(1);
+            responseDocument.ManyData[0].Id.Should().Be(article.StringId);
+            responseDocument.ManyData[0].Attributes.Should().BeNull();
+            responseDocument.ManyData[0].Relationships.Should().HaveCount(1);
+            responseDocument.ManyData[0].Relationships["author"].Data.Should().BeNull();
+            responseDocument.ManyData[0].Relationships["author"].Links.Self.Should().NotBeNull();
+            responseDocument.ManyData[0].Relationships["author"].Links.Related.Should().NotBeNull();
+
+            var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
+            articleCaptured.Caption.Should().BeNull();
+            articleCaptured.Url.Should().BeNull();
+        }
+        
         [Fact]
         public async Task Can_select_fields_in_primary_resource_by_ID()
         {
