@@ -5,7 +5,6 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
-using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -19,17 +18,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
         public ResourceDefinitionQueryCallbackTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<CallableResource, string>();
-            });
 
             _testContext.ConfigureServicesAfterStartup(services =>
             {
                 services.AddResourceRepository<MongoDbRepository<CallableResource>>();
-                
-                services.AddScoped<IResourceDefinition<CallableResource, string>, CallableResourceDefinition>();
                 services.AddSingleton<IUserRolesService, FakeUserRolesService>();
             });
 

@@ -7,6 +7,7 @@ using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating
@@ -20,18 +21,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public CreateResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<RgbColor, string>();
-                builder.Add<WorkItem, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<RgbColor>>();
-                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
-            });
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.UseRelativeLinks = false;
@@ -121,9 +110,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await (await db.GetCollection<WorkItem>(nameof(WorkItem))
-                    .FindAsync(Builders<WorkItem>.Filter.Eq(workItem => workItem.Id, newWorkItemId)))
-                    .FirstAsync();
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .Where(workItem => workItem.Id == newWorkItemId)
+                    .FirstOrDefaultAsync();
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
             });
@@ -168,8 +157,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await (await db.GetCollection<WorkItem>(nameof(WorkItem))
-                    .FindAsync(Builders<WorkItem>.Filter.Eq(workItem => workItem.Id, newWorkItemId)))
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .Where(workItem => workItem.Id == newWorkItemId)
                     .FirstOrDefaultAsync();
 
                 workItemInDatabase.Should().NotBeNull();

@@ -20,6 +20,10 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
         [Attr]
         public string BusinessEmail { get; set; }
         
+        [HasOne]
+        [BsonIgnore]
+        public Address LivingAddress { get; set; }
+        
         [HasMany]
         [BsonIgnore]
         public IList<Article> Articles { get; set; }

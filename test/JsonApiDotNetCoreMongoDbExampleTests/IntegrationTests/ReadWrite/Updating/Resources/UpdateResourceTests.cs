@@ -8,6 +8,7 @@ using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Resources
@@ -21,20 +22,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public UpdateResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<RgbColor, string>();
-                builder.Add<UserAccount, string>();
-                builder.Add<WorkItem, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<RgbColor>>();
-                services.AddResourceRepository<MongoDbRepository<UserAccount>>();
-                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
-            });
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.UseRelativeLinks = false;
@@ -116,9 +103,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var userAccountInDatabase = await (await db.GetCollection<UserAccount>(nameof(UserAccount))
-                    .FindAsync(Builders<UserAccount>.Filter.Eq(userAccount => userAccount.Id, existingUserAccount.Id)))
-                    .FirstAsync();
+                var userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable()
+                    .Where(userAccount => userAccount.Id == existingUserAccount.Id)
+                    .FirstOrDefaultAsync();
 
                 userAccountInDatabase.FirstName.Should().Be(newFirstName);
                 userAccountInDatabase.LastName.Should().Be(existingUserAccount.LastName);
@@ -162,9 +149,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var colorInDatabase = await (await db.GetCollection<RgbColor>(nameof(RgbColor))
-                    .FindAsync(Builders<RgbColor>.Filter.Eq(color => color.Id, existingColor.Id)))
-                    .FirstAsync();
+                var colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable()
+                    .Where(color => color.Id == existingColor.Id)
+                    .FirstOrDefaultAsync();
 
                 colorInDatabase.DisplayName.Should().Be(newDisplayName);
             });
@@ -211,9 +198,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var userAccountInDatabase = await (await db.GetCollection<UserAccount>(nameof(UserAccount))
-                    .FindAsync(Builders<UserAccount>.Filter.Eq(userAccount => userAccount.Id, existingUserAccount.Id)))
-                    .FirstAsync();
+                var userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable()
+                    .Where(workItem => workItem.Id == existingUserAccount.Id)
+                    .FirstOrDefaultAsync();
 
                 userAccountInDatabase.FirstName.Should().Be(newUserAccount.FirstName);
                 userAccountInDatabase.LastName.Should().Be(newUserAccount.LastName);
@@ -264,9 +251,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await (await db.GetCollection<WorkItem>(nameof(WorkItem))
-                    .FindAsync(Builders<WorkItem>.Filter.Eq(workItem => workItem.Id, existingWorkItem.Id)))
-                    .FirstAsync();
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .Where(workItem => workItem.Id == existingWorkItem.Id)
+                    .FirstOrDefaultAsync();
 
                 workItemInDatabase.Description.Should().Be(newDescription);
                 workItemInDatabase.DueAt.Should().BeNull();
@@ -318,9 +305,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await (await db.GetCollection<WorkItem>(nameof(WorkItem))
-                    .FindAsync(Builders<WorkItem>.Filter.Eq(workItem => workItem.Id, existingWorkItem.Id)))
-                    .FirstAsync();
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .Where(workItem => workItem.Id == existingWorkItem.Id)
+                    .FirstOrDefaultAsync();
 
                 workItemInDatabase.Description.Should().Be(newDescription);
                 workItemInDatabase.DueAt.Should().BeNull();

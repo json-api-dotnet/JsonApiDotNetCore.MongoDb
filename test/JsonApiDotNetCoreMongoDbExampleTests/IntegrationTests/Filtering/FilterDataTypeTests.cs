@@ -20,11 +20,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         {
             _testContext = testContext;
             
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<FilterableResource, string>();
-            });
-            
             _testContext.ConfigureServicesAfterStartup(services =>
             {
                 services.AddResourceRepository<MongoDbRepository<FilterableResource>>();

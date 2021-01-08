@@ -19,12 +19,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         {
             _testContext = testContext;
             
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<UserAccount, string>();
-                builder.Add<WorkItem, string>();
-            });
-            
             _testContext.ConfigureServicesAfterStartup(services =>
             {
                 services.AddResourceRepository<MongoDbRepository<WorkItem>>();

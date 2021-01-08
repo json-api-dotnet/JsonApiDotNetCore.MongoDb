@@ -5,6 +5,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Middleware;
+using JsonApiDotNetCore.MongoDb.Repositories;
+using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCoreMongoDbExample;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -31,7 +33,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
         
         private Action<IServiceCollection> _beforeServicesConfiguration;
         private Action<IServiceCollection> _afterServicesConfiguration;
-        private Action<ResourceGraphBuilder> _registerResources;
         private readonly MongoDbRunner _runner;
 
         public WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
@@ -57,17 +58,24 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
                 });
 
                 services.AddJsonApi(
-                    options =>
-                    {
-                        options.IncludeExceptionStackTraceInErrors = true;
-                        options.SerializerSettings.Formatting = Formatting.Indented;
-                        options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    }, resources: _registerResources);
+                    ConfigureJsonApiOptions,
+                    facade => facade.AddCurrentAssembly());
+                
+                services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
+                services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
+                services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
             });
 
             factory.ConfigureServicesAfterStartup(_afterServicesConfiguration);
 
             return factory;
+        }
+
+        private void ConfigureJsonApiOptions(JsonApiOptions options)
+        {
+            options.IncludeExceptionStackTraceInErrors = true;
+            options.SerializerSettings.Formatting = Formatting.Indented;
+            options.SerializerSettings.Converters.Add(new StringEnumConverter());
         }
 
         public void Dispose()
@@ -81,9 +89,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
 
         public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration) =>
             _afterServicesConfiguration = servicesConfiguration;
-
-        public void RegisterResources(Action<ResourceGraphBuilder> resources) =>
-            _registerResources = resources;
 
         public async Task RunOnDatabaseAsync(Func<IMongoDatabase, Task> asyncAction)
         {

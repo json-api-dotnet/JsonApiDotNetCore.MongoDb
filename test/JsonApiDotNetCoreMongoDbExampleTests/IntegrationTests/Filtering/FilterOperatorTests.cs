@@ -21,16 +21,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         public FilterOperatorTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<FilterableResource, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<FilterableResource>>();
-            });
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.EnableLegacyFilterNotation = false;

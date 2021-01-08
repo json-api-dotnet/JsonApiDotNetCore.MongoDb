@@ -1,12 +1,9 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
-using JsonApiDotNetCoreMongoDbExample.Definitions;
 using JsonApiDotNetCoreMongoDbExample.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
@@ -18,11 +15,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
         public ResourceMetaTests(IntegrationTestContext<Startup> testContext)
         {
             _testContext = testContext;
-
-            testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddScoped<IResourceDefinition<TodoItem, string>, TodoItemDefinition>();
-            });
         }
 
         [Fact]

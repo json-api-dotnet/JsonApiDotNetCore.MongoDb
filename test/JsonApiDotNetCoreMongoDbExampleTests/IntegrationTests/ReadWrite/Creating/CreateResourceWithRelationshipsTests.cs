@@ -18,22 +18,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public CreateResourceWithRelationshipsTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<RgbColor, string>();
-                builder.Add<UserAccount, string>();
-                builder.Add<WorkItem, string>();
-                builder.Add<WorkItemGroup, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<RgbColor>>();
-                services.AddResourceRepository<MongoDbRepository<UserAccount>>();
-                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
-                services.AddResourceRepository<MongoDbRepository<WorkItemGroup>>();
-            });
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.UseRelativeLinks = false;

@@ -5,6 +5,7 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleting
@@ -18,16 +19,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
         public DeleteResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<WorkItem, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
-            });
         }
 
         [Fact]
@@ -53,8 +44,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemsInDatabase = await (await db.GetCollection<WorkItem>(nameof(WorkItem))
-                    .FindAsync(Builders<WorkItem>.Filter.Eq(workItem => workItem.Id, existingWorkItem.Id)))
+                var workItemsInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .Where(workItem => workItem.Id == existingWorkItem.Id)
                     .FirstOrDefaultAsync();
 
                 workItemsInDatabase.Should().BeNull();

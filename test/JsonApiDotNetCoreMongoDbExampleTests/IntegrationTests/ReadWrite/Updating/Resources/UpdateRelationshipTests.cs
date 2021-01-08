@@ -19,18 +19,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public UpdateRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<RgbColor, string>();
-                builder.Add<WorkItemGroup, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<RgbColor>>();
-                services.AddResourceRepository<MongoDbRepository<WorkItemGroup>>();
-            });
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.UseRelativeLinks = false;

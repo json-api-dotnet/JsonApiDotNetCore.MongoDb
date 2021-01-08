@@ -17,17 +17,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
         public IncludeTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.RegisterResources(builder =>
-            {
-                builder.Add<WorkItem, string>();
-                builder.Add<UserAccount, string>();
-            });
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
-            });
         }
 
         [Fact]

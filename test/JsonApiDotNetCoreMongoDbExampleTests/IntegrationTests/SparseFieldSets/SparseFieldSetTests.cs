@@ -32,8 +32,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 services.AddResourceRepository<ResultCapturingRepository<Article>>();
                 services.AddResourceRepository<ResultCapturingRepository<Author>>();
                 services.AddResourceRepository<ResultCapturingRepository<TodoItem>>();
-
-                services.AddScoped<IResourceService<Article, string>, JsonApiResourceService<Article, string>>();
             });
             
             _articleFaker = new Faker<Article>()
@@ -136,26 +134,19 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             var route = "/api/v1/articles?fields[articles]=author";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-
-            responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(article.StringId);
-            responseDocument.ManyData[0].Attributes.Should().BeNull();
-            responseDocument.ManyData[0].Relationships.Should().HaveCount(1);
-            responseDocument.ManyData[0].Relationships["author"].Data.Should().BeNull();
-            responseDocument.ManyData[0].Relationships["author"].Links.Self.Should().NotBeNull();
-            responseDocument.ManyData[0].Relationships["author"].Links.Related.Should().NotBeNull();
-
-            var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
-            articleCaptured.Caption.Should().BeNull();
-            articleCaptured.Url.Should().BeNull();
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+            
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
         }
         
         [Fact]
-        public async Task Can_select_fields_in_primary_resource_by_ID()
+        public async Task Can_select_attribute_in_primary_resource_by_ID()
         {
             // Arrange
             var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
@@ -172,7 +163,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = $"/api/v1/articles/{article.StringId}?fields[articles]=url"; // TODO: once relationships are implemented select author field too
+            var route = $"/api/v1/articles/{article.StringId}?fields[articles]=url";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -212,7 +203,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = $"/api/v1/articles/{article.StringId}?include=author&fields[authors]=lastName,businessEmail";
+            var route = $"/api/v1/articles/{article.StringId}?fields[authors]=lastName,businessEmail,livingAddress";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -227,7 +218,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         }
         
         [Fact]
-        public async Task Can_select_fields_of_HasMany_relationship()
+        public async Task Cannot_select_fields_of_HasMany_relationship()
         {
             // Arrange
             var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
@@ -249,7 +240,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Author>().InsertOneAsync(author);
             });
 
-            var route = $"/api/v1/authors/{author.StringId}?include=articles&fields[articles]=caption,tags";
+            var route = $"/api/v1/authors/{author.StringId}?fields[articles]=caption,tags";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -264,7 +255,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         }
         
         [Fact]
-        public async Task Can_select_fields_of_HasManyThrough_relationship()
+        public async Task Cannot_select_fields_of_HasManyThrough_relationship()
         {
             // Arrange
             var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
@@ -289,7 +280,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = $"/api/v1/articles/{article.StringId}?include=tags&fields[tags]=color";
+            var route = $"/api/v1/articles/{article.StringId}?fields[tags]=color";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

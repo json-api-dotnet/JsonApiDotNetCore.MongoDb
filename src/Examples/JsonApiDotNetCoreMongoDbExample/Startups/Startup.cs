@@ -1,6 +1,6 @@
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
-using JsonApiDotNetCoreMongoDbExample.Models;
+using JsonApiDotNetCore.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Tag = JsonApiDotNetCoreMongoDbExample.Models.Tag;
 
 namespace JsonApiDotNetCoreMongoDbExample
 {
@@ -37,21 +36,11 @@ namespace JsonApiDotNetCoreMongoDbExample
             
             services.AddJsonApi(
                 ConfigureJsonApiOptions,
-                resources: builder =>
-                {
-                    builder.Add<Article, string>();
-                    builder.Add<Author, string>();
-                    builder.Add<Blog, string>();
-                    builder.Add<Person, string>();
-                    builder.Add<Tag, string>();
-                    builder.Add<TodoItem, string>();
-                });
+                facade => facade.AddCurrentAssembly());
             
-            services.AddResourceRepository<MongoDbRepository<Article>>();
-            services.AddResourceRepository<MongoDbRepository<Author>>();
-            services.AddResourceRepository<MongoDbRepository<Blog>>();
-            services.AddResourceRepository<MongoDbRepository<Person>>();
-            services.AddResourceRepository<MongoDbRepository<TodoItem>>();
+            services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
+            services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
+            services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
 
             // once all tests have been moved to WebApplicationFactory format we can get rid of this line below
             services.AddClientSerialization();

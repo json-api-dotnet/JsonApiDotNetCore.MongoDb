@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Bogus;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -16,7 +15,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
     {
         private const int _defaultPageSize = 5;
         private readonly IntegrationTestContext<Startup> _testContext;
-        private readonly Faker<TodoItem> _todoItemFaker = new Faker<TodoItem>();
 
         public PaginationWithTotalCountTests(IntegrationTestContext<Startup> testContext)
         {
@@ -100,7 +98,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = $"/api/v1/articles";
+            var route = "/api/v1/articles";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -143,7 +141,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = $"/api/v1/articles";
+            var route = "/api/v1/articles";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
