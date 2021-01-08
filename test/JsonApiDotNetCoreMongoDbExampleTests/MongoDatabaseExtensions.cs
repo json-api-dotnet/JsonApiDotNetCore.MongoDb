@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace JsonApiDotNetCore.MongoDb.Repositories
+namespace JsonApiDotNetCoreMongoDbExampleTests
 {
     public static class MongoDatabaseExtensions
     {

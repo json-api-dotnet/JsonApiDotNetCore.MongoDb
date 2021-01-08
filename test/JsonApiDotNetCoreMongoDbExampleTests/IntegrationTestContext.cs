@@ -8,7 +8,6 @@ using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCoreMongoDbExample;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mongo2Go;

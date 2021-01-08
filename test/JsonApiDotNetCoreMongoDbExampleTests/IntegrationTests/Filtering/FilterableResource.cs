@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JsonApiDotNetCore.MongoDb.Resources;
-using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
