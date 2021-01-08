@@ -11,6 +11,7 @@ using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
@@ -75,6 +76,17 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
             var queryExpressionValidator = new MongoDbQueryExpressionValidator();
             queryExpressionValidator.Validate(layer);
+            
+            var hasRelationshipSelectors = _constraintProviders
+                .SelectMany(p => p.GetConstraints())
+                .Select(expressionInScope => expressionInScope.Expression)
+                .OfType<SparseFieldTableExpression>()
+                .Any(fieldTable => fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
+
+            if (hasRelationshipSelectors)
+            {
+                throw new UnsupportedRelationshipException();
+            }
             
             var source = GetAll();
             
