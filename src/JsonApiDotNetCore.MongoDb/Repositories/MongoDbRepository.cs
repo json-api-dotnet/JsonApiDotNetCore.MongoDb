@@ -217,7 +217,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         /// <inheritdoc />
         public virtual Task AddToToManyRelationshipAsync(TId primaryId, ISet<IIdentifiable> secondaryResourceIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            throw new UnsupportedRelationshipException();
         }
 
         /// <inheritdoc />

@@ -1,47 +1,37 @@
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
-using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Resources
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating
 {
-    public sealed class UpdateRelationshipTests
+    public sealed class CreateResourceWithToOneRelationshipTests
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly WriteFakers _fakers = new WriteFakers();
 
-        public UpdateRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
+        public CreateResourceWithToOneRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-            options.UseRelativeLinks = false;
-            options.AllowClientGeneratedIds = false;
         }
-
+        
         [Fact]
-        public async Task Cannot_create_OneToOne_relationship_from_principal_side()
+        public async Task Can_create_OneToOne_relationship_from_principal_side()
         {
-            var existingGroup = _fakers.WorkItemGroup.Generate();
+            // Arrange
+            var existingGroup = new WorkItemGroup();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
             });
-            
-            // Arrange
+
             var requestBody = new
             {
                 data = new
                 {
                     type = "workItemGroups",
-                    id = existingGroup.StringId,
                     relationships = new
                     {
                         color = new
@@ -49,17 +39,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                             data = new
                             {
                                 type = "rgbColors",
-                                id = ObjectId.GenerateNewId().ToString()
+                                id = "5ff9f01672a8b3a6c33af501"
                             }
                         }
                     }
                 }
             };
 
-            var route = "/workItemGroups/" + existingGroup.StringId;
+            var route = "/workItemGroups";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
+            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
