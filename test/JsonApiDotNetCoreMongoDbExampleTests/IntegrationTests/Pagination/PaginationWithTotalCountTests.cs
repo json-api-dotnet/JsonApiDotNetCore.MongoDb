@@ -113,9 +113,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
             responseDocument.Links.Should().NotBeNull();
             responseDocument.Links.Self.Should().Be("http://localhost" + route);
             responseDocument.Links.First.Should().Be(responseDocument.Links.Self);
-            responseDocument.Links.Last.Should().Be($"http://localhost/api/v1/articles?page[number]=2");
+            responseDocument.Links.Last.Should().Be("http://localhost/api/v1/articles?page[number]=2");
             responseDocument.Links.Prev.Should().BeNull();
-            responseDocument.Links.Next.Should().Be($"http://localhost/api/v1/articles?page[number]=2");
+            responseDocument.Links.Next.Should().Be("http://localhost/api/v1/articles?page[number]=2");
         }
         
         [Fact]

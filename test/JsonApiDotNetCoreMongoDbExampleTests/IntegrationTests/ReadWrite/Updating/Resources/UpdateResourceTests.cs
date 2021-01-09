@@ -3,7 +3,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
@@ -316,39 +315,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         }
 
         [Fact]
-        public async Task Cannot_update_resource_for_missing_ID()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems"
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body: Request body must include 'id' element.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Request body: <<");
-        }
-
-        [Fact]
         public async Task Cannot_update_resource_on_unknown_resource_ID_in_url()
         {
             // Arrange
@@ -407,44 +373,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.Conflict);
             responseDocument.Errors[0].Title.Should().Be("Resource ID mismatch between request body and endpoint URL.");
             responseDocument.Errors[0].Detail.Should().Be($"Expected resource ID '{existingWorkItems[1].StringId}' in PATCH request body at endpoint '/workItems/{existingWorkItems[1].StringId}', instead of '{existingWorkItems[0].StringId}'.");
-        }
-
-        [Fact]
-        public async Task Cannot_change_ID_of_existing_resource()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    id = existingWorkItem.StringId,
-                    attributes = new
-                    {
-                        id = existingWorkItem.Id + 123456
-                    }
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body: Resource ID is read-only.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Resource ID is read-only. - Request body: <<");
         }
 
         [Fact]

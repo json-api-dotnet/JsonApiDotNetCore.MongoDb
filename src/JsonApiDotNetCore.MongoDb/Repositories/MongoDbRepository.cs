@@ -76,17 +76,8 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
             var queryExpressionValidator = new MongoDbQueryExpressionValidator();
             queryExpressionValidator.Validate(layer);
-            
-            var hasRelationshipSelectors = _constraintProviders
-                .SelectMany(p => p.GetConstraints())
-                .Select(expressionInScope => expressionInScope.Expression)
-                .OfType<SparseFieldTableExpression>()
-                .Any(fieldTable => fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
 
-            if (hasRelationshipSelectors)
-            {
-                throw new UnsupportedRelationshipException();
-            }
+            AssertNoRelationshipsInSparseFieldSets();
             
             var source = GetAll();
             
@@ -119,6 +110,24 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         protected virtual IQueryable<TResource> GetAll()
         {
             return Collection.AsQueryable();
+        }
+        
+        private void AssertNoRelationshipsInSparseFieldSets()
+        {
+            var resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+
+            var hasRelationshipSelectors = _constraintProviders
+                .SelectMany(p => p.GetConstraints())
+                .Select(expressionInScope => expressionInScope.Expression)
+                .OfType<SparseFieldTableExpression>()
+                .Any(fieldTable =>
+                    fieldTable.Table.Keys.Any(targetResourceContext => targetResourceContext != resourceContext) ||
+                    fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
+
+            if (hasRelationshipSelectors)
+            {
+                throw new UnsupportedRelationshipException();
+            }
         }
 
         /// <inheritdoc />

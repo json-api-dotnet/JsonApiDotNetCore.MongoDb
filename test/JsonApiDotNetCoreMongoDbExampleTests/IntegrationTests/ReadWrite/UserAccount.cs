@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
@@ -10,5 +12,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 
         [Attr]
         public string LastName { get; set; }
+        
+        [HasMany]
+        [BsonIgnore]
+        public ISet<WorkItem> AssignedItems { get; set; }
     }
 }

@@ -1,12 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Bogus;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCore.Services;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +14,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
     public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<Startup>>
     {
         private readonly IntegrationTestContext<Startup> _testContext;
-        private readonly Faker<Article> _articleFaker;
-        private readonly Faker<Author> _authorFaker;
 
         public SparseFieldSetTests(IntegrationTestContext<Startup> testContext)
         {
@@ -33,26 +28,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 services.AddResourceRepository<ResultCapturingRepository<Author>>();
                 services.AddResourceRepository<ResultCapturingRepository<TodoItem>>();
             });
-            
-            _articleFaker = new Faker<Article>()
-                .RuleFor(a => a.Caption, f => f.Random.AlphaNumeric(10));
-            
-            _authorFaker = new Faker<Author>()
-                .RuleFor(a => a.LastName, f => f.Random.Words(2));
         }
 
         [Fact]
         public async Task Cannot_select_fields_with_relationship_in_primary_resources()
         {
             // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
-
-            var article = new Article
-            {
-                Caption = "One",
-                Url = "https://one.domain.com"
-            };
+            var article = new Article();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -116,14 +98,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         public async Task Cannot_select_relationship_in_primary_resources()
         {
             // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
-
-            var article = new Article
-            {
-                Caption = "One",
-                Url = "https://one.domain.com"
-            };
+            var article = new Article();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -186,17 +161,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         public async Task Cannot_select_fields_of_HasOne_relationship()
         {
             // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
-
-            var article = _articleFaker.Generate();
-            article.Caption = "Some";
-            article.Author = new Author
-            {
-                FirstName = "Joe",
-                LastName = "Smith",
-                BusinessEmail = "nospam@email.com"
-            };
+            var article = new Article();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -221,19 +186,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         public async Task Cannot_select_fields_of_HasMany_relationship()
         {
             // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
-
-            var author = _authorFaker.Generate();
-            author.LastName = "Smith";
-            author.Articles = new List<Article>
-            {
-                new Article
-                {
-                    Caption = "One",
-                    Url = "https://one.domain.com"
-                }
-            };
+            var author = new Author();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -258,22 +211,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
         public async Task Cannot_select_fields_of_HasManyThrough_relationship()
         {
             // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
-
-            var article = _articleFaker.Generate();
-            article.Caption = "Some";
-            article.ArticleTags = new HashSet<ArticleTag>
-            {
-                new ArticleTag
-                {
-                    Tag = new Tag
-                    {
-                        Name = "Hot",
-                        Color = TagColor.Red
-                    }
-                }
-            };
+            var article = new Article();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -368,7 +306,5 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             todoItemCaptured.CalculatedValue.Should().Be(todoItem.CalculatedValue);
             todoItemCaptured.Description.Should().Be(todoItem.Description);
         }
-        
-        
     }
 }

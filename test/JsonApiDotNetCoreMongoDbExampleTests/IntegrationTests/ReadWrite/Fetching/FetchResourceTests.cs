@@ -2,8 +2,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using Xunit;
 
@@ -18,11 +16,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         public FetchResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-            
-            _testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddResourceRepository<MongoDbRepository<WorkItem>>();
-            });
         }
 
         [Fact]
@@ -86,22 +79,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             responseDocument.SingleData.Attributes["dueAt"].Should().BeCloseTo(workItem.DueAt);
             responseDocument.SingleData.Attributes["priority"].Should().Be(workItem.Priority.ToString("G"));
         }
-
-        [Fact]
-        public async Task Cannot_get_primary_resource_for_unknown_type()
-        {
-            // Arrange
-            var route = "/doesNotExist/5f88857c4aa60defec6a4999";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<string>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
-
-            responseDocument.Should().BeEmpty();
-        }
-
+        
         [Fact]
         public async Task Cannot_get_primary_resource_for_unknown_ID()
         {
@@ -134,6 +112,56 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             });
 
             var route = $"/workItems/{workItem.StringId}/assignee";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+        
+        [Fact]
+        public async Task Cannot_get_secondary_HasMany_resources()
+        {
+            // Arrange
+            var userAccount = new UserAccount();
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<UserAccount>().InsertOneAsync(userAccount);
+            });
+
+            var route = $"/userAccounts/{userAccount.StringId}/assignedItems";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
+            responseDocument.Errors[0].Detail.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task Can_get_secondary_HasManyThrough_resources()
+        {
+            // Arrange
+            var workItem = new WorkItem();
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
+            });
+
+            var route = $"/workItems/{workItem.StringId}/tags";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

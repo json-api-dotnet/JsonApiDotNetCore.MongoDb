@@ -63,9 +63,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await (await db.GetCollection<WorkItem>(nameof(WorkItem))
-                        .FindAsync(Builders<WorkItem>.Filter.Eq(w => w.Id, newWorkItemId)))
-                        .FirstAsync();
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                        .Where(w => w.Id == newWorkItemId)
+                        .FirstOrDefaultAsync();
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
                 workItemInDatabase.DueAt.Should().Be(newWorkItem.DueAt);
@@ -163,36 +163,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
                 workItemInDatabase.Should().NotBeNull();
             });
-        }
-
-        [Fact]
-        public async Task Cannot_create_resource_with_incompatible_attribute_value()
-        {
-            // Arrange
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    attributes = new
-                    {
-                        dueAt = "not-a-valid-time"
-                    }
-                }
-            };
-
-            var route = "/workItems";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Failed to convert 'not-a-valid-time' of type 'String' to type 'Nullable`1'. - Request body: <<");
         }
     }
 }

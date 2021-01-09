@@ -54,14 +54,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
         public async Task Cannot_sort_on_HasMany_relationship()
         {
             // Arrange
-            var blogs = new List<Blog>
-            {
-                new Blog()
-            };
+            var blog = new Blog();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<Blog>().InsertManyAsync(blogs);
+                await db.GetCollection<Blog>().InsertOneAsync(blog);
             });
             
             var route = "/api/v1/blogs?sort=count(articles)";
@@ -82,6 +79,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
         public async Task Cannot_sort_on_HasManyThrough_relationship()
         {
             // Arrange
+            var article = new Article();
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<Article>().InsertOneAsync(article);
+            });
+            
             var route = "/api/v1/articles?sort=-count(tags)";
 
             // Act
@@ -100,6 +104,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
         public async Task Cannot_sort_on_HasOne_relationship()
         {
             // Arrange
+            var article = new Article();
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<Article>().InsertOneAsync(article);
+            });
+            
             var route = "/api/v1/articles?sort=-author.lastName";
 
             // Act
