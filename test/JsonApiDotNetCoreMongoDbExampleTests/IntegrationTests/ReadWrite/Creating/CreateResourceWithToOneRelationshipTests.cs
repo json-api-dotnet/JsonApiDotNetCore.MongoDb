@@ -10,6 +10,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public CreateResourceWithToOneRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -17,13 +18,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         }
         
         [Fact]
-        public async Task Can_create_OneToOne_relationship_from_principal_side()
+        public async Task Cannot_create_OneToOne_relationship()
         {
             // Arrange
-            var existingGroup = new WorkItemGroup();
+            var existingGroup = _fakers.WorkItemGroup.Generate();
+            existingGroup.Color = _fakers.RgbColor.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<RgbColor>().InsertOneAsync(existingGroup.Color);
                 await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
             });
 
@@ -39,7 +42,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                             data = new
                             {
                                 type = "rgbColors",
-                                id = "5ff9f01672a8b3a6c33af501"
+                                id = existingGroup.Color.StringId
                             }
                         }
                     }

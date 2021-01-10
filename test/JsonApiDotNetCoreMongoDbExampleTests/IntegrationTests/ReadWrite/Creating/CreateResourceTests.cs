@@ -15,7 +15,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly WriteFakers _fakers = new WriteFakers();
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public CreateResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -27,7 +27,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         }
 
         [Fact]
-        public async Task Can_create_resource_with_ID()
+        public async Task Can_create_resource_with_string_ID()
         {
             // Arrange
             var newWorkItem = _fakers.WorkItem.Generate();
@@ -57,6 +57,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
             responseDocument.SingleData.Attributes["dueAt"].Should().Be(newWorkItem.DueAt);
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -74,6 +75,51 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
+        [Fact]
+        public async Task Can_create_resource_without_attributes_or_relationships()
+        {
+            // Arrange
+            var requestBody = new
+            {
+                data = new
+                {
+                    type = "workItems",
+                    attributes = new
+                    {
+                    },
+                    relationship = new
+                    {
+                    }
+                }
+            };
+
+            var route = "/workItems";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
+
+            responseDocument.SingleData.Should().NotBeNull();
+            responseDocument.SingleData.Type.Should().Be("workItems");
+            responseDocument.SingleData.Attributes["description"].Should().BeNull();
+            responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+
+            var newWorkItemId = responseDocument.SingleData.Id;
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .Where(workItem => workItem.Id == newWorkItemId)
+                    .FirstOrDefaultAsync();
+
+                workItemInDatabase.Description.Should().BeNull();
+                workItemInDatabase.DueAt.Should().BeNull();
+            });
+        }
+        
         [Fact]
         public async Task Can_create_resource_with_unknown_attribute()
         {
@@ -104,6 +150,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Should().NotBeNull();
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -151,6 +198,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Should().NotBeNull();
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 

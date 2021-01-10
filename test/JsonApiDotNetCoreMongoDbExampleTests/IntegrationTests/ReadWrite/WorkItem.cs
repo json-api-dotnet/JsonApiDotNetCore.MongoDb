@@ -25,9 +25,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
             set { }
         }
 
+        [BsonIgnore]
         [HasOne]
         public UserAccount Assignee { get; set; }
 
+        [BsonIgnore]
         [HasMany]
         public ISet<UserAccount> Subscribers { get; set; }
 
@@ -36,9 +38,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         public ISet<WorkTag> Tags { get; set; }
         public ICollection<WorkItemTag> WorkItemTags { get; set; }
 
+        [BsonIgnore]
         [HasOne]
         public WorkItem Parent { get; set; }
 
+        [BsonIgnore]
         [HasMany]
         public IList<WorkItem> Children { get; set; }
 
@@ -52,6 +56,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         public IList<WorkItem> RelatedTo { get; set; }
         public IList<WorkItemToWorkItem> RelatedToItems { get; set; }
 
+        [BsonIgnore]
         [HasOne]
         public WorkItemGroup Group { get; set; }
     }

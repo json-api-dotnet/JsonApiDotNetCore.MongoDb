@@ -16,7 +16,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly WriteFakers _fakers = new WriteFakers();
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public UpdateResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -53,7 +53,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = "/userAccounts/" + existingUserAccount.StringId;
+            var route = $"/userAccounts/{existingUserAccount.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -90,7 +90,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = "/userAccounts/" + existingUserAccount.StringId;
+            var route = $"/userAccounts/{existingUserAccount.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -109,6 +109,60 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 userAccountInDatabase.FirstName.Should().Be(newFirstName);
                 userAccountInDatabase.LastName.Should().Be(existingUserAccount.LastName);
             });
+        }
+        
+        [Fact]
+        public async Task Can_partially_update_resource_with_string_ID()
+        {
+            // Arrange
+            var existingGroup = _fakers.WorkItemGroup.Generate();
+            var newName = _fakers.WorkItemGroup.Generate().Name;
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
+            });
+
+            var requestBody = new
+            {
+                data = new
+                {
+                    type = "workItemGroups",
+                    id = existingGroup.StringId,
+                    attributes = new
+                    {
+                        name = newName
+                    }
+                }
+            };
+
+            var route = $"/workItemGroups/{existingGroup.StringId}";
+
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
+
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+            responseDocument.SingleData.Should().NotBeNull();
+            responseDocument.SingleData.Type.Should().Be("workItemGroups");
+            responseDocument.SingleData.Id.Should().Be(existingGroup.StringId);
+            responseDocument.SingleData.Attributes["name"].Should().Be(newName);
+            responseDocument.SingleData.Attributes["isPublic"].Should().Be(existingGroup.IsPublic);
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+
+            await _testContext.RunOnDatabaseAsync(async db =>
+            {
+                var groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable()
+                    .Where(group => group.Id == existingGroup.Id)
+                    .FirstOrDefaultAsync();
+
+                groupInDatabase.Name.Should().Be(newName);
+                groupInDatabase.IsPublic.Should().Be(existingGroup.IsPublic);
+            });
+
+            var property = typeof(WorkItemGroup).GetProperty(nameof(Identifiable.Id));
+            property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
         [Fact]
@@ -136,7 +190,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = "/rgbColors/" + existingColor.StringId;
+            var route = $"/rgbColors/{existingColor.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -185,7 +239,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = "/userAccounts/" + existingUserAccount.StringId;
+            var route = $"/userAccounts/{existingUserAccount.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -232,7 +286,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = "/workItems/" + existingWorkItem.StringId;
+            var route = $"/workItems/{existingWorkItem.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
@@ -247,6 +301,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
             responseDocument.SingleData.Attributes["priority"].Should().Be(existingWorkItem.Priority.ToString("G"));
             responseDocument.SingleData.Attributes.Should().ContainKey("concurrencyToken");
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -323,11 +378,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 data = new
                 {
                     type = "workItems",
-                    id = "5f88857c4aa60defec6a4999"
+                    id = "ffffffffffffffffffffffff"
                 }
             };
 
-            var route = "/workItems/5f88857c4aa60defec6a4999";
+            var route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
@@ -338,79 +393,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.NotFound);
             responseDocument.Errors[0].Title.Should().Be("The requested resource does not exist.");
-            responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID '5f88857c4aa60defec6a4999' does not exist.");
-        }
-
-        [Fact]
-        public async Task Cannot_update_on_resource_ID_mismatch_between_url_and_body()
-        {
-            // Arrange
-            var existingWorkItems = _fakers.WorkItem.Generate(2);
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertManyAsync(existingWorkItems);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    id = existingWorkItems[0].StringId
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItems[1].StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.Conflict);
-            responseDocument.Errors[0].Title.Should().Be("Resource ID mismatch between request body and endpoint URL.");
-            responseDocument.Errors[0].Detail.Should().Be($"Expected resource ID '{existingWorkItems[1].StringId}' in PATCH request body at endpoint '/workItems/{existingWorkItems[1].StringId}', instead of '{existingWorkItems[0].StringId}'.");
-        }
-
-        [Fact]
-        public async Task Cannot_update_resource_with_incompatible_attribute_value()
-        {
-            // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    id = existingWorkItem.StringId,
-                    attributes = new
-                    {
-                        dueAt = "not-a-valid-time"
-                    }
-                }
-            };
-
-            var route = "/workItems/" + existingWorkItem.StringId;
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.UnprocessableEntity);
-
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-            responseDocument.Errors[0].Title.Should().Be("Failed to deserialize request body.");
-            responseDocument.Errors[0].Detail.Should().StartWith("Failed to convert 'not-a-valid-time' of type 'String' to type 'Nullable`1'. - Request body: <<");
+            responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID 'ffffffffffffffffffffffff' does not exist.");
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
@@ -20,5 +21,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         [HasOne]
         [BsonIgnore]
         public RgbColor Color { get; set; }
+        
+        [HasMany]
+        [BsonIgnore]
+        public IList<WorkItem> Items { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -10,6 +11,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public ReplaceToManyRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -20,10 +22,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Cannot_replace_HasMany_relationship()
         {
             // Arrange
-            var existingWorkItem = new WorkItem();
+            var existingWorkItem = _fakers.WorkItem.Generate();
+            existingWorkItem.Subscribers = _fakers.UserAccount.Generate(2).ToHashSet();
+            
+            var existingSubscriber = _fakers.UserAccount.Generate();
             
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<UserAccount>().InsertOneAsync(existingSubscriber);
+                await db.GetCollection<UserAccount>().InsertManyAsync(existingWorkItem.Subscribers);
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
@@ -73,10 +80,25 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Cannot_replace_HasManyThrough_relationship()
         {
             // Arrange
-            var existingWorkItem = new WorkItem();
+            var existingWorkItem = _fakers.WorkItem.Generate();
+            existingWorkItem.WorkItemTags = new[]
+            {
+                new WorkItemTag
+                {
+                    Tag = _fakers.WorkTag.Generate()
+                },
+                new WorkItemTag
+                {
+                    Tag = _fakers.WorkTag.Generate()
+                }
+            };
+
+            var existingTags = _fakers.WorkTag.Generate(2);
             
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<WorkTag>().InsertManyAsync(existingTags);
+                await db.GetCollection<WorkTag>().InsertManyAsync(existingWorkItem.WorkItemTags.Select(workItemTag => workItemTag.Tag));
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 

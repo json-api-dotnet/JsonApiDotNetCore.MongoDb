@@ -10,6 +10,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public UpdateToOneRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -17,13 +18,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         }
         
         [Fact]
-        public async Task Cannot_create_OneToOne_relationship_from_principal_side()
+        public async Task Cannot_create_OneToOne_relationship()
         {
             // Arrange
-            var existingGroup = new WorkItemGroup();
+            var existingGroup = _fakers.WorkItemGroup.Generate();
+            existingGroup.Color = _fakers.RgbColor.Generate();
+            
+            var existingColor = _fakers.RgbColor.Generate();
             
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<RgbColor>().InsertManyAsync(new[] {existingColor, existingGroup.Color});
                 await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
             });
 
@@ -48,51 +53,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             };
 
             var route = $"/workItemGroups/{existingGroup.StringId}";
-
-            // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-            
-            responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
-        }
-        
-        [Fact]
-        public async Task Cannot_replace_ManyToOne_relationship()
-        {
-            // Arrange
-            var existingWorkItem = new WorkItem();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
-            });
-
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "workItems",
-                    id = existingWorkItem.StringId,
-                    relationships = new
-                    {
-                        assignee = new
-                        {
-                            data = new
-                            {
-                                type = "userAccounts",
-                                id = "5ff9ee9172a8b3a6c33af500"
-                            }
-                        }
-                    }
-                }
-            };
-
-            var route = $"/workItems/{existingWorkItem.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);

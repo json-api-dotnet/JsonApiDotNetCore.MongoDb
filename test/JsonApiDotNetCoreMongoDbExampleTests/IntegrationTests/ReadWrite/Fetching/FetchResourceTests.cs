@@ -11,7 +11,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly WriteFakers _fakers = new WriteFakers();
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public FetchResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -45,12 +45,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             item1.Attributes["description"].Should().Be(workItems[0].Description);
             item1.Attributes["dueAt"].Should().BeCloseTo(workItems[0].DueAt);
             item1.Attributes["priority"].Should().Be(workItems[0].Priority.ToString("G"));
+            item1.Relationships.Should().NotBeEmpty();
 
             var item2 = responseDocument.ManyData.Single(resource => resource.Id == workItems[1].StringId);
             item2.Type.Should().Be("workItems");
             item2.Attributes["description"].Should().Be(workItems[1].Description);
             item2.Attributes["dueAt"].Should().BeCloseTo(workItems[1].DueAt);
             item2.Attributes["priority"].Should().Be(workItems[1].Priority.ToString("G"));
+            item2.Relationships.Should().NotBeEmpty();
         }
 
         [Fact]
@@ -78,6 +80,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             responseDocument.SingleData.Attributes["description"].Should().Be(workItem.Description);
             responseDocument.SingleData.Attributes["dueAt"].Should().BeCloseTo(workItem.DueAt);
             responseDocument.SingleData.Attributes["priority"].Should().Be(workItem.Priority.ToString("G"));
+            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
         }
         
         [Fact]
@@ -129,10 +132,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         public async Task Cannot_get_secondary_HasMany_resources()
         {
             // Arrange
-            var userAccount = new UserAccount();
+            var userAccount = _fakers.UserAccount.Generate();
+            userAccount.AssignedItems = _fakers.WorkItem.Generate(2).ToHashSet();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<WorkItem>().InsertManyAsync(userAccount.AssignedItems);
                 await db.GetCollection<UserAccount>().InsertOneAsync(userAccount);
             });
 
@@ -151,13 +156,26 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         }
 
         [Fact]
-        public async Task Can_get_secondary_HasManyThrough_resources()
+        public async Task Cannot_get_secondary_HasManyThrough_resources()
         {
             // Arrange
-            var workItem = new WorkItem();
+            var workItem = _fakers.WorkItem.Generate();
+            workItem.WorkItemTags = new[]
+            {
+                new WorkItemTag
+                {
+                    Tag = _fakers.WorkTag.Generate()
+                },
+                new WorkItemTag
+                {
+                    Tag = _fakers.WorkTag.Generate()
+                }
+            };
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<WorkTag>()
+                    .InsertManyAsync(workItem.WorkItemTags.Select(workItemTag => workItemTag.Tag));
                 await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 

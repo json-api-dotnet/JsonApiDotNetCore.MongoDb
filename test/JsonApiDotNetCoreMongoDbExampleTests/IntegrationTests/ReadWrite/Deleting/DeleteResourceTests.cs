@@ -1,8 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Serialization.Objects;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -14,7 +12,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly WriteFakers _fakers = new WriteFakers();
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public DeleteResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -32,7 +30,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
-            var route = "/workItems/" + existingWorkItem.StringId;
+            var route = $"/workItems/{existingWorkItem.StringId}";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteDeleteAsync<string>(route);
@@ -56,7 +54,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
         public async Task Cannot_delete_missing_resource()
         {
             // Arrange
-            var route = "/workItems/5f88857c4aa60defec6a4999";
+            var route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteDeleteAsync<ErrorDocument>(route);
@@ -67,7 +65,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
             responseDocument.Errors.Should().HaveCount(1);
             responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.NotFound);
             responseDocument.Errors[0].Title.Should().Be("The requested resource does not exist.");
-            responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID '5f88857c4aa60defec6a4999' does not exist.");
+            responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID 'ffffffffffffffffffffffff' does not exist.");
         }
     }
 }

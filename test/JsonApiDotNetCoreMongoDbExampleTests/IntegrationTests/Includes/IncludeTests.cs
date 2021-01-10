@@ -12,7 +12,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
     public sealed class IncludeTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly WriteFakers _fakers = new WriteFakers();
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public IncludeTests(IntegrationTestContext<TestableStartup> testContext)
         {

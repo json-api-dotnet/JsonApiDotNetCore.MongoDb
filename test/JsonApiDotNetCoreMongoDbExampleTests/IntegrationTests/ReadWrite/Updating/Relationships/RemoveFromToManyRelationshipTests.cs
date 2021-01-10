@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -10,6 +11,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
         
         public RemoveFromToManyRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -20,10 +22,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Cannot_remove_from_HasMany_relationship()
         {
             // Arrange
-            var existingWorkItem = new WorkItem();
+            var existingWorkItem = _fakers.WorkItem.Generate();
+            existingWorkItem.Subscribers = _fakers.UserAccount.Generate(2).ToHashSet();
+            var existingSubscriber = _fakers.UserAccount.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<UserAccount>().InsertOneAsync(existingSubscriber);
+                await db.GetCollection<UserAccount>().InsertManyAsync(existingWorkItem.Subscribers);
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
@@ -34,12 +40,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                     new
                     {
                         type = "userAccounts",
-                        id = "5ff9e39972a8b3a6c33af4f6"
+                        id = existingSubscriber.StringId
                     },
                     new
                     {
                         type = "userAccounts",
-                        id = "5ff9e39f72a8b3a6c33af4f7"
+                        id = existingWorkItem.Subscribers.ElementAt(0).StringId
                     }
                 }
             };
@@ -62,10 +68,24 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Cannot_remove_from_HasManyThrough_relationship()
         {
             // Arrange
-            var existingWorkItem = new WorkItem();
+            var existingWorkItem = _fakers.WorkItem.Generate();
+            existingWorkItem.WorkItemTags = new[]
+            {
+                new WorkItemTag
+                {
+                    Tag = _fakers.WorkTag.Generate()
+                },
+                new WorkItemTag
+                {
+                    Tag = _fakers.WorkTag.Generate()
+                }
+            };
+            var existingTag = _fakers.WorkTag.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
+                await db.GetCollection<WorkTag>().InsertOneAsync(existingTag);
+                await db.GetCollection<WorkTag>().InsertManyAsync(existingWorkItem.WorkItemTags.Select(workItemTag => workItemTag.Tag));
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
@@ -76,12 +96,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                     new
                     {
                         type = "workTags",
-                        id = "5ff9e36e72a8b3a6c33af4f5"
+                        id = existingWorkItem.WorkItemTags.ElementAt(1).Tag.StringId
                     },
                     new
                     {
                         type = "workTags",
-                        id = "5ff9e36872a8b3a6c33af4f4"
+                        id = existingTag.StringId
                     }
                 }
             };

@@ -10,6 +10,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public CreateResourceWithToManyRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -20,11 +21,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public async Task Cannot_create_HasMany_relationship()
         {
             // Arrange
-            var existingUserAccounts = new[]
-            {
-                new UserAccount(),
-                new UserAccount()
-            };
+            var existingUserAccounts = _fakers.UserAccount.Generate(2);
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {

@@ -10,6 +10,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
 
         public FetchRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -19,7 +20,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         [Fact]
         public async Task Cannot_get_HasOne_relationship()
         {
-            var workItem = new WorkItem();
+            var workItem = _fakers.WorkItem.Generate();
             
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -44,7 +45,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         public async Task Cannot_get_HasMany_relationship()
         {
             // Arrange
-            var userAccount = new UserAccount();
+            var userAccount = _fakers.UserAccount.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -69,7 +70,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         public async Task Cannot_get_HasManyThrough_relationship()
         {
             // Arrange
-            var workItem = new WorkItem();
+            var workItem = _fakers.WorkItem.Generate();
             
             await _testContext.RunOnDatabaseAsync(async db =>
             {

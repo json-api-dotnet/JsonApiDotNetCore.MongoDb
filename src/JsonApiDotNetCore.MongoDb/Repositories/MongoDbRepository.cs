@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Queries;
@@ -147,12 +148,17 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
             
             AssertNoRelationshipsAreTargeted();
+
+            if (resourceFromRequest.Id != null)
+            {
+                AssertIdIsUnique(resourceFromRequest.Id);
+            }
             
             foreach (var attribute in _targetedFields.Attributes)
             {
                 attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
             }
-
+            
             return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
         }
 
@@ -161,6 +167,17 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             if (_targetedFields.Relationships.Any())
             {
                 throw new UnsupportedRelationshipException();
+            }
+        }
+
+        private void AssertIdIsUnique(TId id)
+        {
+            var documentsWithEqualIdCount =
+                Collection.CountDocuments(Builders<TResource>.Filter.Eq(e => e.Id, id));
+
+            if (documentsWithEqualIdCount > 0)
+            {
+                throw new ResourceAlreadyExistsException(id.ToString(), _resourceContextProvider.GetResourceContext<TResource>().PublicName);
             }
         }
 
