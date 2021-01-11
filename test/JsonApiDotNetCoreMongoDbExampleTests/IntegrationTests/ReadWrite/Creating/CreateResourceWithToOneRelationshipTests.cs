@@ -18,7 +18,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         }
         
         [Fact]
-        public async Task Cannot_create_OneToOne_relationship()
+        public async Task Cannot_create_relationship()
         {
             // Arrange
             var existingGroup = _fakers.WorkItemGroup.Generate();

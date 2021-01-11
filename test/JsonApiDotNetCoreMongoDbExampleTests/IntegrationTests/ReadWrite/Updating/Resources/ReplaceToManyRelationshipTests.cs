@@ -49,12 +49,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                                 new
                                 {
                                     type = "userAccounts",
-                                    id = "5ff9ec7672a8b3a6c33af4fa"
+                                    id = existingWorkItem.Subscribers.ElementAt(1).StringId
                                 },
                                 new
                                 {
                                     type = "userAccounts",
-                                    id = "5ff9ec7d72a8b3a6c33af4fb"
+                                    id = existingSubscriber.StringId
                                 }
                             }
                         }
@@ -117,17 +117,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                                 new
                                 {
                                     type = "workTags",
-                                    id = "5ff9ed0e72a8b3a6c33af4fc"
+                                    id = existingWorkItem.WorkItemTags.ElementAt(0).Tag.StringId
                                 },
                                 new
                                 {
                                     type = "workTags",
-                                    id = "5ff9ed0e72a8b3a6c33af4fd"
+                                    id = existingTags[0].StringId
                                 },
                                 new
                                 {
                                     type = "workTags",
-                                    id = "5ff9ed0f72a8b3a6c33af4fe"
+                                    id = existingTags[1].StringId
                                 }
                             }
                         }

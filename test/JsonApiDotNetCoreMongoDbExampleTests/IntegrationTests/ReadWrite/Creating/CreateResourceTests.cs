@@ -1,10 +1,8 @@
 using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Xunit;
@@ -20,10 +18,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public CreateResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-            options.UseRelativeLinks = false;
-            options.AllowClientGeneratedIds = false;
         }
 
         [Fact]
@@ -73,6 +67,31 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             var property = typeof(WorkItem).GetProperty(nameof(Identifiable.Id));
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
+        }
+
+        [Fact]
+        public async Task Cannot_create_resource_with_int_ID()
+        {
+            // Arrange
+            var requestBody = new
+            {
+                data = new
+                {
+                    type = "modelWithIntIds",
+                    attributes = new
+                    {
+                        description = "Test"
+                    }
+                }
+            };
+
+            var route = "/modelWithIntIds";
+            
+            // Act
+            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            
+            // Assert
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.Ambiguous);
         }
 
         [Fact]
@@ -180,7 +199,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                             data = new
                             {
                                 type = "doesNotExist",
-                                id = 12345678
+                                id = "ffffffffffffffffffffffff"
                             }
                         }
                     }

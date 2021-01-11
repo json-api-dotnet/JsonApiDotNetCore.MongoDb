@@ -18,7 +18,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         }
         
         [Fact]
-        public async Task Cannot_create_OneToOne_relationship()
+        public async Task Cannot_create_relationship()
         {
             // Arrange
             var existingGroup = _fakers.WorkItemGroup.Generate();
@@ -45,7 +45,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                             data = new
                             {
                                 type = "rgbColors",
-                                id = "5ff9edc172a8b3a6c33af4ff"
+                                id = existingColor.StringId
                             }
                         }
                     }

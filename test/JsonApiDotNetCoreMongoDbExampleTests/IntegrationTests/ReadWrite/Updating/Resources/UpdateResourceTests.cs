@@ -21,10 +21,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public UpdateResourceTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
-
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-            options.UseRelativeLinks = false;
-            options.AllowClientGeneratedIds = false;
         }
 
         [Fact]
