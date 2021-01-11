@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Queries;
@@ -141,25 +140,27 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         }
 
         /// <inheritdoc />
-        public virtual Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
+        public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
             CancellationToken cancellationToken)
         {
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
             
             AssertNoRelationshipsAreTargeted();
-
-            if (resourceFromRequest.Id != null)
-            {
-                AssertIdIsUnique(resourceFromRequest.Id);
-            }
             
             foreach (var attribute in _targetedFields.Attributes)
             {
                 attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
             }
-            
-            return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
+
+            try
+            {
+                await Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            {
+                throw new DataStoreUpdateException(ex);
+            }
         }
 
         private void AssertNoRelationshipsAreTargeted()
@@ -167,17 +168,6 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             if (_targetedFields.Relationships.Any())
             {
                 throw new UnsupportedRelationshipException();
-            }
-        }
-
-        private void AssertIdIsUnique(TId id)
-        {
-            var documentsWithEqualIdCount =
-                Collection.CountDocuments(Builders<TResource>.Filter.Eq(e => e.Id, id));
-
-            if (documentsWithEqualIdCount > 0)
-            {
-                throw new ResourceAlreadyExistsException(id.ToString(), _resourceContextProvider.GetResourceContext<TResource>().PublicName);
             }
         }
 
@@ -197,22 +187,36 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             AssertNoRelationshipsAreTargeted();
             
             foreach (var attr in _targetedFields.Attributes)
+            {
                 attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
+            }
 
-            await Collection.ReplaceOneAsync(
-                Builders<TResource>.Filter.Eq(e => e.Id, resourceFromDatabase.Id),
-                resourceFromDatabase,
-                new ReplaceOptions(),
-                cancellationToken);
+            var filter = Builders<TResource>.Filter.Eq(e => e.Id, resourceFromDatabase.Id);
+
+            try
+            {
+                await Collection.ReplaceOneAsync(filter, resourceFromDatabase, new ReplaceOptions(), cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            {
+                throw new DataStoreUpdateException(ex);
+            }
         }
 
         /// <inheritdoc />
         public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
         {
-            var result = await Collection.DeleteOneAsync(
-                Builders<TResource>.Filter.Eq(e => e.Id, id),
-                new DeleteOptions(),
-                cancellationToken);
+            var filter = Builders<TResource>.Filter.Eq(e => e.Id, id);
+
+            DeleteResult result;
+            try
+            {
+                result = await Collection.DeleteOneAsync(filter, new DeleteOptions(), cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            {
+                throw new DataStoreUpdateException(ex);
+            }
 
             if (!result.IsAcknowledged)
             {
