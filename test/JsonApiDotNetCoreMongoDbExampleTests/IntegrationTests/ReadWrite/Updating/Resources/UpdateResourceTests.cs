@@ -149,7 +149,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.SingleData.Id.Should().Be(existingGroup.StringId);
             responseDocument.SingleData.Attributes["name"].Should().Be(newName);
             responseDocument.SingleData.Attributes["isPublic"].Should().Be(existingGroup.IsPublic);
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -301,7 +301,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
             responseDocument.SingleData.Attributes["priority"].Should().Be(existingWorkItem.Priority.ToString("G"));
             responseDocument.SingleData.Attributes.Should().ContainKey("concurrencyToken");
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {

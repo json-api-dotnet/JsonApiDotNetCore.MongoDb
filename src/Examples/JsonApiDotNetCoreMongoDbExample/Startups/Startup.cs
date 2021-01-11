@@ -1,6 +1,8 @@
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
+using JsonApiDotNetCore.MongoDb.Serialization.Building;
 using JsonApiDotNetCore.Repositories;
+using JsonApiDotNetCore.Serialization.Building;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +43,8 @@ namespace JsonApiDotNetCoreMongoDbExample
             services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
             services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
             services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
+
+            services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
 
             // once all tests have been moved to WebApplicationFactory format we can get rid of this line below
             services.AddClientSerialization();

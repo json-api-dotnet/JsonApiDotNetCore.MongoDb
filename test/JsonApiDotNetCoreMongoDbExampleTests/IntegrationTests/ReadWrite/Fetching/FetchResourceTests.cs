@@ -45,14 +45,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             item1.Attributes["description"].Should().Be(workItems[0].Description);
             item1.Attributes["dueAt"].Should().BeCloseTo(workItems[0].DueAt);
             item1.Attributes["priority"].Should().Be(workItems[0].Priority.ToString("G"));
-            item1.Relationships.Should().NotBeEmpty();
+            item1.Relationships.Should().BeNull();
 
             var item2 = responseDocument.ManyData.Single(resource => resource.Id == workItems[1].StringId);
             item2.Type.Should().Be("workItems");
             item2.Attributes["description"].Should().Be(workItems[1].Description);
             item2.Attributes["dueAt"].Should().BeCloseTo(workItems[1].DueAt);
             item2.Attributes["priority"].Should().Be(workItems[1].Priority.ToString("G"));
-            item2.Relationships.Should().NotBeEmpty();
+            item2.Relationships.Should().BeNull();
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             responseDocument.SingleData.Attributes["description"].Should().Be(workItem.Description);
             responseDocument.SingleData.Attributes["dueAt"].Should().BeCloseTo(workItem.DueAt);
             responseDocument.SingleData.Attributes["priority"].Should().Be(workItem.Priority.ToString("G"));
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
         }
         
         [Fact]

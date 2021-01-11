@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCore.MongoDb.Repositories;
+using JsonApiDotNetCore.MongoDb.Serialization.Building;
 using JsonApiDotNetCore.Repositories;
+using JsonApiDotNetCore.Serialization.Building;
 using JsonApiDotNetCoreMongoDbExample;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -222,6 +224,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
 
                         webBuilder.ConfigureServices(services =>
                         {
+                            services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
+
                             _afterServicesConfiguration?.Invoke(services);
                         });
                     });

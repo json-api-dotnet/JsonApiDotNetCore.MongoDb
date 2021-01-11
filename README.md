@@ -52,6 +52,8 @@ public class Startup
         });
 
         services.AddResourceRepository<MongoDbRepository<Book>>();
+
+        services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
     }
 
     public void Configure(IApplicationBuilder app)

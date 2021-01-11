@@ -57,7 +57,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
             responseDocument.SingleData.Attributes["dueAt"].Should().Be(newWorkItem.DueAt);
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -105,7 +105,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().BeNull();
             responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -150,7 +150,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Should().NotBeNull();
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 
@@ -198,7 +198,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Should().NotBeNull();
             responseDocument.SingleData.Type.Should().Be("workItems");
             responseDocument.SingleData.Attributes.Should().NotBeEmpty();
-            responseDocument.SingleData.Relationships.Should().NotBeEmpty();
+            responseDocument.SingleData.Relationships.Should().BeNull();
 
             var newWorkItemId = responseDocument.SingleData.Id;
 

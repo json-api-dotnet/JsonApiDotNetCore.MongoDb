@@ -1,6 +1,8 @@
 using GettingStarted.Models;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
+using JsonApiDotNetCore.MongoDb.Serialization.Building;
+using JsonApiDotNetCore.Serialization.Building;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +37,8 @@ namespace GettingStarted
                 });
             
             services.AddResourceRepository<MongoDbRepository<Book>>();
+
+            services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
         }
 
         private void ConfigureJsonApiOptions(JsonApiOptions options)
