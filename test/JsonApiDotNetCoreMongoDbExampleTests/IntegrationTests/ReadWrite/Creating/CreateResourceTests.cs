@@ -88,10 +88,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             var route = "/modelWithIntIds";
             
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
-            
+            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+
             // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.Ambiguous);
+            httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+
+            responseDocument.Errors.Should().HaveCount(1);
+            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+            responseDocument.Errors[0].Title.Should().Be("An unhandled error occurred while processing this request.");
+            responseDocument.Errors[0].Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
         }
 
         [Fact]

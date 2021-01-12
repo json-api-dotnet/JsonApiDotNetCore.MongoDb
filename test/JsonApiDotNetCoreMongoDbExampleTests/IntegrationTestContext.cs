@@ -5,10 +5,9 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Middleware;
+using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
-using JsonApiDotNetCore.MongoDb.Serialization.Building;
 using JsonApiDotNetCore.Repositories;
-using JsonApiDotNetCore.Serialization.Building;
 using JsonApiDotNetCoreMongoDbExample;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -32,7 +31,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
         where TStartup : class
     {
         private readonly Lazy<WebApplicationFactory<EmptyStartup>> _lazyFactory;
-        
+
         private Action<IServiceCollection> _beforeServicesConfiguration;
         private Action<IServiceCollection> _afterServicesConfiguration;
         private readonly MongoDbRunner _runner;
@@ -44,7 +43,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
             _lazyFactory = new Lazy<WebApplicationFactory<EmptyStartup>>(CreateFactory);
             _runner = MongoDbRunner.Start();
         }
-        
+
         private WebApplicationFactory<EmptyStartup> CreateFactory()
         {
             var factory = new IntegrationTestWebApplicationFactory();
@@ -52,19 +51,21 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
             factory.ConfigureServicesBeforeStartup(services =>
             {
                 _beforeServicesConfiguration?.Invoke(services);
-                
+
                 services.AddSingleton(sp =>
                 {
                     var client = new MongoClient(_runner.ConnectionString);
                     return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{new Random().Next()}_Test");
                 });
 
-                services.AddJsonApi(
-                    ConfigureJsonApiOptions,
-                    facade => facade.AddCurrentAssembly());
-                
+                services.AddJsonApi(ConfigureJsonApiOptions, facade => facade.AddCurrentAssembly());
+                services.AddJsonApiMongoDb();
+
+                services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoDbRepository<>));
                 services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
+                services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoDbRepository<>));
                 services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
+                services.AddScoped(typeof(IResourceRepository<>), typeof(MongoDbRepository<>));
                 services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
             });
 
@@ -224,8 +225,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
 
                         webBuilder.ConfigureServices(services =>
                         {
-                            services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
-
                             _afterServicesConfiguration?.Invoke(services);
                         });
                     });

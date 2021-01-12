@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Queries;
@@ -20,8 +21,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
-    public class MongoDbRepository<TResource, TId>
-        : IResourceRepository<TResource, TId>
+    public class MongoDbRepository<TResource, TId> : IResourceRepository<TResource, TId>
         where TResource : class, IIdentifiable<TId>
     {
         private readonly IMongoDatabase _mongoDatabase;
@@ -42,6 +42,11 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             _resourceContextProvider = resourceContextProvider ?? throw new ArgumentNullException(nameof(resourceContextProvider));
             _resourceFactory = resourceFactory ?? throw new ArgumentNullException(nameof(resourceFactory));
             _constraintProviders = constraintProviders ?? throw new ArgumentNullException(nameof(constraintProviders));
+
+            if (typeof(TId) != typeof(string))
+            {
+                throw new InvalidConfigurationException("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
+            }
         }
 
         protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
@@ -253,8 +258,8 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
-    public class MongoDbRepository<TResource> : MongoDbRepository<TResource, string>
-        where TResource : class, IIdentifiable<string>
+    public class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
+        where TResource : class, IIdentifiable<int>
     {
         public MongoDbRepository(
             IMongoDatabase mongoDatabase,

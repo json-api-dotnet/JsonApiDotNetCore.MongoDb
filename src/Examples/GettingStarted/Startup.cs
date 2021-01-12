@@ -1,8 +1,7 @@
 using GettingStarted.Models;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
-using JsonApiDotNetCore.MongoDb.Serialization.Building;
-using JsonApiDotNetCore.Serialization.Building;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,16 +28,13 @@ namespace GettingStarted
                 return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
             });
 
-            services.AddJsonApi(
-                ConfigureJsonApiOptions,
-                resources: builder =>
-                {
-                    builder.Add<Book, string>();
-                });
-            
-            services.AddResourceRepository<MongoDbRepository<Book>>();
+            services.AddJsonApi(ConfigureJsonApiOptions, resources: builder =>
+            {
+                builder.Add<Book, string>();
+            });
+            services.AddJsonApiMongoDb();
 
-            services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
+            services.AddResourceRepository<MongoDbRepository<Book, string>>();
         }
 
         private void ConfigureJsonApiOptions(JsonApiOptions options)

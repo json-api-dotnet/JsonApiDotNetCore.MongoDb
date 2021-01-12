@@ -50,10 +50,9 @@ public class Startup
         {
             builder.Add<Book, string>();
         });
+        services.AddJsonApiMongoDb();
 
         services.AddResourceRepository<MongoDbRepository<Book>>();
-
-        services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
     }
 
     public void Configure(IApplicationBuilder app)
@@ -64,7 +63,27 @@ public class Startup
     }
 }
 ```
+Note: If your API project uses only MongoDB (not in combination with EF Core), then instead of
+registering all MongoDB resources and repositories individually, you can use:
+```cs
+public class Startup
+{
+    public IServiceProvider ConfigureServices(IServiceCollection services)
+    {
+	// ...
 
+        services.AddJsonApi(facade => facade.AddCurrentAssembly());
+        services.AddJsonApiMongoDb();
+
+        services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoDbRepository<>));
+        services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
+        services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoDbRepository<>));
+        services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
+        services.AddScoped(typeof(IResourceRepository<>), typeof(MongoDbRepository<>));
+        services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
+    }
+}
+```
 
 ## Development
 

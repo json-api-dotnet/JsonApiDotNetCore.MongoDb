@@ -12,7 +12,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
     /// <summary>
     /// Enables sparse fieldset tests to verify which fields were (not) retrieved from the database.
     /// </summary>
-    public sealed class ResultCapturingRepository<TResource> : MongoDbRepository<TResource>
+    public sealed class ResultCapturingRepository<TResource> : MongoDbRepository<TResource, string>
         where TResource : class, IIdentifiable<string>
     {
         private readonly ResourceCaptureStore _captureStore;
