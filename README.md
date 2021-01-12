@@ -52,7 +52,7 @@ public class Startup
         });
         services.AddJsonApiMongoDb();
 
-        services.AddResourceRepository<MongoDbRepository<Book>>();
+        services.AddResourceRepository<MongoDbRepository<Book, string>>();
     }
 
     public void Configure(IApplicationBuilder app)
