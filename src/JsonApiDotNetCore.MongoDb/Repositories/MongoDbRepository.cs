@@ -4,40 +4,49 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.Errors;
+using JsonApiDotNetCore.MongoDb.Errors;
+using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
+using JsonApiDotNetCore.Queries;
+using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using JsonApiDotNetCore.Queries;
-using JsonApiDotNetCore.Queries.Expressions;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace JsonApiDotNetCore.MongoDb
+namespace JsonApiDotNetCore.MongoDb.Repositories
 {
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
-    public class MongoDbRepository<TResource, TId>
-        : IResourceRepository<TResource, TId>
+    public class MongoDbRepository<TResource, TId> : IResourceRepository<TResource, TId>
         where TResource : class, IIdentifiable<TId>
     {
         private readonly IMongoDatabase _mongoDatabase;
         private readonly ITargetedFields _targetedFields;
         private readonly IResourceContextProvider _resourceContextProvider;
         private readonly IResourceFactory _resourceFactory;
-        
+        private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
+
         public MongoDbRepository(
             IMongoDatabase mongoDatabase,
             ITargetedFields targetedFields,
             IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory)
+            IResourceFactory resourceFactory,
+            IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
             _mongoDatabase = mongoDatabase ?? throw new ArgumentNullException(nameof(mongoDatabase));
             _targetedFields = targetedFields ?? throw new ArgumentNullException(nameof(targetedFields));
             _resourceContextProvider = resourceContextProvider ?? throw new ArgumentNullException(nameof(resourceContextProvider));
             _resourceFactory = resourceFactory ?? throw new ArgumentNullException(nameof(resourceFactory));
+            _constraintProviders = constraintProviders ?? throw new ArgumentNullException(nameof(constraintProviders));
+
+            if (typeof(TId) != typeof(string))
+            {
+                throw new InvalidConfigurationException("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
+            }
         }
 
         protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
@@ -47,8 +56,9 @@ namespace JsonApiDotNetCore.MongoDb
             CancellationToken cancellationToken)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
-            
-            var resources = await ApplyQueryLayer(layer).ToListAsync(cancellationToken);
+
+            var query = ApplyQueryLayer(layer);
+            var resources = await query.ToListAsync(cancellationToken);
             return resources.AsReadOnly();
         }
 
@@ -68,18 +78,35 @@ namespace JsonApiDotNetCore.MongoDb
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
             if (layer == null) throw new ArgumentNullException(nameof(layer));
+
+            var queryExpressionValidator = new MongoDbQueryExpressionValidator();
+            queryExpressionValidator.Validate(layer);
+
+            AssertNoRelationshipsInSparseFieldSets();
             
             var source = GetAll();
+            
+            var queryableHandlers = _constraintProviders
+                .SelectMany(p => p.GetConstraints())
+                .Where(expressionInScope => expressionInScope.Scope == null)
+                .Select(expressionInScope => expressionInScope.Expression)
+                .OfType<QueryableHandlerExpression>()
+                .ToArray();
+
+            foreach (var queryableHandler in queryableHandlers)
+            {
+                source = queryableHandler.Apply(source);
+            }
 
             var nameFactory = new LambdaParameterNameFactory();
-            var builder = new QueryableBuilder(
+            var builder = new MongoDbQueryableBuilder(
                 source.Expression,
                 source.ElementType,
                 typeof(Queryable),
                 nameFactory,
                 _resourceFactory,
                 _resourceContextProvider,
-                DummyModel.Instance);
+                new MongoDbModel(_resourceContextProvider));
 
             var expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
@@ -88,6 +115,24 @@ namespace JsonApiDotNetCore.MongoDb
         protected virtual IQueryable<TResource> GetAll()
         {
             return Collection.AsQueryable();
+        }
+        
+        private void AssertNoRelationshipsInSparseFieldSets()
+        {
+            var resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+
+            var hasRelationshipSelectors = _constraintProviders
+                .SelectMany(p => p.GetConstraints())
+                .Select(expressionInScope => expressionInScope.Expression)
+                .OfType<SparseFieldTableExpression>()
+                .Any(fieldTable =>
+                    fieldTable.Table.Keys.Any(targetResourceContext => targetResourceContext != resourceContext) ||
+                    fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
+
+            if (hasRelationshipSelectors)
+            {
+                throw new UnsupportedRelationshipException();
+            }
         }
 
         /// <inheritdoc />
@@ -100,18 +145,35 @@ namespace JsonApiDotNetCore.MongoDb
         }
 
         /// <inheritdoc />
-        public virtual Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
+        public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
             CancellationToken cancellationToken)
         {
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
+            
+            AssertNoRelationshipsAreTargeted();
             
             foreach (var attribute in _targetedFields.Attributes)
             {
                 attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
             }
 
-            return Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
+            try
+            {
+                await Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            {
+                throw new DataStoreUpdateException(ex);
+            }
+        }
+
+        private void AssertNoRelationshipsAreTargeted()
+        {
+            if (_targetedFields.Relationships.Any())
+            {
+                throw new UnsupportedRelationshipException();
+            }
         }
 
         /// <inheritdoc />
@@ -127,23 +189,39 @@ namespace JsonApiDotNetCore.MongoDb
             if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
             if (resourceFromDatabase == null) throw new ArgumentNullException(nameof(resourceFromDatabase));
             
+            AssertNoRelationshipsAreTargeted();
+            
             foreach (var attr in _targetedFields.Attributes)
+            {
                 attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
+            }
 
-            await Collection.ReplaceOneAsync(
-                Builders<TResource>.Filter.Eq(e => e.Id, resourceFromDatabase.Id),
-                resourceFromDatabase,
-                new ReplaceOptions(),
-                cancellationToken);
+            var filter = Builders<TResource>.Filter.Eq(e => e.Id, resourceFromDatabase.Id);
+
+            try
+            {
+                await Collection.ReplaceOneAsync(filter, resourceFromDatabase, new ReplaceOptions(), cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            {
+                throw new DataStoreUpdateException(ex);
+            }
         }
 
         /// <inheritdoc />
         public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
         {
-            var result = await Collection.DeleteOneAsync(
-                Builders<TResource>.Filter.Eq(e => e.Id, id),
-                new DeleteOptions(),
-                cancellationToken);
+            var filter = Builders<TResource>.Filter.Eq(e => e.Id, id);
+
+            DeleteResult result;
+            try
+            {
+                result = await Collection.DeleteOneAsync(filter, new DeleteOptions(), cancellationToken);
+            }
+            catch (MongoWriteException ex)
+            {
+                throw new DataStoreUpdateException(ex);
+            }
 
             if (!result.IsAcknowledged)
             {
@@ -165,7 +243,7 @@ namespace JsonApiDotNetCore.MongoDb
         /// <inheritdoc />
         public virtual Task AddToToManyRelationshipAsync(TId primaryId, ISet<IIdentifiable> secondaryResourceIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            throw new UnsupportedRelationshipException();
         }
 
         /// <inheritdoc />
@@ -180,52 +258,17 @@ namespace JsonApiDotNetCore.MongoDb
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
-    public class MongoDbRepository<TResource> : MongoDbRepository<TResource, string>
-        where TResource : class, IIdentifiable<string>
+    public class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
+        where TResource : class, IIdentifiable<int>
     {
         public MongoDbRepository(
             IMongoDatabase mongoDatabase,
             ITargetedFields targetedFields,
             IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory)
-            : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory)
+            IResourceFactory resourceFactory,
+            IEnumerable<IQueryConstraintProvider> constraintProviders)
+            : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
-        }
-    }
-
-    internal sealed class DummyModel : IModel
-    {
-        public static IModel Instance { get; } = new DummyModel();
-
-        public object this[string name] => throw new NotImplementedException();
-        
-        private DummyModel()
-        {
-        }
-
-        public IAnnotation FindAnnotation(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<IAnnotation> GetAnnotations()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<IEntityType> GetEntityTypes()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEntityType FindEntityType(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEntityType FindEntityType(string name, string definingNavigationName, IEntityType definingEntityType)
-        {
-            throw new NotImplementedException();
         }
     }
 }
