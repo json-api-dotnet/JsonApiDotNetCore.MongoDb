@@ -2,7 +2,7 @@
   <PropertyGroup>
     <NetCoreAppVersion>netcoreapp3.1</NetCoreAppVersion>
     <AspNetCoreVersion>3.1.*</AspNetCoreVersion>
-    <JsonApiDotNetCoreVersion>4.0.*</JsonApiDotNetCoreVersion>
+    <JsonApiDotNetCoreVersion>4.0.2</JsonApiDotNetCoreVersion>
     <MongoDBDriverVersion>2.11.*</MongoDBDriverVersion>
   </PropertyGroup>
 

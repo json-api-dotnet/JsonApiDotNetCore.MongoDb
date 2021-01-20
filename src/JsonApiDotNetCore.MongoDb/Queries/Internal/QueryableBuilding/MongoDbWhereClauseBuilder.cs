@@ -8,8 +8,8 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
     /// <inheritdoc />
     public class MongoDbWhereClauseBuilder : WhereClauseBuilder
     {
-        public MongoDbWhereClauseBuilder(Expression source, LambdaScope lambdaScope, Type extensionType) : base(source,
-            lambdaScope, extensionType)
+        public MongoDbWhereClauseBuilder(Expression source, LambdaScope lambdaScope, Type extensionType)
+            : base(source, lambdaScope, extensionType)
         {
         }
 
