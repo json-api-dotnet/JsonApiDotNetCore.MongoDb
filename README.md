@@ -14,7 +14,6 @@ dotnet add package JsonApiDotNetCore.MongoDb
 ### Models
 
 ```cs
-// MongoDbIdentifiable is just a utility base class, could use  IIdentifiable<TId> instead
 public sealed class Book : MongoDbIdentifiable
 {
     [Attr]
@@ -90,48 +89,33 @@ public class Startup
 
 ### Customise MongoDB persistence options and _id generation
 
-In addition to `MongoDbIdentifiable` your resource classes are free to use any of the MongoDB driver persistence options or inherit from their own base class.
+`MongoDbIdentifiable` has some sensible defaults for storing documents with _ids, but these need to be customised and overridden if you want client side or string based ids.
 
-For example, you could change the example above so that the `Book` resource has string IDs rather than object ids in the DB, but still have them generated server side:
+For example, you could change the example above so that the `Book` resource has string IDs rather than object ids in the DB, (so far still generated server side).
 
-```cs
-public class Book : IIdentifiable<string>
-{
-    // If Id=null generate a random string ID using the MongoDB driver
-    [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
-    [Attr]
-    public virtual string Id { get; set; }
-
-    // override the attribute name in the db
-    [BsonElement("bookName")]
-    [Attr]
-    public string Name { get; set; }
-
-    // all json:api resources need this
-    [BsonIgnore]
-    public string StringId { get => Id; set => Id = value; }
-}
-```
-
-Resources just need to inherit from the base `IIdentifiable<string>` interface from JsonApiDotNetCore (or the provided default `MongoDbIdentifiable`) and then just use any of usual [MongoDB Driver mapping code](https://mongodb.github.io/mongo-csharp-driver/2.12/reference/bson/mapping/).
-
-You could also achieve the exact same result using MongoDB `BsonClassMap` [rather than attributes](https://mongodb.github.io/mongo-csharp-driver/2.11/reference/bson/mapping/) so your `Book` does not need any MongoDB specific code like below.
+Resources properties can use any of usual [MongoDB Driver mapping code](https://mongodb.github.io/mongo-csharp-driver/2.12/reference/bson/mapping/) so to achieve string based ids you have to [override the json:api resource class attributes](https://mongodb.github.io/mongo-csharp-driver/2.11/reference/bson/mapping/) using `BsonClassMap`:
 
 ```cs
-    // in startup
+    // in startup change to string generated ids for MongoDbIdentifiable
+    BsonClassMap.RegisterClassMap<MongoDbIdentifiable>(cm =>
+    {
+        cm.MapIdProperty(x => x.Id)
+            .SetIdGenerator(StringObjectIdGenerator.Instance);
+    });
+
+    // optionally you can also change the mapping for resources here
     BsonClassMap.RegisterClassMap<Book>(cm =>
     {
         cm.AutoMap();
-        cm.MapIdProperty(x => x.Id).SetIdGenerator(StringObjectIdGenerator.Instance);
-        cm.UnmapMember(x=>x.StringId);
+        cm.MapProperty(x => x.Name).SetElementName("bookName");
     });
 ```
 
-Using `StringObjectIdGenerator` above could then be combined with `AllowClientGeneratedIds` JsonApi setting in `Startup.ConfigureServices` so that IDs can be generated on the client, and will be auto-assigned server side if not provided providing a flexible string based id for the `Book` resource:
+The `StringObjectIdGenerator` above can then be combined with `AllowClientGeneratedIds` JsonApi setting in `Startup.ConfigureServices` so that string IDs can be generated on the client, but will be auto-assigned to random strings server side if not provided. This style of ids will be more familiar to developers used to no-sql style databases.
 
 ```cs
     services.AddJsonApi(options => {
-        // Allow us to POST books with already assigned IDs!
+        // Allow us to POST books with already assigned IDs
         options.AllowClientGeneratedIds = true;
     }, resources: builder =>
     {
