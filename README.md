@@ -63,14 +63,16 @@ public class Startup
     }
 }
 ```
+
 Note: If your API project uses only MongoDB (not in combination with EF Core), then instead of
 registering all MongoDB resources and repositories individually, you can use:
+
 ```cs
 public class Startup
 {
     public IServiceProvider ConfigureServices(IServiceCollection services)
     {
-	// ...
+        // ...
 
         services.AddJsonApi(facade => facade.AddCurrentAssembly());
         services.AddJsonApiMongoDb();
@@ -83,6 +85,45 @@ public class Startup
         services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
     }
 }
+```
+
+### Customise MongoDB persistence options and _id generation
+
+`MongoDbIdentifiable` has some sensible defaults for storing documents with _ids, but these need to be customised and overridden if you want client side or string based ids.
+
+For example, you could change the example above so that the `Book` resource has string IDs rather than object ids in the DB, (so far still generated server side).
+
+Resources properties can use any of usual [MongoDB Driver mapping code](https://mongodb.github.io/mongo-csharp-driver/2.12/reference/bson/mapping/) so to achieve string based ids you have to [override the json:api resource class attributes](https://mongodb.github.io/mongo-csharp-driver/2.11/reference/bson/mapping/) using `BsonClassMap`:
+
+```cs
+    // in startup change to string generated ids for MongoDbIdentifiable
+    BsonClassMap.RegisterClassMap<MongoDbIdentifiable>(cm =>
+    {
+        cm.MapIdProperty(x => x.Id)
+            .SetIdGenerator(StringObjectIdGenerator.Instance);
+    });
+
+    // optionally you can also change the mapping for resources here
+    BsonClassMap.RegisterClassMap<Book>(cm =>
+    {
+        cm.AutoMap();
+        cm.MapProperty(x => x.Name).SetElementName("bookName");
+    });
+```
+
+The `StringObjectIdGenerator` above can then be combined with `AllowClientGeneratedIds` JsonApi setting in `Startup.ConfigureServices` so that string IDs can be generated on the client, but will be auto-assigned to random strings server side if not provided. This style of ids will be more familiar to developers used to no-sql style databases.
+
+```cs
+    services.AddJsonApi(options => {
+        // Allow us to POST books with already assigned IDs
+        options.AllowClientGeneratedIds = true;
+    }, resources: builder =>
+    {
+        builder.Add<Book, string>();
+    });
+    services.AddJsonApiMongoDb();
+
+    services.AddResourceRepository<MongoDbRepository<Book, string>>();
 ```
 
 ## Development
