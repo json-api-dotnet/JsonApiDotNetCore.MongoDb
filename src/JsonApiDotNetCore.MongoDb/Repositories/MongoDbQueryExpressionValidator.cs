@@ -11,7 +11,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     {
         public void Validate(QueryLayer layer)
         {
-            if (layer == null) throw new ArgumentNullException(nameof(layer));
+            ArgumentGuard.NotNull(layer, nameof(layer));
 
             bool hasIncludes = layer.Include?.Elements.Any() == true;
             var hasSparseRelationshipSets = layer.Projection?.Any(pair => pair.Key is RelationshipAttribute) == true;

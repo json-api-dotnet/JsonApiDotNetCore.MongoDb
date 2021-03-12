@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -37,11 +37,17 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             IResourceFactory resourceFactory,
             IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
-            _mongoDatabase = mongoDatabase ?? throw new ArgumentNullException(nameof(mongoDatabase));
-            _targetedFields = targetedFields ?? throw new ArgumentNullException(nameof(targetedFields));
-            _resourceContextProvider = resourceContextProvider ?? throw new ArgumentNullException(nameof(resourceContextProvider));
-            _resourceFactory = resourceFactory ?? throw new ArgumentNullException(nameof(resourceFactory));
-            _constraintProviders = constraintProviders ?? throw new ArgumentNullException(nameof(constraintProviders));
+            ArgumentGuard.NotNull(mongoDatabase, nameof(mongoDatabase));
+            ArgumentGuard.NotNull(targetedFields, nameof(targetedFields));
+            ArgumentGuard.NotNull(resourceContextProvider, nameof(resourceContextProvider));
+            ArgumentGuard.NotNull(resourceFactory, nameof(resourceFactory));
+            ArgumentGuard.NotNull(constraintProviders, nameof(constraintProviders));
+
+            _mongoDatabase = mongoDatabase;
+            _targetedFields = targetedFields;
+            _resourceContextProvider = resourceContextProvider;
+            _resourceFactory = resourceFactory;
+            _constraintProviders = constraintProviders;
 
             if (typeof(TId) != typeof(string))
             {
@@ -55,7 +61,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer,
             CancellationToken cancellationToken)
         {
-            if (layer == null) throw new ArgumentNullException(nameof(layer));
+            ArgumentGuard.NotNull(layer, nameof(layer));
 
             var query = ApplyQueryLayer(layer);
             var resources = await query.ToListAsync(cancellationToken);
@@ -77,7 +83,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
-            if (layer == null) throw new ArgumentNullException(nameof(layer));
+            ArgumentGuard.NotNull(layer, nameof(layer));
 
             var queryExpressionValidator = new MongoDbQueryExpressionValidator();
             queryExpressionValidator.Validate(layer);
@@ -148,9 +154,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
             CancellationToken cancellationToken)
         {
-            if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
-            if (resourceForDatabase == null) throw new ArgumentNullException(nameof(resourceForDatabase));
-            
+            ArgumentGuard.NotNull(resourceFromRequest, nameof(resourceFromRequest));
+            ArgumentGuard.NotNull(resourceForDatabase, nameof(resourceForDatabase));
+
             AssertNoRelationshipsAreTargeted();
             
             foreach (var attribute in _targetedFields.Attributes)
@@ -186,9 +192,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         /// <inheritdoc />
         public virtual async Task UpdateAsync(TResource resourceFromRequest, TResource resourceFromDatabase, CancellationToken cancellationToken)
         {
-            if (resourceFromRequest == null) throw new ArgumentNullException(nameof(resourceFromRequest));
-            if (resourceFromDatabase == null) throw new ArgumentNullException(nameof(resourceFromDatabase));
-            
+            ArgumentGuard.NotNull(resourceFromRequest, nameof(resourceFromRequest));
+            ArgumentGuard.NotNull(resourceFromDatabase, nameof(resourceFromDatabase));
+
             AssertNoRelationshipsAreTargeted();
             
             foreach (var attr in _targetedFields.Attributes)

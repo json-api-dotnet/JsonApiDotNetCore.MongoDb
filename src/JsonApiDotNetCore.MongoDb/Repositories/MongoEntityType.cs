@@ -22,8 +22,11 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
         public MongoEntityType(ResourceContext resourceContext, MongoDbModel owner)
         {
-            _resourceContext = resourceContext ?? throw new ArgumentNullException(nameof(resourceContext));
-            Model = owner ?? throw new ArgumentNullException(nameof(owner));
+            ArgumentGuard.NotNull(resourceContext, nameof(resourceContext));
+            ArgumentGuard.NotNull(owner, nameof(owner));
+
+            _resourceContext = resourceContext;
+            Model = owner;
         }
 
         public IEnumerable<IProperty> GetProperties()

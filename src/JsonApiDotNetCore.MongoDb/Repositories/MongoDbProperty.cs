@@ -22,8 +22,11 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
         public MongoDbProperty(PropertyInfo propertyInfo, MongoEntityType owner)
         {
-            DeclaringEntityType = owner ?? throw new ArgumentNullException(nameof(owner));
-            PropertyInfo = propertyInfo ?? throw new ArgumentNullException(nameof(propertyInfo));
+            ArgumentGuard.NotNull(owner, nameof(owner));
+            ArgumentGuard.NotNull(propertyInfo, nameof(propertyInfo));
+
+            DeclaringEntityType = owner;
+            PropertyInfo = propertyInfo;
         }
 
         public IAnnotation FindAnnotation(string name) => throw new NotImplementedException();

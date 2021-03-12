@@ -15,7 +15,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
         public MongoDbModel(IResourceContextProvider resourceContextProvider)
         {
-            _resourceContextProvider = resourceContextProvider ?? throw new ArgumentNullException(nameof(resourceContextProvider));
+            ArgumentGuard.NotNull(resourceContextProvider, nameof(resourceContextProvider));
+
+            _resourceContextProvider = resourceContextProvider;
         }
 
         public IEnumerable<IEntityType> GetEntityTypes()

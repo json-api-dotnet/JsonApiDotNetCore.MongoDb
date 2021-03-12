@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Queries;
@@ -25,8 +25,11 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
             : base(source, elementType, extensionType, nameFactory, resourceFactory, resourceContextProvider,
                 entityModel, lambdaScopeFactory)
         {
-            _elementType = elementType ?? throw new ArgumentNullException(nameof(elementType));
-            _extensionType = extensionType ?? throw new ArgumentNullException(nameof(extensionType));
+            ArgumentGuard.NotNull(elementType, nameof(elementType));
+            ArgumentGuard.NotNull(extensionType, nameof(extensionType));
+
+            _elementType = elementType;
+            _extensionType = extensionType;
             _lambdaScopeFactory = lambdaScopeFactory ?? new LambdaScopeFactory(nameFactory);
         }
 
