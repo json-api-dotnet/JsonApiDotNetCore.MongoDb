@@ -14,25 +14,26 @@ using Newtonsoft.Json.Converters;
 
 namespace JsonApiDotNetCoreMongoDbExample.Startups
 {
-    public class Startup : EmptyStartup
+    public sealed class Startup : EmptyStartup
     {
-        private IConfiguration Configuration { get; }
+        private readonly IConfiguration _configuration;
         
-        public Startup(IConfiguration configuration) : base(configuration)
+        public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
 
+        // This method gets called by the runtime. Use this method to add services to the container.
         public override void ConfigureServices(IServiceCollection services)
         {
-            ConfigureClock(services);
+            services.AddSingleton<ISystemClock, SystemClock>();
             
             // TryAddSingleton will only register the IMongoDatabase if there is no
             // previously registered instance - will make tests use individual dbs
-            services.TryAddSingleton(sp =>
+            services.TryAddSingleton(_ =>
             {
-                var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
-                return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
+                var client = new MongoClient(_configuration.GetSection("DatabaseSettings:ConnectionString").Value);
+                return client.GetDatabase(_configuration.GetSection("DatabaseSettings:Database").Value);
             });
 
             services.AddJsonApi(ConfigureJsonApiOptions, facade => facade.AddCurrentAssembly());
@@ -46,12 +47,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Startups
             services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
         }
 
-        protected virtual void ConfigureClock(IServiceCollection services)
-        {
-            services.AddSingleton<ISystemClock, SystemClock>();
-        }
-        
-        protected virtual void ConfigureJsonApiOptions(JsonApiOptions options)
+        private void ConfigureJsonApiOptions(JsonApiOptions options)
         {
             options.IncludeExceptionStackTraceInErrors = true;
             options.Namespace = "api/v1";
@@ -62,6 +58,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Startups
             options.SerializerSettings.Converters.Add(new StringEnumConverter());
         }
 
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public override void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
         {
             app.UseRouting();

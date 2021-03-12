@@ -12,20 +12,20 @@ namespace GettingStarted
 {
     public sealed class Startup
     {
+        private readonly IConfiguration _configuration;
+
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
-
-        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(sp =>
+            services.AddSingleton(_ =>
             {
-                var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
-                return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
+                var client = new MongoClient(_configuration.GetSection("DatabaseSettings:ConnectionString").Value);
+                return client.GetDatabase(_configuration.GetSection("DatabaseSettings:Database").Value);
             });
 
             services.AddJsonApi(ConfigureJsonApiOptions, resources: builder =>

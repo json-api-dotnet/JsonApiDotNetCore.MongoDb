@@ -2,17 +2,12 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCoreMongoDbExample.Startups;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests
 {
-    public class TestableStartup : EmptyStartup
+    public sealed class TestableStartup : EmptyStartup
     {
-        public TestableStartup(IConfiguration configuration) : base(configuration)
-        {
-        }
-
         public override void ConfigureServices(IServiceCollection services)
         {
         }
