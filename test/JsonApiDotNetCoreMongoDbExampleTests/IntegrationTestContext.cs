@@ -9,6 +9,7 @@ using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCoreMongoDbExample;
+using JsonApiDotNetCoreMongoDbExample.Startups;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;

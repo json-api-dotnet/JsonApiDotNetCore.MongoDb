@@ -5,6 +5,7 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
+using JsonApiDotNetCoreMongoDbExample.Startups;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

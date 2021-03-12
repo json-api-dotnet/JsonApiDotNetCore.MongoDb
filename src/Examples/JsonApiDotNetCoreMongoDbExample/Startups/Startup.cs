@@ -12,7 +12,7 @@ using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace JsonApiDotNetCoreMongoDbExample
+namespace JsonApiDotNetCoreMongoDbExample.Startups
 {
     public class Startup : EmptyStartup
     {

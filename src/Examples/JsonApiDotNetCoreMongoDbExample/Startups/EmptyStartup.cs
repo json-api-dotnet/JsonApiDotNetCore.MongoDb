@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace JsonApiDotNetCoreMongoDbExample
+namespace JsonApiDotNetCoreMongoDbExample.Startups
 {
     /// <summary>
     /// Empty startup class, required for integration tests.

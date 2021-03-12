@@ -5,6 +5,7 @@ using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
+using JsonApiDotNetCoreMongoDbExample.Startups;
 using Xunit;
 using Person = JsonApiDotNetCoreMongoDbExample.Models.Person;
 
