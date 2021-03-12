@@ -40,7 +40,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
                 await db.GetCollection<TodoItem>().InsertManyAsync(todoItems);
             });
 
-            var route = "/api/v1/todoItems?sort=id&page[size]=3&page[number]=2";
+            const string route = "/api/v1/todoItems?sort=id&page[size]=3&page[number]=2";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -55,7 +55,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
         public async Task When_page_size_is_zero_it_must_succeed()
         {
             // Arrange
-            var route = "/api/v1/todoItems?page[size]=0";
+            const string route = "/api/v1/todoItems?page[size]=0";
 
             // Act
             var (httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -68,7 +68,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
         public async Task When_page_size_is_positive_it_must_succeed()
         {
             // Arrange
-            var route = "/api/v1/todoItems?page[size]=50";
+            const string route = "/api/v1/todoItems?page[size]=50";
 
             // Act
             var (httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);

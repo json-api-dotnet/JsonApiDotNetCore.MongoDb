@@ -46,7 +46,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles?filter=equals(caption,'Two')";
+            const string route = "/api/v1/articles?filter=equals(caption,'Two')";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -119,7 +119,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles?filter=equals(author.lastName,'Smith')";
+            const string route = "/api/v1/articles?filter=equals(author.lastName,'Smith')";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -160,7 +160,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<Blog>().InsertManyAsync(blogs);
             });
 
-            var route = "/api/v1/blogs?filter=greaterThan(count(articles),'0')";
+            const string route = "/api/v1/blogs?filter=greaterThan(count(articles),'0')";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -208,7 +208,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles?filter=has(tags)";
+            const string route = "/api/v1/articles?filter=has(tags)";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

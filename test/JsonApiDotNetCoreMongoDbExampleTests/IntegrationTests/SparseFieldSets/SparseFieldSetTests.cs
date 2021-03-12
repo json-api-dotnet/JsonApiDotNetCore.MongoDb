@@ -42,7 +42,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = "/api/v1/articles?fields[articles]=caption,author";
+            const string route = "/api/v1/articles?fields[articles]=caption,author";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -77,7 +77,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = "/api/v1/articles?fields[articles]=caption";
+            const string route = "/api/v1/articles?fields[articles]=caption";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -108,7 +108,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = "/api/v1/articles?fields[articles]=author";
+            const string route = "/api/v1/articles?fields[articles]=author";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -261,7 +261,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = "/api/v1/articles?fields[articles]=id,caption";
+            const string route = "/api/v1/articles?fields[articles]=id,caption";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);

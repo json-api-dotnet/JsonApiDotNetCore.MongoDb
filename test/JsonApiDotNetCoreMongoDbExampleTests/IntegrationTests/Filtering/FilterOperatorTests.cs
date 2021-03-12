@@ -77,7 +77,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                     .InsertManyAsync(new[] {resource, otherResource});
             });
 
-            var route = "/filterableResources?filter=equals(someInt32,otherInt32)";
+            const string route = "/filterableResources?filter=equals(someInt32,otherInt32)";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -308,7 +308,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                     .InsertManyAsync(new[] {resource, new FilterableResource()});
             });
 
-            var route = "/filterableResources?filter=has(children)";
+            const string route = "/filterableResources?filter=has(children)";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -344,7 +344,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                     .InsertManyAsync(new[] {resource, new FilterableResource()});
             });
 
-            var route = "/filterableResources?filter=equals(count(children),'2')";
+            const string route = "/filterableResources?filter=equals(count(children),'2')";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

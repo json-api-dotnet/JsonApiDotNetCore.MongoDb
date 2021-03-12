@@ -36,7 +36,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles?sort=caption";
+            const string route = "/api/v1/articles?sort=caption";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -61,7 +61,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
                 await db.GetCollection<Blog>().InsertOneAsync(blog);
             });
             
-            var route = "/api/v1/blogs?sort=count(articles)";
+            const string route = "/api/v1/blogs?sort=count(articles)";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -88,7 +88,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
             
-            var route = "/api/v1/articles?sort=-count(tags)";
+            const string route = "/api/v1/articles?sort=-count(tags)";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -115,7 +115,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
             
-            var route = "/api/v1/articles?sort=-author.lastName";
+            const string route = "/api/v1/articles?sort=-author.lastName";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -160,7 +160,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
                 await db.GetCollection<Person>().InsertManyAsync(people);
             });
 
-            var route = "/api/v1/people?sort=lastName,-id";
+            const string route = "/api/v1/people?sort=lastName,-id";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -192,7 +192,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
                 await db.GetCollection<Person>().InsertManyAsync(persons);
             });
 
-            var route = "/api/v1/people";
+            const string route = "/api/v1/people";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);

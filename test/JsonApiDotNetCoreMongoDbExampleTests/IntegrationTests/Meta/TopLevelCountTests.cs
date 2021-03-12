@@ -34,7 +34,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
                 await db.GetCollection<TodoItem>().InsertOneAsync(todoItem);
             });
 
-            var route = "/api/v1/todoItems";
+            const string route = "/api/v1/todoItems";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -55,7 +55,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
                 await db.ClearCollectionAsync<TodoItem>();
             });
 
-            var route = "/api/v1/todoItems";
+            const string route = "/api/v1/todoItems";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -83,7 +83,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
                 }
             };
 
-            var route = "/api/v1/todoItems";
+            const string route = "/api/v1/todoItems";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);

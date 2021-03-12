@@ -30,7 +30,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
                 await db.GetCollection<WorkItem>().InsertManyAsync(workItems);
             });
 
-            var route = "/workItems";
+            const string route = "/workItems";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -87,7 +87,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         public async Task Cannot_get_primary_resource_for_unknown_ID()
         {
             // Arrange
-            var route = "/workItems/ffffffffffffffffffffffff";
+            const string route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

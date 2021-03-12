@@ -50,7 +50,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles?page[number]=2&page[size]=1";
+            const string route = "/api/v1/articles?page[number]=2&page[size]=1";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -98,7 +98,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles";
+            const string route = "/api/v1/articles";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -141,7 +141,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
                 await db.GetCollection<Article>().InsertManyAsync(articles);
             });
 
-            var route = "/api/v1/articles";
+            const string route = "/api/v1/articles";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);

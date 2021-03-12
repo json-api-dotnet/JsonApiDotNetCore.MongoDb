@@ -32,7 +32,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
                 await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 
-            var route = "/workItems?include=assignee";
+            const string route = "/workItems?include=assignee";
             
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

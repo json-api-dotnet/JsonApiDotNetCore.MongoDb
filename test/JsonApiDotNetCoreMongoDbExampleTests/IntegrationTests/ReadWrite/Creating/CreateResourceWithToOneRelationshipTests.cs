@@ -49,7 +49,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItemGroups";
+            const string route = "/workItemGroups";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);

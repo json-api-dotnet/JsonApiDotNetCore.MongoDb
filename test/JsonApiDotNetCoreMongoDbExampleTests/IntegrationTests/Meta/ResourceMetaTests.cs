@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -34,7 +34,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
                 await db.GetCollection<TodoItem>().InsertManyAsync(todoItems);
             });
 
-            var route = "/api/v1/todoItems";
+            const string route = "/api/v1/todoItems";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);

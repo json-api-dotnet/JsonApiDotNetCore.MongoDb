@@ -54,7 +54,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
         public async Task Cannot_delete_missing_resource()
         {
             // Arrange
-            var route = "/workItems/ffffffffffffffffffffffff";
+            const string route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecuteDeleteAsync<ErrorDocument>(route);

@@ -378,7 +378,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = "/workItems/ffffffffffffffffffffffff";
+            const string route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
             var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
