@@ -81,10 +81,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("The specified filter is invalid.");
-            responseDocument.Errors[0].Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("filter");
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("The specified filter is invalid.");
+            error.Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
+            error.Source.Parameter.Should().Be("filter");
         }
         
         [Fact]
@@ -126,9 +128,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+            error.Detail.Should().BeNull();
         }
         
         [Fact]
@@ -165,9 +169,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+            error.Detail.Should().BeNull();
         }
         
         [Fact]
@@ -211,9 +217,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+            error.Detail.Should().BeNull();
         }
     }
 }

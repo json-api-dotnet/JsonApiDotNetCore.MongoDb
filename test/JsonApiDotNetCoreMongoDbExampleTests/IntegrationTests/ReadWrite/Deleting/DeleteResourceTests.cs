@@ -63,9 +63,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.NotFound);
-            responseDocument.Errors[0].Title.Should().Be("The requested resource does not exist.");
-            responseDocument.Errors[0].Detail.Should().Be("Resource of type 'workItems' with ID 'ffffffffffffffffffffffff' does not exist.");
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            error.Title.Should().Be("The requested resource does not exist.");
+            error.Detail.Should().Be("Resource of type 'workItems' with ID 'ffffffffffffffffffffffff' does not exist.");
         }
     }
 }

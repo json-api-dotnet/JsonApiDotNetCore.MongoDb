@@ -212,10 +212,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Query creation failed due to incompatible types.");
-            responseDocument.Errors[0].Detail.Should().Be("Failed to convert 'ABC' of type 'String' to type 'Int32'.");
-            responseDocument.Errors[0].Source.Parameter.Should().BeNull();
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Query creation failed due to incompatible types.");
+            error.Detail.Should().Be("Failed to convert 'ABC' of type 'String' to type 'Int32'.");
+            error.Source.Parameter.Should().BeNull();
         }
 
         [Theory]

@@ -94,9 +94,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-            responseDocument.Errors[0].Title.Should().Be("An unhandled error occurred while processing this request.");
-            responseDocument.Errors[0].Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+            error.Title.Should().Be("An unhandled error occurred while processing this request.");
+            error.Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
         }
 
         [Fact]

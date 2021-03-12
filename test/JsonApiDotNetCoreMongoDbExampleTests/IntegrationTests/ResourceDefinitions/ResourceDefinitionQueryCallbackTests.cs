@@ -490,10 +490,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Custom query string parameters cannot be used on nested resource endpoints.");
-            responseDocument.Errors[0].Detail.Should().Be("Query string parameter 'isHighRisk' cannot be used on a nested resource endpoint.");
-            responseDocument.Errors[0].Source.Parameter.Should().Be("isHighRisk");
+            
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Custom query string parameters cannot be used on nested resource endpoints.");
+            error.Detail.Should().Be("Query string parameter 'isHighRisk' cannot be used on a nested resource endpoint.");
+            error.Source.Parameter.Should().Be("isHighRisk");
         }
 
         private sealed class FakeUserRolesService : IUserRolesService
