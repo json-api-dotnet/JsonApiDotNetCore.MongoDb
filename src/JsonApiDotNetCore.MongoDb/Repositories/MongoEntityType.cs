@@ -34,17 +34,64 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             return _resourceContext.Attributes.Select(attr => new MongoDbProperty(attr.Property, this));
         }
 
-        public IAnnotation FindAnnotation(string name) => throw new NotImplementedException();
-        public IEnumerable<IAnnotation> GetAnnotations() => throw new NotImplementedException();
-        public IKey FindPrimaryKey() => throw new NotImplementedException();
-        public IKey FindKey(IReadOnlyList<IProperty> properties) => throw new NotImplementedException();
-        public IEnumerable<IKey> GetKeys() => throw new NotImplementedException();
-        public IForeignKey FindForeignKey(IReadOnlyList<IProperty> properties, IKey principalKey, IEntityType principalEntityType) => throw new NotImplementedException();
-        public IEnumerable<IForeignKey> GetForeignKeys() => throw new NotImplementedException();
-        public IIndex FindIndex(IReadOnlyList<IProperty> properties) => throw new NotImplementedException();
-        public IEnumerable<IIndex> GetIndexes() => throw new NotImplementedException();
-        public IProperty FindProperty(string name) => throw new NotImplementedException();
-        public IServiceProperty FindServiceProperty(string name) => throw new NotImplementedException();
-        public IEnumerable<IServiceProperty> GetServiceProperties() => throw new NotImplementedException();
+        public IAnnotation FindAnnotation(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IAnnotation> GetAnnotations()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IKey FindPrimaryKey()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IKey FindKey(IReadOnlyList<IProperty> properties)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IKey> GetKeys()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IForeignKey FindForeignKey(IReadOnlyList<IProperty> properties, IKey principalKey, IEntityType principalEntityType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IForeignKey> GetForeignKeys()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IIndex FindIndex(IReadOnlyList<IProperty> properties)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IIndex> GetIndexes()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IProperty FindProperty(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IServiceProperty FindServiceProperty(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IServiceProperty> GetServiceProperties()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

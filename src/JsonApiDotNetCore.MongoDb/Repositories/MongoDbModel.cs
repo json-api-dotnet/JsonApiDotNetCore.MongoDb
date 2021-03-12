@@ -26,9 +26,24 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             return resourceContexts.Select(resourceContext => new MongoEntityType(resourceContext, this));
         }
 
-        public IAnnotation FindAnnotation(string name) => throw new NotImplementedException();
-        public IEnumerable<IAnnotation> GetAnnotations() => throw new NotImplementedException();
-        public IEntityType FindEntityType(string name) => throw new NotImplementedException();
-        public IEntityType FindEntityType(string name, string definingNavigationName, IEntityType definingEntityType) => throw new NotImplementedException();
+        public IAnnotation FindAnnotation(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IAnnotation> GetAnnotations()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEntityType FindEntityType(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEntityType FindEntityType(string name, string definingNavigationName, IEntityType definingEntityType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

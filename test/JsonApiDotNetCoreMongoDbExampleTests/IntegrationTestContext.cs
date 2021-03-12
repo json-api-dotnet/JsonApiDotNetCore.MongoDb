@@ -87,11 +87,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
             Factory.Dispose();
         }
 
-        public void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration) =>
+        public void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration)
+        {
             _beforeServicesConfiguration = servicesConfiguration;
+        }
 
-        public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration) =>
+        public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration)
+        {
             _afterServicesConfiguration = servicesConfiguration;
+        }
 
         public async Task RunOnDatabaseAsync(Func<IMongoDatabase, Task> asyncAction)
         {

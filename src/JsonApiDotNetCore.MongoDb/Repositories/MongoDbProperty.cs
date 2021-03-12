@@ -29,7 +29,14 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             PropertyInfo = propertyInfo;
         }
 
-        public IAnnotation FindAnnotation(string name) => throw new NotImplementedException();
-        public IEnumerable<IAnnotation> GetAnnotations() => throw new NotImplementedException();
+        public IAnnotation FindAnnotation(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IAnnotation> GetAnnotations()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
