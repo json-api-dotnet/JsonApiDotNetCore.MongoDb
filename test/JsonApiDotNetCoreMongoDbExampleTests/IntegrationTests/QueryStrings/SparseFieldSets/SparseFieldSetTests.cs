@@ -11,7 +11,7 @@ using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets
 {
     public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<Startup>>
     {

@@ -7,7 +7,7 @@ using JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Includes
 {
     public sealed class IncludeTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {

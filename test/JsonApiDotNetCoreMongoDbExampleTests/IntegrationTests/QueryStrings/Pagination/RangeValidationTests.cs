@@ -12,7 +12,7 @@ using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Pagination
 {
     public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<Startup>>
     {

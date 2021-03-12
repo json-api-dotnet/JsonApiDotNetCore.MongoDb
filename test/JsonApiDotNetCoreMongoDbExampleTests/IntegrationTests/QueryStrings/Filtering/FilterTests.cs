@@ -10,7 +10,7 @@ using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering
 {
     public sealed class FilterTests : IClassFixture<IntegrationTestContext<Startup>>
     {

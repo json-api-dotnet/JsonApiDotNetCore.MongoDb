@@ -7,7 +7,7 @@ using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Resources;
 using MongoDB.Driver;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets
 {
     /// <summary>
     /// Enables sparse fieldset tests to verify which fields were (not) retrieved from the database.

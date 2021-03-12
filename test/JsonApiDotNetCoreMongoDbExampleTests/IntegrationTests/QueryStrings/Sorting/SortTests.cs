@@ -9,7 +9,7 @@ using JsonApiDotNetCoreMongoDbExample.Startups;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Sorting
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Sorting
 {
     public sealed class SortTests : IClassFixture<IntegrationTestContext<Startup>>
     {

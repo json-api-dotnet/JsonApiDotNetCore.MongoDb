@@ -3,7 +3,7 @@ using JsonApiDotNetCore.Controllers;
 using JsonApiDotNetCore.Services;
 using Microsoft.Extensions.Logging;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering
 {
     public sealed class FilterableResourcesController : JsonApiController<FilterableResource, string>
     {
