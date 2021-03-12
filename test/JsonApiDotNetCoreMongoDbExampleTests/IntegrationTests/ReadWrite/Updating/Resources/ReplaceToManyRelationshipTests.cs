@@ -64,7 +64,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/workItems/{existingWorkItem.StringId}";
+            string route = "/workItems/" + existingWorkItem.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
@@ -140,7 +140,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/workItems/{existingWorkItem.StringId}";
+            string route = "/workItems/" + existingWorkItem.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);

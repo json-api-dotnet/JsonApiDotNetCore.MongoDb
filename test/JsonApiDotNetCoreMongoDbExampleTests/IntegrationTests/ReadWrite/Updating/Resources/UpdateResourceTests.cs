@@ -48,7 +48,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/userAccounts/{existingUserAccount.StringId}";
+            string route = "/userAccounts/" + existingUserAccount.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -85,7 +85,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/userAccounts/{existingUserAccount.StringId}";
+            string route = "/userAccounts/" + existingUserAccount.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -129,7 +129,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/workItemGroups/{existingGroup.StringId}";
+            string route = "/workItemGroups/" + existingGroup.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
@@ -181,7 +181,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/rgbColors/{existingColor.StringId}";
+            string route = "/rgbColors/" + existingColor.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -228,7 +228,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/userAccounts/{existingUserAccount.StringId}";
+            string route = "/userAccounts/" + existingUserAccount.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -273,7 +273,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/workItems/{existingWorkItem.StringId}";
+            string route = "/workItems/" + existingWorkItem.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);

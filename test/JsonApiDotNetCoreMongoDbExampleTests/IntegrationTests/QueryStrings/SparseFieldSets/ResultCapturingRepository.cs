@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
@@ -12,6 +13,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Spa
     /// <summary>
     /// Enables sparse fieldset tests to verify which fields were (not) retrieved from the database.
     /// </summary>
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public sealed class ResultCapturingRepository<TResource> : MongoDbRepository<TResource, string>
         where TResource : class, IIdentifiable<string>
     {

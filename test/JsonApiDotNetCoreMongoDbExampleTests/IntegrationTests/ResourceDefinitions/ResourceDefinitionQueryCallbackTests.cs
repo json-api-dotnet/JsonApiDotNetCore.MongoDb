@@ -12,7 +12,7 @@ using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions
 {
-    public class ResourceDefinitionQueryCallbackTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class ResourceDefinitionQueryCallbackTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
 
@@ -25,7 +25,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 services.AddSingleton<IUserRolesService, FakeUserRolesService>();
             });
 
-            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.IncludeTotalResourceCount = true;
         }
 

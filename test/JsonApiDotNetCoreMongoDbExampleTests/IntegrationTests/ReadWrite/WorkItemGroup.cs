@@ -14,8 +14,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         [Attr]
         public bool IsPublic { get; set; }
 
-        [BsonIgnore]
         [Attr]
+        [BsonIgnore]
         public Guid ConcurrencyToken => Guid.NewGuid();
 
         [HasOne]

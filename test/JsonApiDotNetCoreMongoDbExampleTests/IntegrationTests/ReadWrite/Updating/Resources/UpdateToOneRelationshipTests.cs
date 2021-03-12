@@ -53,7 +53,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            string route = $"/workItemGroups/{existingGroup.StringId}";
+            string route = "/workItemGroups/" + existingGroup.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);

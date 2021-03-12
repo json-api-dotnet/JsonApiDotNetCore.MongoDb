@@ -169,7 +169,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
             // Arrange
             WorkItem workItem = _fakers.WorkItem.Generate();
 
-            workItem.WorkItemTags = new[]
+            workItem.WorkItemTags = new List<WorkItemTag>
             {
                 new WorkItemTag
                 {

@@ -17,6 +17,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
         [BsonIgnore]
         public ISet<Article> Articles { get; set; }
 
+        [BsonIgnore]
         public ISet<ArticleTag> ArticleTags { get; set; }
     }
 }

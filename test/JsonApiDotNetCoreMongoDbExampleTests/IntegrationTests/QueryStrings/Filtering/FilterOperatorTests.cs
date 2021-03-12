@@ -23,7 +23,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.EnableLegacyFilterNotation = false;
         }
 
@@ -58,24 +58,6 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
         public async Task Cannot_filter_equality_on_two_attributes()
         {
             // Arrange
-            var resource = new FilterableResource
-            {
-                SomeInt32 = 5,
-                OtherInt32 = 5
-            };
-
-            var otherResource = new FilterableResource
-            {
-                SomeInt32 = 5,
-                OtherInt32 = 10
-            };
-
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
-            });
-
             const string route = "/filterableResources?filter=equals(someInt32,otherInt32)";
 
             // Act

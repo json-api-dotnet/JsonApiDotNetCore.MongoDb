@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
@@ -12,7 +11,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Inc
     public sealed class IncludeTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
+        private readonly QueryStringFakers _fakers = new QueryStringFakers();
 
         public IncludeTests(IntegrationTestContext<TestableStartup> testContext)
         {
@@ -23,16 +22,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Inc
         public async Task Cannot_include_in_primary_resources()
         {
             // Arrange
-            WorkItem workItem = _fakers.WorkItem.Generate();
-            workItem.Assignee = _fakers.UserAccount.Generate();
+            BlogPost post = _fakers.BlogPost.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<UserAccount>().InsertOneAsync(workItem.Assignee);
-                await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
+                await db.GetCollection<BlogPost>().InsertOneAsync(post);
             });
 
-            const string route = "/workItems?include=assignee";
+            const string route = "blogPosts?include=author";
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

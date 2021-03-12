@@ -30,7 +30,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
-            string route = $"/workItems/{existingWorkItem.StringId}";
+            string route = "/workItems/" + existingWorkItem.StringId;
 
             // Act
             (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecuteDeleteAsync<string>(route);

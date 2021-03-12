@@ -5,23 +5,22 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExample.Models;
-using JsonApiDotNetCoreMongoDbExample.Startups;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering
 {
-    public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Startup>>
+    public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
-        private readonly IntegrationTestContext<Startup> _testContext;
+        private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly QueryStringFakers _fakers = new QueryStringFakers();
 
-        public FilterDepthTests(IntegrationTestContext<Startup> testContext)
+        public FilterDepthTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.EnableLegacyFilterNotation = false;
         }
 
@@ -29,25 +28,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
         public async Task Can_filter_in_primary_resources()
         {
             // Arrange
-            var articles = new List<Article>
-            {
-                new Article
-                {
-                    Caption = "One"
-                },
-                new Article
-                {
-                    Caption = "Two"
-                }
-            };
+            List<BlogPost> posts = _fakers.BlogPost.Generate(2);
+            posts[0].Caption = "One";
+            posts[1].Caption = "Two";
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<Article>();
-                await db.GetCollection<Article>().InsertManyAsync(articles);
+                await db.ClearCollectionAsync<BlogPost>();
+                await db.GetCollection<BlogPost>().InsertManyAsync(posts);
             });
 
-            const string route = "/api/v1/articles?filter=equals(caption,'Two')";
+            const string route = "/blogPosts?filter=equals(caption,'Two')";
 
             // Act
             (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -56,24 +47,21 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
             responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(articles[1].StringId);
+            responseDocument.ManyData[0].Id.Should().Be(posts[1].StringId);
         }
 
         [Fact]
         public async Task Cannot_filter_in_single_primary_resource()
         {
             // Arrange
-            var article = new Article
-            {
-                Caption = "X"
-            };
+            BlogPost post = _fakers.BlogPost.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<Article>().InsertOneAsync(article);
+                await db.GetCollection<BlogPost>().InsertOneAsync(post);
             });
 
-            string route = $"/api/v1/articles/{article.StringId}?filter=equals(caption,'Two')";
+            string route = $"/blogPosts/{post.StringId}?filter=equals(caption,'Two')";
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -94,33 +82,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
         public async Task Cannot_filter_on_HasOne_relationship()
         {
             // Arrange
-            var articles = new List<Article>
-            {
-                new Article
-                {
-                    Caption = "X",
-                    Author = new Author
-                    {
-                        LastName = "Conner"
-                    }
-                },
-                new Article
-                {
-                    Caption = "X",
-                    Author = new Author
-                    {
-                        LastName = "Smith"
-                    }
-                }
-            };
+            BlogPost post = _fakers.BlogPost.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<Article>();
-                await db.GetCollection<Article>().InsertManyAsync(articles);
+                await db.GetCollection<BlogPost>().InsertOneAsync(post);
             });
 
-            const string route = "/api/v1/articles?filter=equals(author.lastName,'Smith')";
+            const string route = "/blogPosts?filter=equals(author.userName,'Smith')";
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -140,28 +109,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
         public async Task Cannot_filter_on_HasMany_relationship()
         {
             // Arrange
-            var blogs = new List<Blog>
-            {
-                new Blog(),
-                new Blog
-                {
-                    Articles = new List<Article>
-                    {
-                        new Article
-                        {
-                            Caption = "X"
-                        }
-                    }
-                }
-            };
+            Blog blog = _fakers.Blog.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<Blog>();
-                await db.GetCollection<Blog>().InsertManyAsync(blogs);
+                await db.GetCollection<Blog>().InsertOneAsync(blog);
             });
 
-            const string route = "/api/v1/blogs?filter=greaterThan(count(articles),'0')";
+            const string route = "/blogs?filter=greaterThan(count(posts),'0')";
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
@@ -181,35 +136,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Fil
         public async Task Cannot_filter_on_HasManyThrough_relationship()
         {
             // Arrange
-            var articles = new List<Article>
-            {
-                new Article
-                {
-                    Caption = "X"
-                },
-                new Article
-                {
-                    Caption = "X",
-                    ArticleTags = new HashSet<ArticleTag>
-                    {
-                        new ArticleTag
-                        {
-                            Tag = new Tag
-                            {
-                                Name = "Hot"
-                            }
-                        }
-                    }
-                }
-            };
+            BlogPost post = _fakers.BlogPost.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<Article>();
-                await db.GetCollection<Article>().InsertManyAsync(articles);
+                await db.GetCollection<BlogPost>().InsertOneAsync(post);
             });
 
-            const string route = "/api/v1/articles?filter=has(tags)";
+            const string route = "/blogPosts?filter=has(labels)";
 
             // Act
             (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);

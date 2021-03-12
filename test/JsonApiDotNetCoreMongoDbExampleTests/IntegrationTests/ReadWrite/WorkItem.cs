@@ -17,53 +17,54 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         [Attr]
         public WorkItemPriority Priority { get; set; }
 
-        [BsonIgnore]
         [Attr(Capabilities = ~(AttrCapabilities.AllowCreate | AttrCapabilities.AllowChange))]
+        [BsonIgnore]
         public Guid ConcurrencyToken
         {
             get => Guid.NewGuid();
-            set
-            {
-            }
+            set => _ = value;
         }
 
-        [BsonIgnore]
         [HasOne]
+        [BsonIgnore]
         public UserAccount Assignee { get; set; }
 
-        [BsonIgnore]
         [HasMany]
+        [BsonIgnore]
         public ISet<UserAccount> Subscribers { get; set; }
 
-        [BsonIgnore]
         [HasManyThrough(nameof(WorkItemTags))]
+        [BsonIgnore]
         public ISet<WorkTag> Tags { get; set; }
 
+        [BsonIgnore]
         public ICollection<WorkItemTag> WorkItemTags { get; set; }
 
-        [BsonIgnore]
         [HasOne]
+        [BsonIgnore]
         public WorkItem Parent { get; set; }
 
-        [BsonIgnore]
         [HasMany]
+        [BsonIgnore]
         public IList<WorkItem> Children { get; set; }
 
-        [BsonIgnore]
         [HasManyThrough(nameof(RelatedFromItems), LeftPropertyName = nameof(WorkItemToWorkItem.ToItem),
             RightPropertyName = nameof(WorkItemToWorkItem.FromItem))]
+        [BsonIgnore]
         public IList<WorkItem> RelatedFrom { get; set; }
 
+        [BsonIgnore]
         public IList<WorkItemToWorkItem> RelatedFromItems { get; set; }
 
-        [BsonIgnore]
         [HasManyThrough(nameof(RelatedToItems), LeftPropertyName = nameof(WorkItemToWorkItem.FromItem), RightPropertyName = nameof(WorkItemToWorkItem.ToItem))]
+        [BsonIgnore]
         public IList<WorkItem> RelatedTo { get; set; }
 
+        [BsonIgnore]
         public IList<WorkItemToWorkItem> RelatedToItems { get; set; }
 
-        [BsonIgnore]
         [HasOne]
+        [BsonIgnore]
         public WorkItemGroup Group { get; set; }
     }
 }
