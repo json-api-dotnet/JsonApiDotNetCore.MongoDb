@@ -11,11 +11,6 @@ using Microsoft.Extensions.Primitives;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions
 {
-    public interface IUserRolesService
-    {
-        bool AllowIncludeOwner { get; }
-    }
-    
     public sealed class CallableResourceDefinition : JsonApiResourceDefinition<CallableResource, string>
     {
         private readonly IUserRolesService _userRolesService;
