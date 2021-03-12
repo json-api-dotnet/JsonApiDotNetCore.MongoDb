@@ -1,18 +1,18 @@
 using System;
 using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Resources
 {
-    public sealed class UpdateResourceTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -26,7 +26,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Can_update_resource_without_attributes_or_relationships()
         {
             // Arrange
-            var existingUserAccount = _fakers.UserAccount.Generate();
+            UserAccount existingUserAccount = _fakers.UserAccount.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -48,10 +48,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/userAccounts/{existingUserAccount.StringId}";
+            string route = $"/userAccounts/{existingUserAccount.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
+            (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
@@ -63,8 +63,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Can_update_resource_with_unknown_attribute()
         {
             // Arrange
-            var existingUserAccount = _fakers.UserAccount.Generate();
-            var newFirstName = _fakers.UserAccount.Generate().FirstName;
+            UserAccount existingUserAccount = _fakers.UserAccount.Generate();
+            string newFirstName = _fakers.UserAccount.Generate().FirstName;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -85,10 +85,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/userAccounts/{existingUserAccount.StringId}";
+            string route = $"/userAccounts/{existingUserAccount.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
+            (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
@@ -97,20 +97,19 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable()
-                    .FirstWithIdAsync(existingUserAccount.Id);
+                UserAccount userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable().FirstWithIdAsync(existingUserAccount.Id);
 
                 userAccountInDatabase.FirstName.Should().Be(newFirstName);
                 userAccountInDatabase.LastName.Should().Be(existingUserAccount.LastName);
             });
         }
-        
+
         [Fact]
         public async Task Can_partially_update_resource_with_string_ID()
         {
             // Arrange
-            var existingGroup = _fakers.WorkItemGroup.Generate();
-            var newName = _fakers.WorkItemGroup.Generate().Name;
+            WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
+            string newName = _fakers.WorkItemGroup.Generate().Name;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -130,10 +129,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/workItemGroups/{existingGroup.StringId}";
+            string route = $"/workItemGroups/{existingGroup.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -147,14 +146,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable()
-                    .FirstWithIdAsync(existingGroup.Id);
+                WorkItemGroup groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable().FirstWithIdAsync(existingGroup.Id);
 
                 groupInDatabase.Name.Should().Be(newName);
                 groupInDatabase.IsPublic.Should().Be(existingGroup.IsPublic);
             });
 
-            var property = typeof(WorkItemGroup).GetProperty(nameof(Identifiable.Id));
+            PropertyInfo property = typeof(WorkItemGroup).GetProperty(nameof(Identifiable.Id));
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
@@ -162,8 +160,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Can_completely_update_resource_with_string_ID()
         {
             // Arrange
-            var existingColor = _fakers.RgbColor.Generate();
-            var newDisplayName = _fakers.RgbColor.Generate().DisplayName;
+            RgbColor existingColor = _fakers.RgbColor.Generate();
+            string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -183,10 +181,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/rgbColors/{existingColor.StringId}";
+            string route = $"/rgbColors/{existingColor.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
+            (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
@@ -195,13 +193,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable()
-                    .FirstWithIdAsync(existingColor.Id);
+                RgbColor colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable().FirstWithIdAsync(existingColor.Id);
 
                 colorInDatabase.DisplayName.Should().Be(newDisplayName);
             });
 
-            var property = typeof(RgbColor).GetProperty(nameof(Identifiable.Id));
+            PropertyInfo property = typeof(RgbColor).GetProperty(nameof(Identifiable.Id));
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
@@ -209,8 +206,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Can_update_resource_without_side_effects()
         {
             // Arrange
-            var existingUserAccount = _fakers.UserAccount.Generate();
-            var newUserAccount = _fakers.UserAccount.Generate();
+            UserAccount existingUserAccount = _fakers.UserAccount.Generate();
+            UserAccount newUserAccount = _fakers.UserAccount.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -231,10 +228,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/userAccounts/{existingUserAccount.StringId}";
+            string route = $"/userAccounts/{existingUserAccount.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
+            (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
@@ -243,8 +240,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable()
-                    .FirstWithIdAsync(existingUserAccount.Id);
+                UserAccount userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable().FirstWithIdAsync(existingUserAccount.Id);
 
                 userAccountInDatabase.FirstName.Should().Be(newUserAccount.FirstName);
                 userAccountInDatabase.LastName.Should().Be(newUserAccount.LastName);
@@ -255,8 +251,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Can_update_resource_with_side_effects()
         {
             // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-            var newDescription = _fakers.WorkItem.Generate().Description;
+            WorkItem existingWorkItem = _fakers.WorkItem.Generate();
+            string newDescription = _fakers.WorkItem.Generate().Description;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -277,10 +273,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/workItems/{existingWorkItem.StringId}";
+            string route = $"/workItems/{existingWorkItem.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -296,8 +292,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .FirstWithIdAsync(existingWorkItem.Id);
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(existingWorkItem.Id);
 
                 workItemInDatabase.Description.Should().Be(newDescription);
                 workItemInDatabase.DueAt.Should().BeNull();
@@ -309,8 +304,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         public async Task Can_update_resource_with_side_effects_with_primary_fieldset()
         {
             // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
-            var newDescription = _fakers.WorkItem.Generate().Description;
+            WorkItem existingWorkItem = _fakers.WorkItem.Generate();
+            string newDescription = _fakers.WorkItem.Generate().Description;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -331,10 +326,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/workItems/{existingWorkItem.StringId}?fields[workItems]=description,priority";
+            string route = $"/workItems/{existingWorkItem.StringId}?fields[workItems]=description,priority";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -349,8 +344,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .FirstWithIdAsync(existingWorkItem.Id);
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(existingWorkItem.Id);
 
                 workItemInDatabase.Description.Should().Be(newDescription);
                 workItemInDatabase.DueAt.Should().BeNull();
@@ -374,13 +368,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             const string route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.NotFound);
             error.Title.Should().Be("The requested resource does not exist.");

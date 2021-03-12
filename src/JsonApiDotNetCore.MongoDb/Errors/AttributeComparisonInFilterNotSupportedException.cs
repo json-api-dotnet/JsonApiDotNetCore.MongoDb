@@ -5,9 +5,7 @@ using JsonApiDotNetCore.Serialization.Objects;
 namespace JsonApiDotNetCore.MongoDb.Errors
 {
     /// <summary>
-    /// The error that is thrown when a filter compares two attributes.
-    /// This is not supported by MongoDB.Driver.
-    /// https://jira.mongodb.org/browse/CSHARP-1592
+    /// The error that is thrown when a filter compares two attributes. This is not supported by MongoDB.Driver. See https://jira.mongodb.org/browse/CSHARP-1592.
     /// </summary>
     public sealed class AttributeComparisonInFilterNotSupportedException : JsonApiException
     {

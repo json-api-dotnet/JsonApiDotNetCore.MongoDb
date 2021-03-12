@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -7,8 +8,7 @@ using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetching
 {
-    public sealed class FetchRelationshipTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -17,81 +17,81 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Fetchi
         {
             _testContext = testContext;
         }
-        
+
         [Fact]
         public async Task Cannot_get_HasOne_relationship()
         {
-            var workItem = _fakers.WorkItem.Generate();
-            
+            WorkItem workItem = _fakers.WorkItem.Generate();
+
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 
-            var route = $"/workItems/{workItem.StringId}/relationships/assignee";
+            string route = $"/workItems/{workItem.StringId}/relationships/assignee";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");
             error.Detail.Should().BeNull();
         }
-        
+
         [Fact]
         public async Task Cannot_get_HasMany_relationship()
         {
             // Arrange
-            var userAccount = _fakers.UserAccount.Generate();
+            UserAccount userAccount = _fakers.UserAccount.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.GetCollection<UserAccount>().InsertOneAsync(userAccount);
             });
 
-            var route = $"/userAccounts/{userAccount.StringId}/relationships/assignedItems";
+            string route = $"/userAccounts/{userAccount.StringId}/relationships/assignedItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");
             error.Detail.Should().BeNull();
         }
-        
+
         [Fact]
         public async Task Cannot_get_HasManyThrough_relationship()
         {
             // Arrange
-            var workItem = _fakers.WorkItem.Generate();
-            
+            WorkItem workItem = _fakers.WorkItem.Generate();
+
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.GetCollection<WorkItem>().InsertOneAsync(workItem);
             });
 
-            var route = $"/workItems/{workItem.StringId}/relationships/tags";
+            string route = $"/workItems/{workItem.StringId}/relationships/tags";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");

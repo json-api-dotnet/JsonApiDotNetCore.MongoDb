@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
@@ -19,7 +20,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.IncludeTotalResourceCount = true;
         }
 
@@ -38,7 +39,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             const string route = "/api/v1/todoItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -59,7 +60,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             const string route = "/api/v1/todoItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -87,7 +88,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             const string route = "/api/v1/todoItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -119,10 +120,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
                 }
             };
 
-            var route = $"/api/v1/todoItems/{todoItem.StringId}";
+            string route = $"/api/v1/todoItems/{todoItem.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);

@@ -18,7 +18,9 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
         public string AlwaysChangingValue
         {
             get => Guid.NewGuid().ToString();
-            set { }
+            set
+            {
+            }
         }
 
         [Attr]

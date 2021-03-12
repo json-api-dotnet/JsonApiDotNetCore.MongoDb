@@ -8,7 +8,8 @@ namespace JsonApiDotNetCoreMongoDbExample.Definitions
 {
     public sealed class TodoItemDefinition : JsonApiResourceDefinition<TodoItem, string>
     {
-        public TodoItemDefinition(IResourceGraph resourceGraph) : base(resourceGraph)
+        public TodoItemDefinition(IResourceGraph resourceGraph)
+            : base(resourceGraph)
         {
         }
 
@@ -21,7 +22,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Definitions
                     ["hasHighPriority"] = true
                 };
             }
-            
+
             return base.GetMeta(resource);
         }
     }

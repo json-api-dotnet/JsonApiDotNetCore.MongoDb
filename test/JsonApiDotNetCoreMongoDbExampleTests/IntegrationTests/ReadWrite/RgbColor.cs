@@ -8,7 +8,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
     {
         [Attr]
         public string DisplayName { get; set; }
-        
+
         [HasOne]
         [BsonIgnore]
         public WorkItemGroup Group { get; set; }

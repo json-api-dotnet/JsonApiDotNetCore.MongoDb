@@ -17,7 +17,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Startups
     public sealed class Startup : EmptyStartup
     {
         private readonly IConfiguration _configuration;
-        
+
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -27,7 +27,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Startups
         public override void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<ISystemClock, SystemClock>();
-            
+
             // TryAddSingleton will only register the IMongoDatabase if there is no
             // previously registered instance - will make tests use individual dbs
             services.TryAddSingleton(_ =>

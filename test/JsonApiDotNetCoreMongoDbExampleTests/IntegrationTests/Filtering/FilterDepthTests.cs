@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
@@ -9,7 +10,6 @@ using JsonApiDotNetCoreMongoDbExample.Startups;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Tag = JsonApiDotNetCoreMongoDbExample.Models.Tag;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
 {
@@ -21,7 +21,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.EnableLegacyFilterNotation = false;
         }
 
@@ -50,7 +50,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/api/v1/articles?filter=equals(caption,'Two')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -73,23 +73,23 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<Article>().InsertOneAsync(article);
             });
 
-            var route = $"/api/v1/articles/{article.StringId}?filter=equals(caption,'Two')";
+            string route = $"/api/v1/articles/{article.StringId}?filter=equals(caption,'Two')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("The specified filter is invalid.");
             error.Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
             error.Source.Parameter.Should().Be("filter");
         }
-        
+
         [Fact]
         public async Task Cannot_filter_on_HasOne_relationship()
         {
@@ -123,19 +123,19 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/api/v1/articles?filter=equals(author.lastName,'Smith')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");
             error.Detail.Should().BeNull();
         }
-        
+
         [Fact]
         public async Task Cannot_filter_on_HasMany_relationship()
         {
@@ -164,19 +164,19 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/api/v1/blogs?filter=greaterThan(count(articles),'0')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");
             error.Detail.Should().BeNull();
         }
-        
+
         [Fact]
         public async Task Cannot_filter_on_HasManyThrough_relationship()
         {
@@ -212,13 +212,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/api/v1/articles?filter=has(tags)";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");

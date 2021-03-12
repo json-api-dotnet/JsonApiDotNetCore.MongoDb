@@ -8,11 +8,9 @@ namespace JsonApiDotNetCoreMongoDbExample.Controllers
 {
     public sealed class AuthorsController : JsonApiController<Author, string>
     {
-        public AuthorsController(
-            IJsonApiOptions options,
-            ILoggerFactory loggerFactory,
-            IResourceService<Author, string> resourceService)
+        public AuthorsController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<Author, string> resourceService)
             : base(options, loggerFactory, resourceService)
-        { }
+        {
+        }
     }
 }

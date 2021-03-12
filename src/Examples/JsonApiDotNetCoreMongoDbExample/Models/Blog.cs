@@ -7,12 +7,12 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
 {
     public sealed class Blog : MongoDbIdentifiable
     {
-        [Attr] 
+        [Attr]
         public string Title { get; set; }
 
         [Attr]
         public string CompanyName { get; set; }
-        
+
         [HasMany]
         [BsonIgnore]
         public IList<Article> Articles { get; set; }

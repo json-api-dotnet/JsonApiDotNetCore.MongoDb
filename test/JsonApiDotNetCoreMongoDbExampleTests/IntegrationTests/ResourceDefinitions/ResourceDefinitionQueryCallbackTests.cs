@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -24,7 +25,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 services.AddSingleton<IUserRolesService, FakeUserRolesService>();
             });
 
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.IncludeTotalResourceCount = true;
         }
 
@@ -65,7 +66,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -114,7 +115,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources?filter=equals(label,'B')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -160,7 +161,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -206,7 +207,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources?sort=-createdAt,modifiedAt";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -237,7 +238,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources?page[size]=8";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -260,10 +261,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 await db.GetCollection<CallableResource>().InsertOneAsync(resource);
             });
 
-            var route = $"/callableResources/{resource.StringId}";
+            string route = $"/callableResources/{resource.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -289,10 +290,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 await db.GetCollection<CallableResource>().InsertOneAsync(resource);
             });
 
-            var route = $"/callableResources/{resource.StringId}?fields[callableResources]=label,status";
+            string route = $"/callableResources/{resource.StringId}?fields[callableResources]=label,status";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -304,7 +305,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             responseDocument.SingleData.Attributes["status"].Should().Be("5% completed.");
             responseDocument.SingleData.Relationships.Should().BeNull();
         }
-        
+
         [Fact]
         public async Task Attribute_exclusion_from_resource_definition_is_applied_for_empty_query_string()
         {
@@ -320,10 +321,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 await db.GetCollection<CallableResource>().InsertOneAsync(resource);
             });
 
-            var route = $"/callableResources/{resource.StringId}";
+            string route = $"/callableResources/{resource.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -349,10 +350,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 await db.GetCollection<CallableResource>().InsertOneAsync(resource);
             });
 
-            var route = $"/callableResources/{resource.StringId}?fields[callableResources]=label,riskLevel";
+            string route = $"/callableResources/{resource.StringId}?fields[callableResources]=label,riskLevel";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -401,7 +402,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources?isHighRisk=true";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -448,7 +449,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
             const string route = "/callableResources?isHighRisk=false&filter=equals(label,'B')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -482,16 +483,16 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
                 await db.GetCollection<CallableResource>().InsertOneAsync(resource);
             });
 
-            var route = $"/callableResources/{resource.StringId}/children?isHighRisk=true";
+            string route = $"/callableResources/{resource.StringId}/children?isHighRisk=true";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Custom query string parameters cannot be used on nested resource endpoints.");
@@ -501,7 +502,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
 
         private sealed class FakeUserRolesService : IUserRolesService
         {
-            public bool AllowIncludeOwner { get; set; } = true;
+            public bool AllowIncludeOwner { get; } = true;
         }
     }
 }

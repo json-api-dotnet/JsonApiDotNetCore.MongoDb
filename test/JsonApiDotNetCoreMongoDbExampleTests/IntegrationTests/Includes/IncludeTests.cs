@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -22,7 +23,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
         public async Task Cannot_include_in_primary_resources()
         {
             // Arrange
-            var workItem = _fakers.WorkItem.Generate();
+            WorkItem workItem = _fakers.WorkItem.Generate();
             workItem.Assignee = _fakers.UserAccount.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
@@ -32,15 +33,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes
             });
 
             const string route = "/workItems?include=assignee";
-            
+
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-            
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-            
+
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");

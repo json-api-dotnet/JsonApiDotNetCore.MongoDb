@@ -10,7 +10,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
     {
         [Attr]
         public string Name { get; set; }
-        
+
         [Attr]
         public bool IsPublic { get; set; }
 
@@ -21,7 +21,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         [HasOne]
         [BsonIgnore]
         public RgbColor Color { get; set; }
-        
+
         [HasMany]
         [BsonIgnore]
         public IList<WorkItem> Items { get; set; }

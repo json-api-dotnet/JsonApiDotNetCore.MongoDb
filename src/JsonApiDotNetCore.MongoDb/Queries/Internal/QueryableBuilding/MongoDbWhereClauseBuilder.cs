@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
@@ -26,7 +26,8 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
 
         private static DateTime? TryParseDateTimeAsUtc(string value, Type expressionType)
         {
-            var convertedValue = Convert.ChangeType(value, expressionType);
+            object convertedValue = Convert.ChangeType(value, expressionType);
+
             if (convertedValue is DateTime dateTime)
             {
                 // DateTime values in MongoDB are always stored in UTC, so any ambiguous filter value passed

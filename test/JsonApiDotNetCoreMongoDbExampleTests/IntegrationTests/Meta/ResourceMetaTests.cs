@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -24,9 +25,18 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             // Arrange
             var todoItems = new[]
             {
-                new TodoItem {Description = "Important: Pay the bills"},
-                new TodoItem {Description = "Plan my birthday party"},
-                new TodoItem {Description = "Important: Call mom"}
+                new TodoItem
+                {
+                    Description = "Important: Pay the bills"
+                },
+                new TodoItem
+                {
+                    Description = "Plan my birthday party"
+                },
+                new TodoItem
+                {
+                    Description = "Important: Call mom"
+                }
             };
 
             await _testContext.RunOnDatabaseAsync(async db =>
@@ -38,7 +48,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
             const string route = "/api/v1/todoItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);

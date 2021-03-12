@@ -32,6 +32,7 @@ namespace GettingStarted
             {
                 builder.Add<Book, string>();
             });
+
             services.AddJsonApiMongoDb();
 
             services.AddResourceRepository<MongoDbRepository<Book, string>>();
@@ -49,27 +50,29 @@ namespace GettingStarted
         public void Configure(IApplicationBuilder app)
         {
             CreateSampleData(app.ApplicationServices.GetService<IMongoDatabase>());
-            
+
             app.UseRouting();
             app.UseJsonApi();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
-        
+
         private static void CreateSampleData(IMongoDatabase db)
         {
-            db.GetCollection<Book>(nameof(Book)).InsertMany(new []
+            db.GetCollection<Book>(nameof(Book)).InsertMany(new[]
             {
                 new Book
                 {
                     Title = "Frankenstein",
                     PublishYear = 1818,
                     Author = "Mary Shelley"
-                }, new Book
+                },
+                new Book
                 {
                     Title = "Robinson Crusoe",
                     PublishYear = 1719,
                     Author = "Daniel Defoe"
-                }, new Book
+                },
+                new Book
                 {
                     Title = "Gulliver's Travels",
                     PublishYear = 1726,

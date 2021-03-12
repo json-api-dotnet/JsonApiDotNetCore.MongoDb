@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
 {
     /// <summary>
-    /// Drives conversion from <see cref="QueryLayer"/> into system <see cref="Expression"/> trees.
+    /// Drives conversion from <see cref="QueryLayer" /> into system <see cref="Expression" /> trees.
     /// </summary>
     public sealed class MongoDbQueryableBuilder : QueryableBuilder
     {
@@ -18,12 +18,10 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
         private readonly Type _extensionType;
         private readonly LambdaScopeFactory _lambdaScopeFactory;
 
-        public MongoDbQueryableBuilder(Expression source, Type elementType, Type extensionType,
-            LambdaParameterNameFactory nameFactory, IResourceFactory resourceFactory,
-            IResourceContextProvider resourceContextProvider, IModel entityModel,
+        public MongoDbQueryableBuilder(Expression source, Type elementType, Type extensionType, LambdaParameterNameFactory nameFactory,
+            IResourceFactory resourceFactory, IResourceContextProvider resourceContextProvider, IModel entityModel,
             LambdaScopeFactory lambdaScopeFactory = null)
-            : base(source, elementType, extensionType, nameFactory, resourceFactory, resourceContextProvider,
-                entityModel, lambdaScopeFactory)
+            : base(source, elementType, extensionType, nameFactory, resourceFactory, resourceContextProvider, entityModel, lambdaScopeFactory)
         {
             ArgumentGuard.NotNull(elementType, nameof(elementType));
             ArgumentGuard.NotNull(extensionType, nameof(extensionType));
@@ -35,7 +33,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
 
         protected override Expression ApplyFilter(Expression source, FilterExpression filter)
         {
-            using var lambdaScope = _lambdaScopeFactory.CreateScope(_elementType);
+            using LambdaScope lambdaScope = _lambdaScopeFactory.CreateScope(_elementType);
 
             var builder = new MongoDbWhereClauseBuilder(source, lambdaScope, _extensionType);
             return builder.ApplyWhere(filter);

@@ -12,15 +12,15 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
 
         [Attr]
         public string Url { get; set; }
-        
+
         [HasOne]
         [BsonIgnore]
         public Author Author { get; set; }
-        
+
         [BsonIgnore]
         [HasManyThrough(nameof(ArticleTags))]
         public ISet<Tag> Tags { get; set; }
-        
+
         [BsonIgnore]
         public ISet<ArticleTag> ArticleTags { get; set; }
     }

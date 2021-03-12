@@ -7,8 +7,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
 {
     public class CallableResourcesController : JsonApiController<CallableResource, string>
     {
-        public CallableResourcesController(IJsonApiOptions options, ILoggerFactory loggerFactory,
-            IResourceService<CallableResource, string> resourceService)
+        public CallableResourcesController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<CallableResource, string> resourceService)
             : base(options, loggerFactory, resourceService)
         {
         }

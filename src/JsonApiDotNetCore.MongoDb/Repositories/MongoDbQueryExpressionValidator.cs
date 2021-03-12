@@ -13,7 +13,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             ArgumentGuard.NotNull(layer, nameof(layer));
 
             bool hasIncludes = layer.Include?.Elements.Any() == true;
-            var hasSparseRelationshipSets = layer.Projection?.Any(pair => pair.Key is RelationshipAttribute) == true;
+            bool hasSparseRelationshipSets = layer.Projection?.Any(pair => pair.Key is RelationshipAttribute) == true;
 
             if (hasIncludes || hasSparseRelationshipSets)
             {

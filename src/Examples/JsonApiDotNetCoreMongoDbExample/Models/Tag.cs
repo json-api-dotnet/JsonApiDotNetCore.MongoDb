@@ -16,6 +16,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
         [HasManyThrough(nameof(ArticleTags))]
         [BsonIgnore]
         public ISet<Article> Articles { get; set; }
+
         public ISet<ArticleTag> ArticleTags { get; set; }
     }
 }

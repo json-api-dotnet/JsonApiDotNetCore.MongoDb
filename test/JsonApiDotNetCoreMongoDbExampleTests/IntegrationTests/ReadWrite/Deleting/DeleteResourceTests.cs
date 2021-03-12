@@ -1,16 +1,15 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleting
 {
-    public sealed class DeleteResourceTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -24,17 +23,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
         public async Task Can_delete_existing_resource()
         {
             // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
+            WorkItem existingWorkItem = _fakers.WorkItem.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
             });
 
-            var route = $"/workItems/{existingWorkItem.StringId}";
+            string route = $"/workItems/{existingWorkItem.StringId}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteDeleteAsync<string>(route);
+            (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecuteDeleteAsync<string>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
@@ -43,8 +42,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .FirstWithIdOrDefaultAsync(existingWorkItem.Id);
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdOrDefaultAsync(existingWorkItem.Id);
 
                 workItemInDatabase.Should().BeNull();
             });
@@ -57,13 +55,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
             const string route = "/workItems/ffffffffffffffffffffffff";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteDeleteAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteDeleteAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.NotFound);
             error.Title.Should().Be("The requested resource does not exist.");

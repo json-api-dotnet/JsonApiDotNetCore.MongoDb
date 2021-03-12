@@ -17,13 +17,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
     {
         private readonly ResourceCaptureStore _captureStore;
 
-        public ResultCapturingRepository(
-            IMongoDatabase db,
-            ITargetedFields targetedFields,
-            IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory,
-            IEnumerable<IQueryConstraintProvider> constraintProviders,
-            ResourceCaptureStore captureStore)
+        public ResultCapturingRepository(IMongoDatabase db, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+            IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, ResourceCaptureStore captureStore)
             : base(db, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
             _captureStore = captureStore;
@@ -31,7 +26,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
 
         public override async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer, CancellationToken cancellationToken)
         {
-            var resources = await base.GetAsync(layer, cancellationToken);
+            IReadOnlyCollection<TResource> resources = await base.GetAsync(layer, cancellationToken);
 
             _captureStore.Add(resources);
 

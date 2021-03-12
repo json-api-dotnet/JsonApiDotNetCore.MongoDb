@@ -12,7 +12,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 
         [Attr]
         public string LastName { get; set; }
-        
+
         [HasMany]
         [BsonIgnore]
         public ISet<WorkItem> AssignedItems { get; set; }

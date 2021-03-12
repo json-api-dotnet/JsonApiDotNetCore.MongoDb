@@ -55,7 +55,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
 
             return existingFilter == null
                 ? (FilterExpression)isNotDeleted
-                : new LogicalExpression(LogicalOperator.And, new[] { isNotDeleted, existingFilter });
+                : new LogicalExpression(LogicalOperator.And, new[]
+                {
+                    isNotDeleted,
+                    existingFilter
+                });
         }
 
         public override SortExpression OnApplySort(SortExpression existingSort)

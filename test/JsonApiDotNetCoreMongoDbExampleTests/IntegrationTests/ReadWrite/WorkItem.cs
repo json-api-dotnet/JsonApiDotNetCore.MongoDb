@@ -22,7 +22,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         public Guid ConcurrencyToken
         {
             get => Guid.NewGuid();
-            set { }
+            set
+            {
+            }
         }
 
         [BsonIgnore]
@@ -36,6 +38,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         [BsonIgnore]
         [HasManyThrough(nameof(WorkItemTags))]
         public ISet<WorkTag> Tags { get; set; }
+
         public ICollection<WorkItemTag> WorkItemTags { get; set; }
 
         [BsonIgnore]
@@ -47,13 +50,16 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
         public IList<WorkItem> Children { get; set; }
 
         [BsonIgnore]
-        [HasManyThrough(nameof(RelatedFromItems), LeftPropertyName = nameof(WorkItemToWorkItem.ToItem), RightPropertyName = nameof(WorkItemToWorkItem.FromItem))]
+        [HasManyThrough(nameof(RelatedFromItems), LeftPropertyName = nameof(WorkItemToWorkItem.ToItem),
+            RightPropertyName = nameof(WorkItemToWorkItem.FromItem))]
         public IList<WorkItem> RelatedFrom { get; set; }
+
         public IList<WorkItemToWorkItem> RelatedFromItems { get; set; }
 
         [BsonIgnore]
         [HasManyThrough(nameof(RelatedToItems), LeftPropertyName = nameof(WorkItemToWorkItem.FromItem), RightPropertyName = nameof(WorkItemToWorkItem.ToItem))]
         public IList<WorkItem> RelatedTo { get; set; }
+
         public IList<WorkItemToWorkItem> RelatedToItems { get; set; }
 
         [BsonIgnore]

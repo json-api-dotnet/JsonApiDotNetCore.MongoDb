@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using JsonApiDotNetCore.Configuration;
@@ -30,12 +31,10 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         private readonly IResourceFactory _resourceFactory;
         private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
 
-        public MongoDbRepository(
-            IMongoDatabase mongoDatabase,
-            ITargetedFields targetedFields,
-            IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory,
-            IEnumerable<IQueryConstraintProvider> constraintProviders)
+        protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
+
+        public MongoDbRepository(IMongoDatabase mongoDatabase, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+            IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
             ArgumentGuard.NotNull(mongoDatabase, nameof(mongoDatabase));
             ArgumentGuard.NotNull(targetedFields, nameof(targetedFields));
@@ -55,32 +54,30 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             }
         }
 
-        protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
-
         /// <inheritdoc />
-        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer,
-            CancellationToken cancellationToken)
+        public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer, CancellationToken cancellationToken)
         {
             ArgumentGuard.NotNull(layer, nameof(layer));
 
-            var query = ApplyQueryLayer(layer);
-            var resources = await query.ToListAsync(cancellationToken);
+            IMongoQueryable<TResource> query = ApplyQueryLayer(layer);
+            List<TResource> resources = await query.ToListAsync(cancellationToken);
             return resources.AsReadOnly();
         }
 
         /// <inheritdoc />
         public virtual Task<int> CountAsync(FilterExpression topFilter, CancellationToken cancellationToken)
         {
-            var resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+            ResourceContext resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+
             var layer = new QueryLayer(resourceContext)
             {
                 Filter = topFilter
             };
 
-            var query = ApplyQueryLayer(layer);
+            IMongoQueryable<TResource> query = ApplyQueryLayer(layer);
             return query.CountAsync(cancellationToken);
         }
-        
+
         protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
         {
             ArgumentGuard.NotNull(layer, nameof(layer));
@@ -89,51 +86,58 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             queryExpressionValidator.Validate(layer);
 
             AssertNoRelationshipsInSparseFieldSets();
-            
-            var source = GetAll();
-            
-            var queryableHandlers = _constraintProviders
+
+            IQueryable<TResource> source = GetAll();
+
+            // @formatter:wrap_chained_method_calls chop_always
+            // @formatter:keep_existing_linebreaks true
+
+            QueryableHandlerExpression[] queryableHandlers = _constraintProviders
                 .SelectMany(provider => provider.GetConstraints())
                 .Where(expressionInScope => expressionInScope.Scope == null)
                 .Select(expressionInScope => expressionInScope.Expression)
                 .OfType<QueryableHandlerExpression>()
                 .ToArray();
 
-            foreach (var queryableHandler in queryableHandlers)
+            // @formatter:keep_existing_linebreaks restore
+            // @formatter:wrap_chained_method_calls restore
+
+            foreach (QueryableHandlerExpression queryableHandler in queryableHandlers)
             {
                 source = queryableHandler.Apply(source);
             }
 
             var nameFactory = new LambdaParameterNameFactory();
-            var builder = new MongoDbQueryableBuilder(
-                source.Expression,
-                source.ElementType,
-                typeof(Queryable),
-                nameFactory,
-                _resourceFactory,
-                _resourceContextProvider,
-                new MongoDbModel(_resourceContextProvider));
 
-            var expression = builder.ApplyQuery(layer);
+            var builder = new MongoDbQueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
+                _resourceContextProvider, new MongoDbModel(_resourceContextProvider));
+
+            Expression expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
         }
-        
+
         protected virtual IQueryable<TResource> GetAll()
         {
             return Collection.AsQueryable();
         }
-        
+
         private void AssertNoRelationshipsInSparseFieldSets()
         {
-            var resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+            ResourceContext resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
 
-            var hasRelationshipSelectors = _constraintProviders
+            // @formatter:wrap_chained_method_calls chop_always
+            // @formatter:keep_existing_linebreaks true
+
+            bool hasRelationshipSelectors = _constraintProviders
                 .SelectMany(provider => provider.GetConstraints())
                 .Select(expressionInScope => expressionInScope.Expression)
                 .OfType<SparseFieldTableExpression>()
                 .Any(fieldTable =>
                     fieldTable.Table.Keys.Any(targetResourceContext => targetResourceContext != resourceContext) ||
                     fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
+
+            // @formatter:keep_existing_linebreaks restore
+            // @formatter:wrap_chained_method_calls restore
 
             if (hasRelationshipSelectors)
             {
@@ -151,15 +155,14 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         }
 
         /// <inheritdoc />
-        public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase,
-            CancellationToken cancellationToken)
+        public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase, CancellationToken cancellationToken)
         {
             ArgumentGuard.NotNull(resourceFromRequest, nameof(resourceFromRequest));
             ArgumentGuard.NotNull(resourceForDatabase, nameof(resourceForDatabase));
 
             AssertNoRelationshipsAreTargeted();
-            
-            foreach (var attribute in _targetedFields.Attributes)
+
+            foreach (AttrAttribute attribute in _targetedFields.Attributes)
             {
                 attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
             }
@@ -185,7 +188,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         /// <inheritdoc />
         public virtual async Task<TResource> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
         {
-            var resources = await GetAsync(queryLayer, cancellationToken);
+            IReadOnlyCollection<TResource> resources = await GetAsync(queryLayer, cancellationToken);
             return resources.FirstOrDefault();
         }
 
@@ -196,13 +199,13 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             ArgumentGuard.NotNull(resourceFromDatabase, nameof(resourceFromDatabase));
 
             AssertNoRelationshipsAreTargeted();
-            
-            foreach (var attr in _targetedFields.Attributes)
+
+            foreach (AttrAttribute attr in _targetedFields.Attributes)
             {
                 attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
             }
 
-            var filter = Builders<TResource>.Filter.Eq(resource => resource.Id, resourceFromDatabase.Id);
+            FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, resourceFromDatabase.Id);
 
             try
             {
@@ -217,9 +220,10 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         /// <inheritdoc />
         public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
         {
-            var filter = Builders<TResource>.Filter.Eq(resource => resource.Id, id);
+            FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, id);
 
             DeleteResult result;
+
             try
             {
                 result = await Collection.DeleteOneAsync(filter, new DeleteOptions(), cancellationToken);
@@ -231,7 +235,8 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
             if (!result.IsAcknowledged)
             {
-                throw new DataStoreUpdateException(new Exception($"Failed to delete document with id '{id}', because the operation was not acknowledged by MongoDB."));
+                throw new DataStoreUpdateException(
+                    new Exception($"Failed to delete document with id '{id}', because the operation was not acknowledged by MongoDB."));
             }
 
             if (result.DeletedCount == 0)
@@ -253,26 +258,21 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         }
 
         /// <inheritdoc />
-        public virtual Task RemoveFromToManyRelationshipAsync(TResource primaryResource,
-            ISet<IIdentifiable> secondaryResourceIds,
+        public virtual Task RemoveFromToManyRelationshipAsync(TResource primaryResource, ISet<IIdentifiable> secondaryResourceIds,
             CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
     }
-    
+
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
     public class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
         where TResource : class, IIdentifiable<int>
     {
-        public MongoDbRepository(
-            IMongoDatabase mongoDatabase,
-            ITargetedFields targetedFields,
-            IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory,
-            IEnumerable<IQueryConstraintProvider> constraintProviders)
+        public MongoDbRepository(IMongoDatabase mongoDatabase, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+            IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
             : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
         }

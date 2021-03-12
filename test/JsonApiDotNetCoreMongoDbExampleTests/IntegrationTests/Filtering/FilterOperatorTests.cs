@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using FluentAssertions;
@@ -22,7 +23,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.EnableLegacyFilterNotation = false;
         }
 
@@ -41,10 +42,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
             });
 
-            var route = $"/filterableResources?filter=equals(someString,'{HttpUtility.UrlEncode(resource.SomeString)}')";
+            string route = $"/filterableResources?filter=equals(someString,'{HttpUtility.UrlEncode(resource.SomeString)}')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -78,13 +79,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/filterableResources?filter=equals(someInt32,otherInt32)";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Comparing attributes against each other is not supported when using MongoDB.");
@@ -119,10 +120,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
-            var route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someInt32,'{filterValue}')";
+            string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someInt32,'{filterValue}')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -140,7 +141,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         [InlineData(2.1, 1.9, ComparisonOperator.GreaterThan, 1.9)]
         [InlineData(2.1, 1.9, ComparisonOperator.GreaterOrEqual, 2.0)]
         [InlineData(2.1, 1.9, ComparisonOperator.GreaterOrEqual, 2.1)]
-        public async Task Can_filter_comparison_on_fractional_number(double matchingValue, double nonMatchingValue, ComparisonOperator filterOperator, double filterValue)
+        public async Task Can_filter_comparison_on_fractional_number(double matchingValue, double nonMatchingValue, ComparisonOperator filterOperator,
+            double filterValue)
         {
             // Arrange
             var resource = new FilterableResource
@@ -159,10 +161,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
-            var route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDouble,'{filterValue}')";
+            string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDouble,'{filterValue}')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -180,7 +182,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
         [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterThan, "2001-01-01")]
         [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterOrEqual, "2001-01-05")]
         [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterOrEqual, "2001-01-09")]
-        public async Task Can_filter_comparison_on_DateTime(string matchingDateTime, string nonMatchingDateTime, ComparisonOperator filterOperator, string filterDateTime)
+        public async Task Can_filter_comparison_on_DateTime(string matchingDateTime, string nonMatchingDateTime, ComparisonOperator filterOperator,
+            string filterDateTime)
         {
             // Arrange
             var resource = new FilterableResource
@@ -199,10 +202,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
-            var route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDateTime,'{DateTime.ParseExact(filterDateTime, "yyyy-MM-dd", null)}')";
+            string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDateTime," +
+                $"'{DateTime.ParseExact(filterDateTime, "yyyy-MM-dd", null)}')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -236,10 +240,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
-            var route = $"/filterableResources?filter={matchKind.ToString().Camelize()}(someString,'{filterText}')";
+            string route = $"/filterableResources?filter={matchKind.ToString().Camelize()}(someString,'{filterText}')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -270,10 +274,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
-            var route = $"/filterableResources?filter=any(someString,{filterText})";
+            string route = $"/filterableResources?filter=any(someString,{filterText})";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -303,13 +307,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/filterableResources?filter=has(children)";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");
@@ -338,13 +342,13 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             const string route = "/filterableResources?filter=equals(count(children),'2')";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
             responseDocument.Errors.Should().HaveCount(1);
-            
+
             Error error = responseDocument.Errors[0];
             error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             error.Title.Should().Be("Relationships are not supported when using MongoDB.");
@@ -379,10 +383,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
                 await db.GetCollection<FilterableResource>().InsertManyAsync(resource1, resource2);
             });
 
-            var route = $"/filterableResources?filter={filterExpression}";
+            string route = $"/filterableResources?filter={filterExpression}";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
