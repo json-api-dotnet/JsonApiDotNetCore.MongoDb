@@ -35,7 +35,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<Person>();
-                await db.GetCollection<Person>().InsertManyAsync(new[] {person, new Person()});
+                await db.GetCollection<Person>().InsertManyAsync(person, new Person());
             });
 
             var route = $"/api/v1/people?filter=equals(id,'{person.StringId}')";

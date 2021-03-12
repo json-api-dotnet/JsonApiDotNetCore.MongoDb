@@ -38,8 +38,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, new FilterableResource()});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
             });
 
             var route = $"/filterableResources?filter=equals(someString,'{HttpUtility.UrlEncode(resource.SomeString)}')";
@@ -73,8 +72,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, otherResource});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
             const string route = "/filterableResources?filter=equals(someInt32,otherInt32)";
@@ -118,8 +116,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, otherResource});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
             var route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someInt32,'{filterValue}')";
@@ -159,8 +156,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, otherResource});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
             var route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDouble,'{filterValue}')";
@@ -200,8 +196,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, otherResource});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
             var route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDateTime,'{DateTime.ParseExact(filterDateTime, "yyyy-MM-dd", null)}')";
@@ -238,8 +233,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, otherResource});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
             var route = $"/filterableResources?filter={matchKind.ToString().Camelize()}(someString,'{filterText}')";
@@ -273,8 +267,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, otherResource});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
             });
 
             var route = $"/filterableResources?filter=any(someString,{filterText})";
@@ -304,8 +297,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, new FilterableResource()});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
             });
 
             const string route = "/filterableResources?filter=has(children)";
@@ -340,8 +332,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource, new FilterableResource()});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
             });
 
             const string route = "/filterableResources?filter=equals(count(children),'2')";
@@ -385,8 +376,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.ClearCollectionAsync<FilterableResource>();
-                await db.GetCollection<FilterableResource>()
-                    .InsertManyAsync(new[] {resource1, resource2});
+                await db.GetCollection<FilterableResource>().InsertManyAsync(resource1, resource2);
             });
 
             var route = $"/filterableResources?filter={filterExpression}";

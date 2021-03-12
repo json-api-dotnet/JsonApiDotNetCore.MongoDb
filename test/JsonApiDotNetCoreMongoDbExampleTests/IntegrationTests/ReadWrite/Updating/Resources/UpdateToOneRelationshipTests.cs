@@ -29,7 +29,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
             
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<RgbColor>().InsertManyAsync(new[] {existingColor, existingGroup.Color});
+                await db.GetCollection<RgbColor>().InsertManyAsync(existingColor, existingGroup.Color);
                 await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
             });
 

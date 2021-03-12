@@ -59,8 +59,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                        .Where(workItem => workItem.Id == newWorkItemId)
-                        .FirstOrDefaultAsync();
+                        .FirstWithIdAsync(newWorkItemId);
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
                 workItemInDatabase.DueAt.Should().Be(newWorkItem.DueAt);
@@ -139,8 +138,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == newWorkItemId)
-                    .FirstOrDefaultAsync();
+                    .FirstWithIdAsync(newWorkItemId);
 
                 workItemInDatabase.Description.Should().BeNull();
                 workItemInDatabase.DueAt.Should().BeNull();
@@ -184,8 +182,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == newWorkItemId)
-                    .FirstOrDefaultAsync();
+                    .FirstWithIdAsync(newWorkItemId);
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
             });
@@ -232,8 +229,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == newWorkItemId)
-                    .FirstOrDefaultAsync();
+                    .FirstWithIdOrDefaultAsync(newWorkItemId);
 
                 workItemInDatabase.Should().NotBeNull();
             });

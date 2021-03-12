@@ -59,8 +59,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable()
-                    .Where(color => color.Id == newColor.Id)
-                    .FirstOrDefaultAsync();
+                    .FirstWithIdAsync(newColor.Id);
 
                 colorInDatabase.DisplayName.Should().Be(newColor.DisplayName);
             });
@@ -107,8 +106,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable()
-                    .Where(group => group.Id == newGroup.Id)
-                    .FirstOrDefaultAsync();
+                    .FirstWithIdAsync(newGroup.Id);
 
                 groupInDatabase.Name.Should().Be(newGroup.Name);
             });

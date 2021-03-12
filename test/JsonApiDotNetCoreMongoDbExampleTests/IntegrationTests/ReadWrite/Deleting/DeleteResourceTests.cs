@@ -43,11 +43,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleti
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemsInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == existingWorkItem.Id)
-                    .FirstOrDefaultAsync();
+                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
+                    .FirstWithIdOrDefaultAsync(existingWorkItem.Id);
 
-                workItemsInDatabase.Should().BeNull();
+                workItemInDatabase.Should().BeNull();
             });
         }
 
