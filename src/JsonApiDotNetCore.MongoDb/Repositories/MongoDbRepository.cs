@@ -93,7 +93,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             var source = GetAll();
             
             var queryableHandlers = _constraintProviders
-                .SelectMany(p => p.GetConstraints())
+                .SelectMany(provider => provider.GetConstraints())
                 .Where(expressionInScope => expressionInScope.Scope == null)
                 .Select(expressionInScope => expressionInScope.Expression)
                 .OfType<QueryableHandlerExpression>()
@@ -128,7 +128,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             var resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
 
             var hasRelationshipSelectors = _constraintProviders
-                .SelectMany(p => p.GetConstraints())
+                .SelectMany(provider => provider.GetConstraints())
                 .Select(expressionInScope => expressionInScope.Expression)
                 .OfType<SparseFieldTableExpression>()
                 .Any(fieldTable =>
@@ -168,9 +168,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
             {
                 await Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
             }
-            catch (MongoWriteException ex)
+            catch (MongoWriteException exception)
             {
-                throw new DataStoreUpdateException(ex);
+                throw new DataStoreUpdateException(exception);
             }
         }
 
@@ -202,31 +202,31 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
                 attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
             }
 
-            var filter = Builders<TResource>.Filter.Eq(e => e.Id, resourceFromDatabase.Id);
+            var filter = Builders<TResource>.Filter.Eq(resource => resource.Id, resourceFromDatabase.Id);
 
             try
             {
                 await Collection.ReplaceOneAsync(filter, resourceFromDatabase, new ReplaceOptions(), cancellationToken);
             }
-            catch (MongoWriteException ex)
+            catch (MongoWriteException exception)
             {
-                throw new DataStoreUpdateException(ex);
+                throw new DataStoreUpdateException(exception);
             }
         }
 
         /// <inheritdoc />
         public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
         {
-            var filter = Builders<TResource>.Filter.Eq(e => e.Id, id);
+            var filter = Builders<TResource>.Filter.Eq(resource => resource.Id, id);
 
             DeleteResult result;
             try
             {
                 result = await Collection.DeleteOneAsync(filter, new DeleteOptions(), cancellationToken);
             }
-            catch (MongoWriteException ex)
+            catch (MongoWriteException exception)
             {
-                throw new DataStoreUpdateException(ex);
+                throw new DataStoreUpdateException(exception);
             }
 
             if (!result.IsAcknowledged)

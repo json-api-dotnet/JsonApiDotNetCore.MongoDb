@@ -92,7 +92,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.ManyData[0].Attributes["caption"].Should().Be(article.Caption);
             responseDocument.ManyData[0].Relationships.Should().BeNull();
 
-            var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
+            var articleCaptured = (Article) store.Resources.Should().ContainSingle(resource => resource is Article).And.Subject.Single();
             articleCaptured.Caption.Should().Be(article.Caption);
             articleCaptured.Url.Should().BeNull();
         }
@@ -157,7 +157,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.SingleData.Attributes["url"].Should().Be(article.Url);
             responseDocument.SingleData.Relationships.Should().BeNull();
 
-            var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
+            var articleCaptured = (Article) store.Resources.Should().ContainSingle(resource => resource is Article).And.Subject.Single();
             articleCaptured.Url.Should().Be(article.Url);
             articleCaptured.Caption.Should().BeNull();
         }
@@ -276,7 +276,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.ManyData[0].Attributes["caption"].Should().Be(article.Caption);
             responseDocument.ManyData[0].Relationships.Should().BeNull();
 
-            var articleCaptured = (Article) store.Resources.Should().ContainSingle(x => x is Article).And.Subject.Single();
+            var articleCaptured = (Article) store.Resources.Should().ContainSingle(resource => resource is Article).And.Subject.Single();
             articleCaptured.Id.Should().Be(article.Id);
             articleCaptured.Caption.Should().Be(article.Caption);
             articleCaptured.Url.Should().BeNull();
@@ -313,7 +313,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.SparseFieldSets
             responseDocument.SingleData.Attributes["calculatedValue"].Should().Be(todoItem.CalculatedValue);
             responseDocument.SingleData.Relationships.Should().BeNull();
 
-            var todoItemCaptured = (TodoItem) store.Resources.Should().ContainSingle(x => x is TodoItem).And.Subject.Single();
+            var todoItemCaptured = (TodoItem) store.Resources.Should().ContainSingle(resource => resource is TodoItem).And.Subject.Single();
             todoItemCaptured.CalculatedValue.Should().Be(todoItem.CalculatedValue);
             todoItemCaptured.Description.Should().Be(todoItem.Description);
         }

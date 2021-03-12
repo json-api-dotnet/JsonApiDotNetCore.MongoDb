@@ -23,7 +23,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         public IEnumerable<IEntityType> GetEntityTypes()
         {
             var resourceContexts = _resourceContextProvider.GetResourceContexts();
-            return resourceContexts.Select(resourceContext => new MongoEntityType(resourceContext, this));
+            return resourceContexts.Select(resourceContext => new MongoEntityType(resourceContext, this)).ToArray();
         }
 
         public IAnnotation FindAnnotation(string name)

@@ -1,4 +1,3 @@
-using System.Linq;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 
@@ -6,26 +5,10 @@ namespace JsonApiDotNetCoreMongoDbExample.Models
 {
     public sealed class Person : MongoDbIdentifiable, IIsLockable
     {
-        private string _firstName;
-
         public bool IsLocked { get; set; }
 
         [Attr]
-        public string FirstName
-        {
-            get => _firstName;
-            set
-            {
-                if (value != _firstName)
-                {
-                    _firstName = value;
-                    Initials = string.Concat(value.Split(' ').Select(x => char.ToUpperInvariant(x[0])));
-                }
-            }
-        }
-
-        [Attr]
-        public string Initials { get; set; }
+        public string FirstName { get; set; }
 
         [Attr]
         public string LastName { get; set; }

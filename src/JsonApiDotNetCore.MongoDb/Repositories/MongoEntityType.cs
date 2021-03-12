@@ -31,7 +31,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
         public IEnumerable<IProperty> GetProperties()
         {
-            return _resourceContext.Attributes.Select(attr => new MongoDbProperty(attr.Property, this));
+            return _resourceContext.Attributes.Select(attr => new MongoDbProperty(attr.Property, this)).ToArray();
         }
 
         public IAnnotation FindAnnotation(string name)

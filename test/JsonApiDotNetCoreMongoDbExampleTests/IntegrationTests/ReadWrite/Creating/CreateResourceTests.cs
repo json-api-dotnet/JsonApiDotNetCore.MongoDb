@@ -59,7 +59,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                        .Where(w => w.Id == newWorkItemId)
+                        .Where(workItem => workItem.Id == newWorkItemId)
                         .FirstOrDefaultAsync();
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
