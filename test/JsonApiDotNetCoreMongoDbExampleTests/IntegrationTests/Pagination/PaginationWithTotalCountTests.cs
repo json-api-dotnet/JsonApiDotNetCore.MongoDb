@@ -14,7 +14,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
 {
     public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTestContext<Startup>>
     {
-        private const int _defaultPageSize = 5;
+        private const int DefaultPageSize = 5;
         private readonly IntegrationTestContext<Startup> _testContext;
 
         public PaginationWithTotalCountTests(IntegrationTestContext<Startup> testContext)
@@ -23,7 +23,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
 
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.IncludeTotalResourceCount = true;
-            options.DefaultPageSize = new PageSize(_defaultPageSize);
+            options.DefaultPageSize = new PageSize(DefaultPageSize);
             options.MaximumPageSize = null;
             options.MaximumPageNumber = null;
             options.AllowUnknownQueryStringParameters = true;

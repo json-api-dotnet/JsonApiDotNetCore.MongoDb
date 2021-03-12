@@ -17,14 +17,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Pagination
         private readonly IntegrationTestContext<Startup> _testContext;
         private readonly Faker<TodoItem> _todoItemFaker = new Faker<TodoItem>();
 
-        private const int _defaultPageSize = 5;
+        private const int DefaultPageSize = 5;
 
         public RangeValidationTests(IntegrationTestContext<Startup> testContext)
         {
             _testContext = testContext;
             
             var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-            options.DefaultPageSize = new PageSize(_defaultPageSize);
+            options.DefaultPageSize = new PageSize(DefaultPageSize);
             options.MaximumPageSize = null;
             options.MaximumPageNumber = null;
         }
