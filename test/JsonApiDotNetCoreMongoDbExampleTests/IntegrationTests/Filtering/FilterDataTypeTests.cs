@@ -6,6 +6,7 @@ using FluentAssertions.Extensions;
 using Humanizer;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -134,7 +135,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
             responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Attributes["someDateTime"].Should().Be(resource.SomeDateTime);
+            responseDocument.ManyData[0].Attributes["someDateTime"].Should().BeCloseTo(resource.SomeDateTime);
         }
 
         [Fact]
@@ -162,7 +163,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Filtering
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
             responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Attributes["someDateTimeOffset"].Should().Be(resource.SomeDateTimeOffset.LocalDateTime);
+            responseDocument.ManyData[0].Attributes["someDateTimeOffset"].Should().BeCloseTo(resource.SomeDateTimeOffset.LocalDateTime);
         }
 
         [Fact]

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Includes

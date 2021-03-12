@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests
+namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 {
     internal abstract class FakerContainer
     {
@@ -13,7 +13,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests
             // The goal here is to have stable data over multiple test runs, but at the same time different data per test case.
 
             MethodBase testMethod = GetTestMethod();
-            var testName = testMethod.DeclaringType?.FullName + "." + testMethod.Name;
+            string testName = testMethod.DeclaringType?.FullName + "." + testMethod.Name;
 
             return GetDeterministicHashCode(testName);
         }
@@ -22,9 +22,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests
         {
             var stackTrace = new StackTrace();
 
-            var testMethod = stackTrace.GetFrames()
-                .Select(stackFrame => stackFrame?.GetMethod())
-                .FirstOrDefault(IsTestMethod);
+            MethodBase testMethod = stackTrace.GetFrames().Select(stackFrame => stackFrame?.GetMethod()).FirstOrDefault(IsTestMethod);
 
             if (testMethod == null)
             {
@@ -54,16 +52,16 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests
                 int hash1 = (5381 << 16) + 5381;
                 int hash2 = hash1;
 
-                for (int i = 0; i < source.Length; i += 2)
+                for (int index = 0; index < source.Length; index += 2)
                 {
-                    hash1 = ((hash1 << 5) + hash1) ^ source[i];
+                    hash1 = ((hash1 << 5) + hash1) ^ source[index];
 
-                    if (i == source.Length - 1)
+                    if (index == source.Length - 1)
                     {
                         break;
                     }
 
-                    hash2 = ((hash2 << 5) + hash2) ^ source[i + 1];
+                    hash2 = ((hash2 << 5) + hash2) ^ source[index + 1];
                 }
 
                 return hash1 + hash2 * 1566083941;

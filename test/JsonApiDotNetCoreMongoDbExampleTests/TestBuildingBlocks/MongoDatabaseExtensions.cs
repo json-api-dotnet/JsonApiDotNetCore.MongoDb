@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests
+namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 {
-    public static class MongoDatabaseExtensions
+    internal static class MongoDatabaseExtensions
     {
         public static IMongoCollection<TResource> GetCollection<TResource>(this IMongoDatabase db)
         {

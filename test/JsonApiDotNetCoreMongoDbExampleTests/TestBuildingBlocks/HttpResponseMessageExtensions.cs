@@ -3,11 +3,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Primitives;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests
+namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 {
+    [PublicAPI]
     public static class HttpResponseMessageExtensions
     {
         public static HttpResponseMessageAssertions Should(this HttpResponseMessage instance)
@@ -15,8 +17,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
             return new HttpResponseMessageAssertions(instance);
         }
 
-        public sealed class HttpResponseMessageAssertions
-            : ReferenceTypeAssertions<HttpResponseMessage, HttpResponseMessageAssertions>
+        public sealed class HttpResponseMessageAssertions : ReferenceTypeAssertions<HttpResponseMessage, HttpResponseMessageAssertions>
         {
             protected override string Identifier => "response";
 
@@ -25,6 +26,8 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
                 Subject = instance;
             }
 
+            // ReSharper disable once UnusedMethodReturnValue.Global
+            [CustomAssertion]
             public AndConstraint<HttpResponseMessageAssertions> HaveStatusCode(HttpStatusCode statusCode)
             {
                 if (Subject.StatusCode != statusCode)
@@ -47,7 +50,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests
                         return JsonConvert.DeserializeObject<JObject>(text).ToString();
                     }
                 }
+#pragma warning disable AV1210 // Catch a specific exception instead of Exception, SystemException or ApplicationException
                 catch
+#pragma warning restore AV1210 // Catch a specific exception instead of Exception, SystemException or ApplicationException
                 {
                     // ignored
                 }

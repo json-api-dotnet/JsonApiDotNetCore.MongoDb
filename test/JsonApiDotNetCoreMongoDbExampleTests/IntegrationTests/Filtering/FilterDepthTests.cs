@@ -6,6 +6,7 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using JsonApiDotNetCoreMongoDbExample.Startups;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Tag = JsonApiDotNetCoreMongoDbExample.Models.Tag;
