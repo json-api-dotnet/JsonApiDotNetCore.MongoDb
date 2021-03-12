@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
@@ -13,7 +14,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Definitions
 
         public override IDictionary<string, object> GetMeta(TodoItem resource)
         {
-            if (resource.Description != null && resource.Description.StartsWith("Important:"))
+            if (resource.Description != null && resource.Description.StartsWith("Important:", StringComparison.Ordinal))
             {
                 return new Dictionary<string, object>
                 {
