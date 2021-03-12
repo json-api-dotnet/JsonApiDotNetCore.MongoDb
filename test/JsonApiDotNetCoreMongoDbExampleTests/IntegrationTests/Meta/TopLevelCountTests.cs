@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExample;
 using JsonApiDotNetCoreMongoDbExample.Models;
 using JsonApiDotNetCoreMongoDbExample.Startups;
 using Microsoft.Extensions.DependencyInjection;

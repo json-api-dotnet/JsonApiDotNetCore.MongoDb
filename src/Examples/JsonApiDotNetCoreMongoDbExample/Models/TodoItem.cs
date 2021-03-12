@@ -1,9 +1,6 @@
 using System;
 using JsonApiDotNetCore.MongoDb.Resources;
-using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCoreMongoDbExample.Models
 {

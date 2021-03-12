@@ -1,6 +1,5 @@
 using System;
 using Bogus;
-using MongoDB.Bson;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
