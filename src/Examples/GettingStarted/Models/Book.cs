@@ -1,8 +1,10 @@
+using JetBrains.Annotations;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 
 namespace GettingStarted.Models
 {
+    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
     public sealed class Book : MongoDbIdentifiable
     {
         [Attr]

@@ -12,18 +12,15 @@ namespace JsonApiDotNetCore.MongoDb.Serialization.Building
     /// <inheritdoc />
     public sealed class IgnoreRelationshipsResponseResourceObjectBuilder : ResponseResourceObjectBuilder
     {
-        public IgnoreRelationshipsResponseResourceObjectBuilder(ILinkBuilder linkBuilder,
-            IIncludedResourceObjectBuilder includedBuilder, IEnumerable<IQueryConstraintProvider> constraintProviders,
-            IResourceContextProvider resourceContextProvider, IResourceDefinitionAccessor resourceDefinitionAccessor,
-            IResourceObjectBuilderSettingsProvider settingsProvider)
-            : base(linkBuilder, includedBuilder, constraintProviders, resourceContextProvider,
-                resourceDefinitionAccessor, settingsProvider)
+        public IgnoreRelationshipsResponseResourceObjectBuilder(ILinkBuilder linkBuilder, IIncludedResourceObjectBuilder includedBuilder,
+            IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceContextProvider resourceContextProvider,
+            IResourceDefinitionAccessor resourceDefinitionAccessor, IResourceObjectBuilderSettingsProvider settingsProvider)
+            : base(linkBuilder, includedBuilder, constraintProviders, resourceContextProvider, resourceDefinitionAccessor, settingsProvider)
         {
         }
 
         /// <inheritdoc />
-        protected override RelationshipEntry GetRelationshipData(RelationshipAttribute relationship,
-            IIdentifiable resource)
+        protected override RelationshipEntry GetRelationshipData(RelationshipAttribute relationship, IIdentifiable resource)
         {
             if (resource is MongoDbIdentifiable)
             {

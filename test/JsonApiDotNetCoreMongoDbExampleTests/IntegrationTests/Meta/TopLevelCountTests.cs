@@ -1,43 +1,50 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExample;
-using JsonApiDotNetCoreMongoDbExample.Models;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
 {
-    public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Startup>>
+    public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
-        private readonly IntegrationTestContext<Startup> _testContext;
+        private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly SupportFakers _fakers = new SupportFakers();
 
-        public TopLevelCountTests(IntegrationTestContext<Startup> testContext)
+        public TopLevelCountTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions) _testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            testContext.ConfigureServicesAfterStartup(services =>
+            {
+                services.AddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>));
+            });
+
+            var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.IncludeTotalResourceCount = true;
         }
 
         [Fact]
-        public async Task Total_Resource_Count_Included_For_Collection()
+        public async Task Renders_resource_count_for_collection()
         {
             // Arrange
-            var todoItem = new TodoItem();
+            SupportTicket ticket = _fakers.SupportTicket.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<TodoItem>();
-                await db.GetCollection<TodoItem>().InsertOneAsync(todoItem);
+                await db.ClearCollectionAsync<SupportTicket>();
+                await db.GetCollection<SupportTicket>().InsertOneAsync(ticket);
             });
 
-            var route = "/api/v1/todoItems";
+            const string route = "/supportTickets";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -47,18 +54,18 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
         }
 
         [Fact]
-        public async Task Total_Resource_Count_Included_For_Empty_Collection()
+        public async Task Renders_resource_count_for_empty_collection()
         {
             // Arrange
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<TodoItem>();
+                await db.ClearCollectionAsync<SupportTicket>();
             });
 
-            var route = "/api/v1/todoItems";
+            const string route = "/supportTickets";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -68,25 +75,27 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
         }
 
         [Fact]
-        public async Task Total_Resource_Count_Excluded_From_POST_Response()
+        public async Task Hides_resource_count_in_create_resource_response()
         {
             // Arrange
+            string newDescription = _fakers.SupportTicket.Generate().Description;
+
             var requestBody = new
             {
                 data = new
                 {
-                    type = "todoItems",
+                    type = "supportTickets",
                     attributes = new
                     {
-                        description = "Something"
+                        description = newDescription
                     }
                 }
             };
 
-            var route = "/api/v1/todoItems";
+            const string route = "/supportTickets";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -95,33 +104,35 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
         }
 
         [Fact]
-        public async Task Total_Resource_Count_Excluded_From_PATCH_Response()
+        public async Task Hides_resource_count_in_update_resource_response()
         {
             // Arrange
-            var todoItem = new TodoItem();
+            SupportTicket existingTicket = _fakers.SupportTicket.Generate();
+
+            string newDescription = _fakers.SupportTicket.Generate().Description;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<TodoItem>().InsertOneAsync(todoItem);
+                await db.GetCollection<SupportTicket>().InsertOneAsync(existingTicket);
             });
 
             var requestBody = new
             {
                 data = new
                 {
-                    type = "todoItems",
-                    id = todoItem.StringId,
+                    type = "supportTickets",
+                    id = existingTicket.StringId,
                     attributes = new
                     {
-                        description = "Something else"
+                        description = newDescription
                     }
                 }
             };
 
-            var route = $"/api/v1/todoItems/{todoItem.StringId}";
+            string route = "/supportTickets/" + existingTicket.StringId;
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);

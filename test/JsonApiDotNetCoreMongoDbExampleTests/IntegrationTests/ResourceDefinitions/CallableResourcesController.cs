@@ -5,10 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions
 {
-    public class CallableResourcesController : JsonApiController<CallableResource, string>
+    public sealed class CallableResourcesController : JsonApiController<CallableResource, string>
     {
-        public CallableResourcesController(IJsonApiOptions options, ILoggerFactory loggerFactory,
-            IResourceService<CallableResource, string> resourceService)
+        public CallableResourcesController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<CallableResource, string> resourceService)
             : base(options, loggerFactory, resourceService)
         {
         }

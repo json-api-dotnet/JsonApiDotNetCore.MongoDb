@@ -1,43 +1,42 @@
-﻿using System.Net;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExample;
-using JsonApiDotNetCoreMongoDbExample.Models;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
 {
-    public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Startup>>
+    public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
-        private readonly IntegrationTestContext<Startup> _testContext;
+        private readonly IntegrationTestContext<TestableStartup> _testContext;
+        private readonly SupportFakers _fakers = new SupportFakers();
 
-        public ResourceMetaTests(IntegrationTestContext<Startup> testContext)
+        public ResourceMetaTests(IntegrationTestContext<TestableStartup> testContext)
         {
             _testContext = testContext;
         }
 
         [Fact]
-        public async Task ResourceDefinition_That_Implements_GetMeta_Contains_Resource_Meta()
+        public async Task Returns_resource_meta_from_ResourceDefinition()
         {
             // Arrange
-            var todoItems = new[]
-            {
-                new TodoItem {Description = "Important: Pay the bills"},
-                new TodoItem {Description = "Plan my birthday party"},
-                new TodoItem {Description = "Important: Call mom"}
-            };
+            List<SupportTicket> tickets = _fakers.SupportTicket.Generate(3);
+            tickets[0].Description = "Critical: " + tickets[0].Description;
+            tickets[2].Description = "Critical: " + tickets[2].Description;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.ClearCollectionAsync<TodoItem>();
-                await db.GetCollection<TodoItem>().InsertManyAsync(todoItems);
+                await db.ClearCollectionAsync<SupportTicket>();
+                await db.GetCollection<SupportTicket>().InsertManyAsync(tickets);
             });
 
-            var route = "/api/v1/todoItems";
+            const string route = "/supportTickets";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);

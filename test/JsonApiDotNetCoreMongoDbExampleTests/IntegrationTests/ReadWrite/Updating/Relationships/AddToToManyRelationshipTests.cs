@@ -1,14 +1,16 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Relationships
 {
-    public sealed class AddToToManyRelationshipTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class AddToToManyRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -17,16 +19,16 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
         {
             _testContext = testContext;
         }
-        
+
         [Fact]
         public async Task Cannot_add_to_HasMany_relationship()
         {
             // Arrange
-            var existingWorkItem = _fakers.WorkItem.Generate();
+            WorkItem existingWorkItem = _fakers.WorkItem.Generate();
             existingWorkItem.Subscribers = _fakers.UserAccount.Generate(2).ToHashSet();
 
-            var existingSubscriber = _fakers.UserAccount.Generate();
-            
+            UserAccount existingSubscriber = _fakers.UserAccount.Generate();
+
             await _testContext.RunOnDatabaseAsync(async db =>
             {
                 await db.GetCollection<UserAccount>().InsertOneAsync(existingSubscriber);
@@ -51,25 +53,28 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/workItems/{existingWorkItem.StringId}/relationships/subscribers";
+            string route = $"/workItems/{existingWorkItem.StringId}/relationships/subscribers";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-            
+
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
+
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+            error.Detail.Should().BeNull();
         }
-        
+
         [Fact]
         public async Task Cannot_add_to_HasManyThrough_relationship()
         {
             // Arrange
-            var existingWorkItems = _fakers.WorkItem.Generate(2);
+            List<WorkItem> existingWorkItems = _fakers.WorkItem.Generate(2);
+
             existingWorkItems[0].WorkItemTags = new[]
             {
                 new WorkItemTag
@@ -77,6 +82,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                     Tag = _fakers.WorkTag.Generate()
                 }
             };
+
             existingWorkItems[1].WorkItemTags = new[]
             {
                 new WorkItemTag
@@ -87,9 +93,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                await db.GetCollection<WorkTag>()
-                    .InsertManyAsync(existingWorkItems
-                        .SelectMany(workItem => workItem.WorkItemTags.Select(workItemTag => workItemTag.Tag)));
+                IEnumerable<WorkTag> tags = existingWorkItems.SelectMany(workItem => workItem.WorkItemTags.Select(workItemTag => workItemTag.Tag));
+
+                await db.GetCollection<WorkTag>().InsertManyAsync(tags);
                 await db.GetCollection<WorkItem>().InsertManyAsync(existingWorkItems);
             });
 
@@ -110,18 +116,20 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updati
                 }
             };
 
-            var route = $"/workItems/{existingWorkItems[0].StringId}/relationships/tags";
+            string route = $"/workItems/{existingWorkItems[0].StringId}/relationships/tags";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-            
+
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
+
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+            error.Detail.Should().BeNull();
         }
     }
 }

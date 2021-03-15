@@ -12,26 +12,27 @@ namespace GettingStarted
 {
     public sealed class Startup
     {
+        private readonly IConfiguration _configuration;
+
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
-
-        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(sp =>
+            services.AddSingleton(_ =>
             {
-                var client = new MongoClient(Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
-                return client.GetDatabase(Configuration.GetSection("DatabaseSettings:Database").Value);
+                var client = new MongoClient(_configuration.GetSection("DatabaseSettings:ConnectionString").Value);
+                return client.GetDatabase(_configuration.GetSection("DatabaseSettings:Database").Value);
             });
 
             services.AddJsonApi(ConfigureJsonApiOptions, resources: builder =>
             {
                 builder.Add<Book, string>();
             });
+
             services.AddJsonApiMongoDb();
 
             services.AddResourceRepository<MongoDbRepository<Book, string>>();
@@ -49,27 +50,29 @@ namespace GettingStarted
         public void Configure(IApplicationBuilder app)
         {
             CreateSampleData(app.ApplicationServices.GetService<IMongoDatabase>());
-            
+
             app.UseRouting();
             app.UseJsonApi();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
-        
+
         private static void CreateSampleData(IMongoDatabase db)
         {
-            db.GetCollection<Book>(nameof(Book)).InsertMany(new []
+            db.GetCollection<Book>(nameof(Book)).InsertMany(new[]
             {
                 new Book
                 {
                     Title = "Frankenstein",
                     PublishYear = 1818,
                     Author = "Mary Shelley"
-                }, new Book
+                },
+                new Book
                 {
                     Title = "Robinson Crusoe",
                     PublishYear = 1719,
                     Author = "Daniel Defoe"
-                }, new Book
+                },
+                new Book
                 {
                     Title = "Gulliver's Travels",
                     PublishYear = 1726,

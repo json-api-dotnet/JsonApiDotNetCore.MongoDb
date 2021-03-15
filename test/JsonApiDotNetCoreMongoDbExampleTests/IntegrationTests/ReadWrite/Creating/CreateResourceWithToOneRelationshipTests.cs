@@ -1,13 +1,14 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating
 {
-    public sealed class CreateResourceWithToOneRelationshipTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -16,12 +17,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         {
             _testContext = testContext;
         }
-        
+
         [Fact]
         public async Task Cannot_create_relationship()
         {
             // Arrange
-            var existingGroup = _fakers.WorkItemGroup.Generate();
+            WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
             existingGroup.Color = _fakers.RgbColor.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
@@ -49,18 +50,20 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItemGroups";
+            const string route = "/workItemGroups";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-            
+
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            responseDocument.Errors[0].Title.Should().Be("Relationships are not supported when using MongoDB.");
-            responseDocument.Errors[0].Detail.Should().BeNull();
+
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+            error.Detail.Should().BeNull();
         }
     }
 }

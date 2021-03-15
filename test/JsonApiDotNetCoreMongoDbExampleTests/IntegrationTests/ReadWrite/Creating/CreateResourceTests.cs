@@ -1,16 +1,17 @@
 using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating
 {
-    public sealed class CreateResourceTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -24,7 +25,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public async Task Can_create_resource_with_string_ID()
         {
             // Arrange
-            var newWorkItem = _fakers.WorkItem.Generate();
+            WorkItem newWorkItem = _fakers.WorkItem.Generate();
             newWorkItem.DueAt = null;
 
             var requestBody = new
@@ -39,10 +40,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItems";
+            const string route = "/workItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -53,19 +54,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Attributes["dueAt"].Should().Be(newWorkItem.DueAt);
             responseDocument.SingleData.Relationships.Should().BeNull();
 
-            var newWorkItemId = responseDocument.SingleData.Id;
+            string newWorkItemId = responseDocument.SingleData.Id;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                        .Where(w => w.Id == newWorkItemId)
-                        .FirstOrDefaultAsync();
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(newWorkItemId);
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
                 workItemInDatabase.DueAt.Should().Be(newWorkItem.DueAt);
             });
 
-            var property = typeof(WorkItem).GetProperty(nameof(Identifiable.Id));
+            PropertyInfo property = typeof(WorkItem).GetProperty(nameof(Identifiable.Id));
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
@@ -85,18 +84,20 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/modelWithIntIds";
-            
+            const string route = "/modelWithIntIds";
+
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.InternalServerError);
-            responseDocument.Errors[0].Title.Should().Be("An unhandled error occurred while processing this request.");
-            responseDocument.Errors[0].Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
+
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+            error.Title.Should().Be("An unhandled error occurred while processing this request.");
+            error.Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
         }
 
         [Fact]
@@ -117,10 +118,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItems";
+            const string route = "/workItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -131,24 +132,22 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
             responseDocument.SingleData.Relationships.Should().BeNull();
 
-            var newWorkItemId = responseDocument.SingleData.Id;
+            string newWorkItemId = responseDocument.SingleData.Id;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == newWorkItemId)
-                    .FirstOrDefaultAsync();
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(newWorkItemId);
 
                 workItemInDatabase.Description.Should().BeNull();
                 workItemInDatabase.DueAt.Should().BeNull();
             });
         }
-        
+
         [Fact]
         public async Task Can_create_resource_with_unknown_attribute()
         {
             // Arrange
-            var newWorkItem = _fakers.WorkItem.Generate();
+            WorkItem newWorkItem = _fakers.WorkItem.Generate();
 
             var requestBody = new
             {
@@ -163,10 +162,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItems";
+            const string route = "/workItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -176,13 +175,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
             responseDocument.SingleData.Relationships.Should().BeNull();
 
-            var newWorkItemId = responseDocument.SingleData.Id;
+            string newWorkItemId = responseDocument.SingleData.Id;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == newWorkItemId)
-                    .FirstOrDefaultAsync();
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(newWorkItemId);
 
                 workItemInDatabase.Description.Should().Be(newWorkItem.Description);
             });
@@ -211,10 +208,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItems";
+            const string route = "/workItems";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -224,13 +221,11 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
             responseDocument.SingleData.Attributes.Should().NotBeEmpty();
             responseDocument.SingleData.Relationships.Should().BeNull();
 
-            var newWorkItemId = responseDocument.SingleData.Id;
+            string newWorkItemId = responseDocument.SingleData.Id;
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable()
-                    .Where(workItem => workItem.Id == newWorkItemId)
-                    .FirstOrDefaultAsync();
+                WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdOrDefaultAsync(newWorkItemId);
 
                 workItemInDatabase.Should().NotBeNull();
             });

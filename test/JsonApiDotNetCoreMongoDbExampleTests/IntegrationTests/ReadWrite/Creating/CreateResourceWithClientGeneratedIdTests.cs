@@ -1,19 +1,19 @@
 using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExample;
+using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating
 {
-    public sealed class CreateResourceWithClientGeneratedIdTests
-        : IClassFixture<IntegrationTestContext<TestableStartup>>
+    public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<IntegrationTestContext<TestableStartup>>
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
@@ -22,17 +22,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         {
             _testContext = testContext;
 
-            var options = (JsonApiOptions) testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
             options.AllowClientGeneratedIds = true;
         }
-        
+
         [Fact]
         public async Task Can_create_resource_with_client_generated_string_ID_having_no_side_effects()
         {
             // Arrange
-            var newColor = _fakers.RgbColor.Generate();
+            RgbColor newColor = _fakers.RgbColor.Generate();
             newColor.Id = "507f191e810c19729de860ea";
-            
+
             var requestBody = new
             {
                 data = new
@@ -46,10 +46,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/rgbColors";
+            const string route = "/rgbColors";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<string>(route, requestBody);
+            (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePostAsync<string>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
@@ -58,14 +58,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable()
-                    .Where(color => color.Id == newColor.Id)
-                    .FirstOrDefaultAsync();
+                RgbColor colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable().FirstWithIdAsync(newColor.Id);
 
                 colorInDatabase.DisplayName.Should().Be(newColor.DisplayName);
             });
 
-            var property = typeof(RgbColor).GetProperty(nameof(Identifiable.Id));
+            PropertyInfo property = typeof(RgbColor).GetProperty(nameof(Identifiable.Id));
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
@@ -73,7 +71,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public async Task Can_create_resource_with_client_generated_string_ID_having_side_effects_with_fieldset()
         {
             // Arrange
-            var newGroup = _fakers.WorkItemGroup.Generate();
+            WorkItemGroup newGroup = _fakers.WorkItemGroup.Generate();
             newGroup.Id = "5ffcc0d1d69a27c92b8c62dd";
 
             var requestBody = new
@@ -89,10 +87,10 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/workItemGroups?fields[workItemGroups]=name";
+            const string route = "/workItemGroups?fields[workItemGroups]=name";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
+            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
@@ -106,14 +104,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
-                var groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable()
-                    .Where(group => group.Id == newGroup.Id)
-                    .FirstOrDefaultAsync();
+                WorkItemGroup groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable().FirstWithIdAsync(newGroup.Id);
 
                 groupInDatabase.Name.Should().Be(newGroup.Name);
             });
 
-            var property = typeof(WorkItemGroup).GetProperty(nameof(Identifiable.Id));
+            PropertyInfo property = typeof(WorkItemGroup).GetProperty(nameof(Identifiable.Id));
             property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
         }
 
@@ -121,9 +117,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         public async Task Cannot_create_resource_for_existing_client_generated_ID()
         {
             // Arrange
-            var existingColor = _fakers.RgbColor.Generate();
+            RgbColor existingColor = _fakers.RgbColor.Generate();
 
-            var colorToCreate = _fakers.RgbColor.Generate();
+            RgbColor colorToCreate = _fakers.RgbColor.Generate();
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -144,18 +140,20 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
                 }
             };
 
-            var route = "/rgbColors";
+            const string route = "/rgbColors";
 
             // Act
-            var (httpResponse, responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
 
             // Assert
             httpResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
 
             responseDocument.Errors.Should().HaveCount(1);
-            responseDocument.Errors[0].StatusCode.Should().Be(HttpStatusCode.Conflict);
-            responseDocument.Errors[0].Title.Should().Be("Another resource with the specified ID already exists.");
-            responseDocument.Errors[0].Detail.Should().Be($"Another resource of type 'rgbColors' with ID '{existingColor.StringId}' already exists.");
+
+            Error error = responseDocument.Errors[0];
+            error.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            error.Title.Should().Be("Another resource with the specified ID already exists.");
+            error.Detail.Should().Be($"Another resource of type 'rgbColors' with ID '{existingColor.StringId}' already exists.");
         }
     }
 }

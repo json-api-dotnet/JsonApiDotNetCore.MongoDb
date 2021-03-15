@@ -7,8 +7,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
     public sealed class UserAccountsController : JsonApiController<UserAccount, string>
     {
-        public UserAccountsController(IJsonApiOptions options, ILoggerFactory loggerFactory,
-            IResourceService<UserAccount, string> resourceService)
+        public UserAccountsController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<UserAccount, string> resourceService)
             : base(options, loggerFactory, resourceService)
         {
         }
