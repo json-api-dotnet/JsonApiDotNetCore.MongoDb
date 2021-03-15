@@ -28,7 +28,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
             // ReSharper disable once UnusedMethodReturnValue.Global
             [CustomAssertion]
-            public AndConstraint<HttpResponseMessageAssertions> HaveStatusCode(HttpStatusCode statusCode)
+            internal AndConstraint<HttpResponseMessageAssertions> HaveStatusCode(HttpStatusCode statusCode)
             {
                 if (Subject.StatusCode != statusCode)
                 {

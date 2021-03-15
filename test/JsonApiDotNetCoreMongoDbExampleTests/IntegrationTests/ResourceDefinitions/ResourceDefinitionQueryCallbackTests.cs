@@ -20,7 +20,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefiniti
         {
             _testContext = testContext;
 
-            _testContext.ConfigureServicesAfterStartup(services =>
+            _testContext.ConfigureServicesBeforeStartup(services =>
             {
                 services.AddSingleton<IUserRolesService, FakeUserRolesService>();
             });

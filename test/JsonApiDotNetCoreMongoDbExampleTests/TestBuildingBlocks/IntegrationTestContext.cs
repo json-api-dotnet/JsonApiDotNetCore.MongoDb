@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
@@ -25,6 +26,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
     /// <typeparam name="TStartup">
     /// The server Startup class, which can be defined in the test project.
     /// </typeparam>
+    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
     public class IntegrationTestContext<TStartup> : IntegrationTest, IDisposable
         where TStartup : class
     {
@@ -34,7 +36,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
         private Action<IServiceCollection> _beforeServicesConfiguration;
         private Action<IServiceCollection> _afterServicesConfiguration;
 
-        public WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
+        internal WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
 
         public IntegrationTestContext()
         {
@@ -90,17 +92,17 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
             Factory.Dispose();
         }
 
-        public void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration)
+        internal void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration)
         {
             _beforeServicesConfiguration = servicesConfiguration;
         }
 
-        public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration)
+        internal void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration)
         {
             _afterServicesConfiguration = servicesConfiguration;
         }
 
-        public async Task RunOnDatabaseAsync(Func<IMongoDatabase, Task> asyncAction)
+        internal async Task RunOnDatabaseAsync(Func<IMongoDatabase, Task> asyncAction)
         {
             using IServiceScope scope = Factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetService<IMongoDatabase>();

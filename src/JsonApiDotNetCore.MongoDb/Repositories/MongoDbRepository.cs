@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.MongoDb.Errors;
@@ -22,6 +23,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     /// <summary>
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
+    [PublicAPI]
     public class MongoDbRepository<TResource, TId> : IResourceRepository<TResource, TId>
         where TResource : class, IIdentifiable<TId>
     {
@@ -266,9 +268,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     }
 
     /// <summary>
-    /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
+    /// Do not use. This type exists solely to produce a proper error message when trying to use MongoDB with a non-string Id.
     /// </summary>
-    public class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
+    public sealed class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
         where TResource : class, IIdentifiable<int>
     {
         public MongoDbRepository(IMongoDatabase mongoDatabase, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,

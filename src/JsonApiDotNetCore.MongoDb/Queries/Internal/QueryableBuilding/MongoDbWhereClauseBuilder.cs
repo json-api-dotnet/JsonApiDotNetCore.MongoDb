@@ -1,11 +1,13 @@
 using System;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
 
 namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
 {
     /// <inheritdoc />
+    [PublicAPI]
     public class MongoDbWhereClauseBuilder : WhereClauseBuilder
     {
         public MongoDbWhereClauseBuilder(Expression source, LambdaScope lambdaScope, Type extensionType)

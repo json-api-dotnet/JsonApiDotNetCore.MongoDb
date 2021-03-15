@@ -26,7 +26,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
                     source.Subject.Should().Be(expected, because, becauseArgs);
                 }
 
-                // We lose a little bit of precision (milliseconds) on roundtrip through PostgreSQL database.
+                // We lose a little bit of precision (milliseconds) on roundtrip through MongoDB database.
                 value.Should().BeCloseTo(expected.Value, because: because, becauseArgs: becauseArgs);
             }
         }

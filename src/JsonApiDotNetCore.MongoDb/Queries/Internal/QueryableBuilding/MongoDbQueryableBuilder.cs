@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
@@ -12,6 +13,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
     /// <summary>
     /// Drives conversion from <see cref="QueryLayer" /> into system <see cref="Expression" /> trees.
     /// </summary>
+    [PublicAPI]
     public sealed class MongoDbQueryableBuilder : QueryableBuilder
     {
         private readonly Type _elementType;

@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public class WorkItemGroup : MongoDbIdentifiable
+    public sealed class WorkItemGroup : MongoDbIdentifiable
     {
         [Attr]
         public string Name { get; set; }

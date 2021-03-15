@@ -1,5 +1,6 @@
 using System;
 using Bogus;
+using JetBrains.Annotations;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 
 // @formatter:wrap_chained_method_calls chop_always
@@ -7,6 +8,7 @@ using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings
 {
+    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
     internal sealed class QueryStringFakers : FakerContainer
     {
         private readonly Lazy<Faker<Blog>> _lazyBlogFaker = new Lazy<Faker<Blog>>(() =>

@@ -15,25 +15,25 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
     {
         private static readonly IntegrationTestConfiguration IntegrationTestConfiguration = new IntegrationTestConfiguration();
 
-        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteGetAsync<TResponseDocument>(string requestUrl,
+        internal async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteGetAsync<TResponseDocument>(string requestUrl,
             IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
         {
             return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Get, requestUrl, null, null, acceptHeaders);
         }
 
-        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePostAsync<TResponseDocument>(string requestUrl,
+        internal async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePostAsync<TResponseDocument>(string requestUrl,
             object requestBody, string contentType = HeaderConstants.MediaType, IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
         {
             return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Post, requestUrl, requestBody, contentType, acceptHeaders);
         }
 
-        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePatchAsync<TResponseDocument>(string requestUrl,
+        internal async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePatchAsync<TResponseDocument>(string requestUrl,
             object requestBody, string contentType = HeaderConstants.MediaType, IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
         {
             return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Patch, requestUrl, requestBody, contentType, acceptHeaders);
         }
 
-        public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteDeleteAsync<TResponseDocument>(string requestUrl,
+        internal async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteDeleteAsync<TResponseDocument>(string requestUrl,
             object requestBody = null, string contentType = HeaderConstants.MediaType, IEnumerable<MediaTypeWithQualityHeaderValue> acceptHeaders = null)
         {
             return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Delete, requestUrl, requestBody, contentType, acceptHeaders);
