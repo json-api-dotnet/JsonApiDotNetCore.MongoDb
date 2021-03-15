@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
+    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
     public sealed class WorkItemToWorkItem
     {
         public WorkItem FromItem { get; set; }

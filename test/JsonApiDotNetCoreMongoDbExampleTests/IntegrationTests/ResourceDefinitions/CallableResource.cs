@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions
 {
-    public class CallableResource : MongoDbIdentifiable
+    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
+    public sealed class CallableResource : MongoDbIdentifiable
     {
         [Attr]
         public string Label { get; set; }
