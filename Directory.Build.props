@@ -2,7 +2,7 @@
   <PropertyGroup>
     <NetCoreAppVersion>netcoreapp3.1</NetCoreAppVersion>
     <AspNetCoreVersion>3.1.*</AspNetCoreVersion>
-    <JsonApiDotNetCoreVersion>4.*</JsonApiDotNetCoreVersion>
+    <JsonApiDotNetCoreVersion>4.0.4-pre-0745</JsonApiDotNetCoreVersion>
     <MongoDBDriverVersion>2.11.*</MongoDBDriverVersion>
     <CodeAnalysisRuleSet>$(SolutionDir)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
