@@ -31,22 +31,29 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
         where TStartup : class
     {
         private readonly Lazy<WebApplicationFactory<EmptyStartup>> _lazyFactory;
-        private readonly MongoDbRunner _runner;
+        private readonly Lazy<MongoDbRunner> _runner;
 
         private Action<IServiceCollection> _beforeServicesConfiguration;
         private Action<IServiceCollection> _afterServicesConfiguration;
 
         internal WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
 
+        internal bool StartMongoDbInSingleNodeReplicaSetMode { get; set; }
+
         public IntegrationTestContext()
         {
+            _runner = new Lazy<MongoDbRunner>(StartMongoDb);
             _lazyFactory = new Lazy<WebApplicationFactory<EmptyStartup>>(CreateFactory);
-            _runner = MongoDbRunner.Start();
         }
 
         protected override HttpClient CreateClient()
         {
             return Factory.CreateClient();
+        }
+
+        private MongoDbRunner StartMongoDb()
+        {
+            return MongoDbRunner.Start(singleNodeReplSet: StartMongoDbInSingleNodeReplicaSetMode);
         }
 
         private WebApplicationFactory<EmptyStartup> CreateFactory()
@@ -59,7 +66,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
                 services.AddSingleton(_ =>
                 {
-                    var client = new MongoClient(_runner.ConnectionString);
+                    var client = new MongoClient(_runner.Value.ConnectionString);
                     return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{new Random().Next()}_Test");
                 });
 
@@ -88,8 +95,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         public void Dispose()
         {
-            _runner.Dispose();
-            Factory.Dispose();
+            if (_lazyFactory.IsValueCreated)
+            {
+                _lazyFactory.Value.Dispose();
+            }
+
+            if (_runner.IsValueCreated)
+            {
+                _runner.Value.Dispose();
+            }
         }
 
         internal void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration)

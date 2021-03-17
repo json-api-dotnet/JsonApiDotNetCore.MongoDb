@@ -6,7 +6,6 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Resources;
-using MongoDB.Driver;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets
 {
@@ -19,9 +18,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Spa
     {
         private readonly ResourceCaptureStore _captureStore;
 
-        public ResultCapturingRepository(IMongoDatabase db, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+        public ResultCapturingRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, ResourceCaptureStore captureStore)
-            : base(db, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
+            : base(mongoDataAccess, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
             _captureStore = captureStore;
         }
