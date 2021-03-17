@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
@@ -53,7 +54,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         private MongoDbRunner StartMongoDb()
         {
-            return MongoDbRunner.Start(singleNodeReplSet: StartMongoDbInSingleNodeReplicaSetMode);
+            string arguments = "--quiet";
+
+            if (!StartMongoDbInSingleNodeReplicaSetMode)
+            {
+                arguments += RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? " --logappend --logpath NUL" : " --logpath /dev/null";
+            }
+
+            return MongoDbRunner.Start(singleNodeReplSet: StartMongoDbInSingleNodeReplicaSetMode, additionalMongodArguments: arguments);
         }
 
         private WebApplicationFactory<EmptyStartup> CreateFactory()

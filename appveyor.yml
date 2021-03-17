@@ -12,9 +12,6 @@ branches:
 nuget:
   disable_publish_on_pr: true
 
-services:  
-  - mongodb
-
 build_script:
 - pwsh: dotnet --version
 - pwsh: .\Build.ps1
