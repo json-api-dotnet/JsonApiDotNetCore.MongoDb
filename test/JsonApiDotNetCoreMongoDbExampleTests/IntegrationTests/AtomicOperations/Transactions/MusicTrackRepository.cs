@@ -9,7 +9,7 @@ using JsonApiDotNetCore.Resources;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Transactions
 {
-    public static class ContainerTypeToHideMusicTrackRepositoryFromAutoDiscovery
+    internal static class ContainerTypeToHideMusicTrackRepositoryFromAutoDiscovery
     {
         [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
         public sealed class MusicTrackRepository : MongoDbRepository<MusicTrack, string>

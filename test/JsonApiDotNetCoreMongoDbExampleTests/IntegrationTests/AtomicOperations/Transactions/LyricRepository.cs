@@ -14,7 +14,7 @@ using JsonApiDotNetCore.Resources;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Transactions
 {
-    public static class ContainerTypeToHideLyricRepositoryFromAutoDiscovery
+    internal static class ContainerTypeToHideLyricRepositoryFromAutoDiscovery
     {
         [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
         public sealed class LyricRepository : MongoDbRepository<Lyric, string>, IAsyncDisposable

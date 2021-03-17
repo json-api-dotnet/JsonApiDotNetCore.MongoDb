@@ -8,17 +8,17 @@ using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Updating.Resources
 {
-    public sealed class AtomicUpdateToOneRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    [Collection("AtomicOperationsFixture")]
+    public sealed class AtomicUpdateToOneRelationshipTests
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly OperationsFakers _fakers = new OperationsFakers();
 
-        public AtomicUpdateToOneRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
+        public AtomicUpdateToOneRelationshipTests(AtomicOperationsFixture fixture)
         {
-            _testContext = testContext;
+            _testContext = fixture.TestContext;
 
-            testContext.StartMongoDbInSingleNodeReplicaSetMode = true;
-            testContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+            fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
         }
 
         [Fact]

@@ -4,26 +4,24 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Transactions
 {
-    public sealed class AtomicRollbackTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    [Collection("AtomicOperationsFixture")]
+    public sealed class AtomicRollbackTests
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly OperationsFakers _fakers = new OperationsFakers();
 
-        public AtomicRollbackTests(IntegrationTestContext<TestableStartup> testContext)
+        public AtomicRollbackTests(AtomicOperationsFixture fixture)
         {
-            _testContext = testContext;
+            _testContext = fixture.TestContext;
 
-            testContext.StartMongoDbInSingleNodeReplicaSetMode = true;
-            testContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+            fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
         }
 
         [Fact]

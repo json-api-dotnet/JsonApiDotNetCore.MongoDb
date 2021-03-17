@@ -10,17 +10,17 @@ using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Deleting
 {
-    public sealed class AtomicDeleteResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    [Collection("AtomicOperationsFixture")]
+    public sealed class AtomicDeleteResourceTests
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly OperationsFakers _fakers = new OperationsFakers();
 
-        public AtomicDeleteResourceTests(IntegrationTestContext<TestableStartup> testContext)
+        public AtomicDeleteResourceTests(AtomicOperationsFixture fixture)
         {
-            _testContext = testContext;
+            _testContext = fixture.TestContext;
 
-            testContext.StartMongoDbInSingleNodeReplicaSetMode = true;
-            testContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+            fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
         }
 
         [Fact]

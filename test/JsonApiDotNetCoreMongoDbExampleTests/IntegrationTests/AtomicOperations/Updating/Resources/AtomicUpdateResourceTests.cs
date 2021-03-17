@@ -12,17 +12,17 @@ using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Updating.Resources
 {
-    public sealed class AtomicUpdateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    [Collection("AtomicOperationsFixture")]
+    public sealed class AtomicUpdateResourceTests
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
         private readonly OperationsFakers _fakers = new OperationsFakers();
 
-        public AtomicUpdateResourceTests(IntegrationTestContext<TestableStartup> testContext)
+        public AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
         {
-            _testContext = testContext;
+            _testContext = fixture.TestContext;
 
-            testContext.StartMongoDbInSingleNodeReplicaSetMode = true;
-            testContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+            fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
         }
 
         [Fact]

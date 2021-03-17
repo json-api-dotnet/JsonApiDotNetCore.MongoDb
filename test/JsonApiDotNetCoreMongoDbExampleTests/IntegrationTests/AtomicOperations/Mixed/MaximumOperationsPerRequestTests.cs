@@ -10,16 +10,16 @@ using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Mixed
 {
-    public sealed class MaximumOperationsPerRequestTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    [Collection("AtomicOperationsFixture")]
+    public sealed class MaximumOperationsPerRequestTests
     {
         private readonly IntegrationTestContext<TestableStartup> _testContext;
 
-        public MaximumOperationsPerRequestTests(IntegrationTestContext<TestableStartup> testContext)
+        public MaximumOperationsPerRequestTests(AtomicOperationsFixture fixture)
         {
-            _testContext = testContext;
+            _testContext = fixture.TestContext;
 
-            testContext.StartMongoDbInSingleNodeReplicaSetMode = true;
-            testContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+            fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
         }
 
         [Fact]

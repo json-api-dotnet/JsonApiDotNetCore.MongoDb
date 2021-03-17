@@ -12,7 +12,7 @@ using JsonApiDotNetCore.Resources;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Transactions
 {
-    public static class ContainerTypeToHidePerformerRepositoryFromAutoDiscovery
+    internal static class ContainerTypeToHidePerformerRepositoryFromAutoDiscovery
     {
         [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
         public sealed class PerformerRepository : IResourceRepository<Performer, string>

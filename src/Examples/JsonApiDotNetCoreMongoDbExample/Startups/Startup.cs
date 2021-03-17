@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -28,9 +27,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Startups
         {
             services.AddSingleton<ISystemClock, SystemClock>();
 
-            // TryAddSingleton will only register the IMongoDatabase if there is no
-            // previously registered instance - will make tests use individual dbs
-            services.TryAddSingleton(_ =>
+            services.AddSingleton(_ =>
             {
                 var client = new MongoClient(_configuration.GetSection("DatabaseSettings:ConnectionString").Value);
                 return client.GetDatabase(_configuration.GetSection("DatabaseSettings:Database").Value);
