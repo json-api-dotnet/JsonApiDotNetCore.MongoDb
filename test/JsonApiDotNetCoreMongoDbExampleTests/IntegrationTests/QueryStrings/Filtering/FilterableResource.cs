@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class FilterableResource : MongoDbIdentifiable
+    public sealed class FilterableResource : MongoIdentifiable
     {
         [Attr]
         public string SomeString { get; set; }

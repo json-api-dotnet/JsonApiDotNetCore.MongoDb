@@ -88,12 +88,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
                 services.AddJsonApi(ConfigureJsonApiOptions, facade => facade.AddCurrentAssembly());
                 services.AddJsonApiMongoDb();
 
-                services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoDbRepository<>));
-                services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
-                services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoDbRepository<>));
-                services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
-                services.AddScoped(typeof(IResourceRepository<>), typeof(MongoDbRepository<>));
-                services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
+                services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoRepository<>));
+                services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+                services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoRepository<>));
+                services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+                services.AddScoped(typeof(IResourceRepository<>), typeof(MongoRepository<>));
+                services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
             });
 
             factory.ConfigureServicesAfterStartup(_afterServicesConfiguration);

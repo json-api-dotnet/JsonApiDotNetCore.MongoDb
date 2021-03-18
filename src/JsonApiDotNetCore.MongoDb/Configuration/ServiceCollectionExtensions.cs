@@ -17,7 +17,7 @@ namespace JsonApiDotNetCore.MongoDb.Configuration
         public static IServiceCollection AddJsonApiMongoDb(this IServiceCollection services)
         {
             services.AddScoped<IMongoDataAccess, MongoDataAccess>();
-            services.AddScoped<IOperationsTransactionFactory, MongoDbTransactionFactory>();
+            services.AddScoped<IOperationsTransactionFactory, MongoTransactionFactory>();
             services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
 
             return services;

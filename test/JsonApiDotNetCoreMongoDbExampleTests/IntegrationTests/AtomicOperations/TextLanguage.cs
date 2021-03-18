@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class TextLanguage : MongoDbIdentifiable
+    public sealed class TextLanguage : MongoIdentifiable
     {
         [Attr]
         public string IsoCode { get; set; }

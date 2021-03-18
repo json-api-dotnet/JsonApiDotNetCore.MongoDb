@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class SupportTicket : MongoDbIdentifiable
+    public sealed class SupportTicket : MongoIdentifiable
     {
         [Attr]
         public string Description { get; set; }

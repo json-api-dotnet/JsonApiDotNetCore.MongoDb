@@ -22,7 +22,7 @@ namespace JsonApiDotNetCore.MongoDb.Serialization.Building
         /// <inheritdoc />
         protected override RelationshipEntry GetRelationshipData(RelationshipAttribute relationship, IIdentifiable resource)
         {
-            if (resource is MongoDbIdentifiable)
+            if (resource is MongoIdentifiable)
             {
                 return null;
             }

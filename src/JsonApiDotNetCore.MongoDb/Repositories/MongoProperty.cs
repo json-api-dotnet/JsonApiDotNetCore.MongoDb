@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories
 {
-    internal sealed class MongoDbProperty : IProperty
+    internal sealed class MongoProperty : IProperty
     {
         public IEntityType DeclaringEntityType { get; }
         public PropertyInfo PropertyInfo { get; }
@@ -20,7 +20,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         public bool IsConcurrencyToken => throw new NotImplementedException();
         public object this[string name] => throw new NotImplementedException();
 
-        public MongoDbProperty(PropertyInfo propertyInfo, MongoEntityType owner)
+        public MongoProperty(PropertyInfo propertyInfo, MongoEntityType owner)
         {
             ArgumentGuard.NotNull(owner, nameof(owner));
             ArgumentGuard.NotNull(propertyInfo, nameof(propertyInfo));

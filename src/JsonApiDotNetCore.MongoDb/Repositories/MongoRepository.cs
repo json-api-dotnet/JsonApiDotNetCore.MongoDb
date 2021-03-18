@@ -24,7 +24,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
     [PublicAPI]
-    public class MongoDbRepository<TResource, TId> : IResourceRepository<TResource, TId>, IRepositorySupportsTransaction
+    public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TId>, IRepositorySupportsTransaction
         where TResource : class, IIdentifiable<TId>
     {
         private readonly IMongoDataAccess _mongoDataAccess;
@@ -38,7 +38,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         /// <inheritdoc />
         public virtual string TransactionId => _mongoDataAccess.TransactionId;
 
-        public MongoDbRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+        public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
             ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
@@ -87,7 +87,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         {
             ArgumentGuard.NotNull(layer, nameof(layer));
 
-            var queryExpressionValidator = new MongoDbQueryExpressionValidator();
+            var queryExpressionValidator = new MongoQueryExpressionValidator();
             queryExpressionValidator.Validate(layer);
 
             AssertNoRelationshipsInSparseFieldSets();
@@ -114,8 +114,8 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
             var nameFactory = new LambdaParameterNameFactory();
 
-            var builder = new MongoDbQueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
-                _resourceContextProvider, new MongoDbModel(_resourceContextProvider));
+            var builder = new MongoQueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
+                _resourceContextProvider, new MongoModel(_resourceContextProvider));
 
             Expression expression = builder.ApplyQuery(layer);
             return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
@@ -292,10 +292,10 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     /// <summary>
     /// Do not use. This type exists solely to produce a proper error message when trying to use MongoDB with a non-string Id.
     /// </summary>
-    public sealed class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
+    public sealed class MongoRepository<TResource> : MongoRepository<TResource, int>, IResourceRepository<TResource>
         where TResource : class, IIdentifiable<int>
     {
-        public MongoDbRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+        public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
             : base(mongoDataAccess, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {

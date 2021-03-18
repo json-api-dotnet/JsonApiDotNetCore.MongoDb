@@ -8,7 +8,7 @@ namespace JsonApiDotNetCore.MongoDb.AtomicOperations
 {
     /// <inheritdoc />
     [PublicAPI]
-    public sealed class MongoDbTransaction : IOperationsTransaction
+    public sealed class MongoTransaction : IOperationsTransaction
     {
         private readonly IMongoDataAccess _mongoDataAccess;
         private readonly bool _ownsTransaction;
@@ -16,7 +16,7 @@ namespace JsonApiDotNetCore.MongoDb.AtomicOperations
         /// <inheritdoc />
         public string TransactionId => _mongoDataAccess.TransactionId;
 
-        public MongoDbTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
+        public MongoTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
         {
             ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
 

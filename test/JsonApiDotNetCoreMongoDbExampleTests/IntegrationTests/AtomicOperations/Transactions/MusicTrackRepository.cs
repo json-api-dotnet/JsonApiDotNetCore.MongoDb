@@ -12,7 +12,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
     internal static class ContainerTypeToHideMusicTrackRepositoryFromAutoDiscovery
     {
         [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-        public sealed class MusicTrackRepository : MongoDbRepository<MusicTrack, string>
+        public sealed class MusicTrackRepository : MongoRepository<MusicTrack, string>
         {
             public override string TransactionId => null;
 

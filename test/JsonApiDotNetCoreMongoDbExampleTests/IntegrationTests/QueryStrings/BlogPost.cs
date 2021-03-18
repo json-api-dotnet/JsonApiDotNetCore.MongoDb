@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class BlogPost : MongoDbIdentifiable
+    public sealed class BlogPost : MongoIdentifiable
     {
         [Attr]
         public string Caption { get; set; }

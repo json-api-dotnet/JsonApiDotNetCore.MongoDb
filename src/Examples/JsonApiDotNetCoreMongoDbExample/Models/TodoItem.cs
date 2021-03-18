@@ -6,7 +6,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace JsonApiDotNetCoreMongoDbExample.Models
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class TodoItem : MongoDbIdentifiable
+    public sealed class TodoItem : MongoIdentifiable
     {
         [Attr]
         public string Description { get; set; }

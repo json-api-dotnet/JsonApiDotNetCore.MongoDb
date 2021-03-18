@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class Calendar : MongoDbIdentifiable
+    public sealed class Calendar : MongoIdentifiable
     {
         [Attr]
         public string TimeZone { get; set; }

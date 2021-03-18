@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class RgbColor : MongoDbIdentifiable
+    public sealed class RgbColor : MongoIdentifiable
     {
         [Attr]
         public string DisplayName { get; set; }

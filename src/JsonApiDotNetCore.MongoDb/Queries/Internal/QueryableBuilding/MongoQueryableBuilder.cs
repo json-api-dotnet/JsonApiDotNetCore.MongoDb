@@ -14,13 +14,13 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
     /// Drives conversion from <see cref="QueryLayer" /> into system <see cref="Expression" /> trees.
     /// </summary>
     [PublicAPI]
-    public sealed class MongoDbQueryableBuilder : QueryableBuilder
+    public sealed class MongoQueryableBuilder : QueryableBuilder
     {
         private readonly Type _elementType;
         private readonly Type _extensionType;
         private readonly LambdaScopeFactory _lambdaScopeFactory;
 
-        public MongoDbQueryableBuilder(Expression source, Type elementType, Type extensionType, LambdaParameterNameFactory nameFactory,
+        public MongoQueryableBuilder(Expression source, Type elementType, Type extensionType, LambdaParameterNameFactory nameFactory,
             IResourceFactory resourceFactory, IResourceContextProvider resourceContextProvider, IModel entityModel,
             LambdaScopeFactory lambdaScopeFactory = null)
             : base(source, elementType, extensionType, nameFactory, resourceFactory, resourceContextProvider, entityModel, lambdaScopeFactory)
@@ -37,7 +37,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
         {
             using LambdaScope lambdaScope = _lambdaScopeFactory.CreateScope(_elementType);
 
-            var builder = new MongoDbWhereClauseBuilder(source, lambdaScope, _extensionType);
+            var builder = new MongoWhereClauseBuilder(source, lambdaScope, _extensionType);
             return builder.ApplyWhere(filter);
         }
     }

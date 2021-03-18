@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories
 {
-    internal sealed class MongoDbModel : IModel
+    internal sealed class MongoModel : IModel
     {
         private readonly IResourceContextProvider _resourceContextProvider;
 
         public object this[string name] => throw new NotImplementedException();
 
-        public MongoDbModel(IResourceContextProvider resourceContextProvider)
+        public MongoModel(IResourceContextProvider resourceContextProvider)
         {
             ArgumentGuard.NotNull(resourceContextProvider, nameof(resourceContextProvider));
 

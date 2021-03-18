@@ -6,7 +6,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories
 {
-    internal sealed class MongoDbQueryExpressionValidator : QueryExpressionRewriter<object>
+    internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<object>
     {
         public void Validate(QueryLayer layer)
         {

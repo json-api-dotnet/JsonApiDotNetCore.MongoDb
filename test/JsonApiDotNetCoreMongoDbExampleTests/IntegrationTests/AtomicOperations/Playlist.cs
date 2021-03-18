@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class Playlist : MongoDbIdentifiable
+    public sealed class Playlist : MongoIdentifiable
     {
         [Attr]
         [Required]

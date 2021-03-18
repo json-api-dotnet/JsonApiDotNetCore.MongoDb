@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class AccountPreferences : MongoDbIdentifiable
+    public sealed class AccountPreferences : MongoIdentifiable
     {
         [Attr]
         public bool UseDarkTheme { get; set; }

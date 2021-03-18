@@ -35,7 +35,7 @@ namespace GettingStarted
 
             services.AddJsonApiMongoDb();
 
-            services.AddResourceRepository<MongoDbRepository<Book, string>>();
+            services.AddResourceRepository<MongoRepository<Book, string>>();
         }
 
         private void ConfigureJsonApiOptions(JsonApiOptions options)

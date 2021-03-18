@@ -17,7 +17,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
     internal static class ContainerTypeToHideLyricRepositoryFromAutoDiscovery
     {
         [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-        public sealed class LyricRepository : MongoDbRepository<Lyric, string>, IAsyncDisposable
+        public sealed class LyricRepository : MongoRepository<Lyric, string>, IAsyncDisposable
         {
             private readonly IOperationsTransaction _transaction;
 
@@ -29,7 +29,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
             {
                 IMongoDataAccess otherDataAccess = new MongoDataAccess(mongoDataAccess.MongoDatabase);
 
-                var factory = new MongoDbTransactionFactory(otherDataAccess);
+                var factory = new MongoTransactionFactory(otherDataAccess);
                 _transaction = factory.BeginTransactionAsync(CancellationToken.None).Result;
             }
 

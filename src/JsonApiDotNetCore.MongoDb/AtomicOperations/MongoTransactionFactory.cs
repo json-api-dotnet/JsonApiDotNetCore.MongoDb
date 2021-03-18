@@ -8,11 +8,11 @@ namespace JsonApiDotNetCore.MongoDb.AtomicOperations
     /// <summary>
     /// Provides transaction support for atomic:operation requests using MongoDB.
     /// </summary>
-    public sealed class MongoDbTransactionFactory : IOperationsTransactionFactory
+    public sealed class MongoTransactionFactory : IOperationsTransactionFactory
     {
         private readonly IMongoDataAccess _mongoDataAccess;
 
-        public MongoDbTransactionFactory(IMongoDataAccess mongoDataAccess)
+        public MongoTransactionFactory(IMongoDataAccess mongoDataAccess)
         {
             ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
 
@@ -23,7 +23,7 @@ namespace JsonApiDotNetCore.MongoDb.AtomicOperations
         public async Task<IOperationsTransaction> BeginTransactionAsync(CancellationToken cancellationToken)
         {
             bool transactionCreated = await CreateOrJoinTransactionAsync(cancellationToken);
-            return new MongoDbTransaction(_mongoDataAccess, transactionCreated);
+            return new MongoTransaction(_mongoDataAccess, transactionCreated);
         }
 
         private async Task<bool> CreateOrJoinTransactionAsync(CancellationToken cancellationToken)

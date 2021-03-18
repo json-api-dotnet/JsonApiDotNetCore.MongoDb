@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class Lyric : MongoDbIdentifiable
+    public sealed class Lyric : MongoIdentifiable
     {
         [Attr]
         public string Format { get; set; }

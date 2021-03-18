@@ -14,7 +14,7 @@ dotnet add package JsonApiDotNetCore.MongoDb
 ### Models
 
 ```cs
-public sealed class Book : MongoDbIdentifiable
+public sealed class Book : MongoIdentifiable
 {
     [Attr]
     public string Name { get; set; }
@@ -52,7 +52,7 @@ public class Startup
         });
         services.AddJsonApiMongoDb();
 
-        services.AddResourceRepository<MongoDbRepository<Book, string>>();
+        services.AddResourceRepository<MongoRepository<Book, string>>();
     }
 
     public void Configure(IApplicationBuilder app)
@@ -75,12 +75,12 @@ public class Startup
         services.AddJsonApi(facade => facade.AddCurrentAssembly());
         services.AddJsonApiMongoDb();
 
-        services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoDbRepository<>));
-        services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoDbRepository<,>));
-        services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoDbRepository<>));
-        services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoDbRepository<,>));
-        services.AddScoped(typeof(IResourceRepository<>), typeof(MongoDbRepository<>));
-        services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoDbRepository<,>));
+        services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoRepository<>));
+        services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+        services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoRepository<>));
+        services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+        services.AddScoped(typeof(IResourceRepository<>), typeof(MongoRepository<>));
+        services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
     }
 }
 ```

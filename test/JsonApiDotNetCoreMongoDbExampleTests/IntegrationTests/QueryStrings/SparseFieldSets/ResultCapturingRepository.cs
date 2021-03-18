@@ -13,7 +13,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Spa
     /// Enables sparse fieldset tests to verify which fields were (not) retrieved from the database.
     /// </summary>
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-    public sealed class ResultCapturingRepository<TResource> : MongoDbRepository<TResource, string>
+    public sealed class ResultCapturingRepository<TResource> : MongoRepository<TResource, string>
         where TResource : class, IIdentifiable<string>
     {
         private readonly ResourceCaptureStore _captureStore;

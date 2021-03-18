@@ -20,7 +20,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         public IEntityType DefiningEntityType => throw new NotImplementedException();
         public object this[string name] => throw new NotImplementedException();
 
-        public MongoEntityType(ResourceContext resourceContext, MongoDbModel owner)
+        public MongoEntityType(ResourceContext resourceContext, MongoModel owner)
         {
             ArgumentGuard.NotNull(resourceContext, nameof(resourceContext));
             ArgumentGuard.NotNull(owner, nameof(owner));
@@ -31,7 +31,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
         public IEnumerable<IProperty> GetProperties()
         {
-            return _resourceContext.Attributes.Select(attr => new MongoDbProperty(attr.Property, this)).ToArray();
+            return _resourceContext.Attributes.Select(attr => new MongoProperty(attr.Property, this)).ToArray();
         }
 
         public IAnnotation FindAnnotation(string name)

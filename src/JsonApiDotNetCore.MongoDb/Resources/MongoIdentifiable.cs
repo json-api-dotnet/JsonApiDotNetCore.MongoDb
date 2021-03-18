@@ -7,7 +7,7 @@ namespace JsonApiDotNetCore.MongoDb.Resources
     /// <summary>
     /// A convenient basic implementation of <see cref="IIdentifiable" /> for use with MongoDB models.
     /// </summary>
-    public abstract class MongoDbIdentifiable : IIdentifiable<string>
+    public abstract class MongoIdentifiable : IIdentifiable<string>
     {
         /// <inheritdoc />
         [BsonId]
