@@ -24,27 +24,30 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
     /// </summary>
     [PublicAPI]
-    public class MongoDbRepository<TResource, TId> : IResourceRepository<TResource, TId>
+    public class MongoDbRepository<TResource, TId> : IResourceRepository<TResource, TId>, IRepositorySupportsTransaction
         where TResource : class, IIdentifiable<TId>
     {
-        private readonly IMongoDatabase _mongoDatabase;
+        private readonly IMongoDataAccess _mongoDataAccess;
         private readonly ITargetedFields _targetedFields;
         private readonly IResourceContextProvider _resourceContextProvider;
         private readonly IResourceFactory _resourceFactory;
         private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
 
-        protected virtual IMongoCollection<TResource> Collection => _mongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
+        protected virtual IMongoCollection<TResource> Collection => _mongoDataAccess.MongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
 
-        public MongoDbRepository(IMongoDatabase mongoDatabase, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+        /// <inheritdoc />
+        public virtual string TransactionId => _mongoDataAccess.TransactionId;
+
+        public MongoDbRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
         {
-            ArgumentGuard.NotNull(mongoDatabase, nameof(mongoDatabase));
+            ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
             ArgumentGuard.NotNull(targetedFields, nameof(targetedFields));
             ArgumentGuard.NotNull(resourceContextProvider, nameof(resourceContextProvider));
             ArgumentGuard.NotNull(resourceFactory, nameof(resourceFactory));
             ArgumentGuard.NotNull(constraintProviders, nameof(constraintProviders));
 
-            _mongoDatabase = mongoDatabase;
+            _mongoDataAccess = mongoDataAccess;
             _targetedFields = targetedFields;
             _resourceContextProvider = resourceContextProvider;
             _resourceFactory = resourceFactory;
@@ -120,7 +123,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
         protected virtual IQueryable<TResource> GetAll()
         {
-            return Collection.AsQueryable();
+            return _mongoDataAccess.ActiveSession != null ? Collection.AsQueryable(_mongoDataAccess.ActiveSession) : Collection.AsQueryable();
         }
 
         private void AssertNoRelationshipsInSparseFieldSets()
@@ -169,14 +172,12 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
                 attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
             }
 
-            try
+            await SaveChangesAsync(async () =>
             {
-                await Collection.InsertOneAsync(resourceForDatabase, new InsertOneOptions(), cancellationToken);
-            }
-            catch (MongoWriteException exception)
-            {
-                throw new DataStoreUpdateException(exception);
-            }
+                await (_mongoDataAccess.ActiveSession != null
+                    ? Collection.InsertOneAsync(_mongoDataAccess.ActiveSession, resourceForDatabase, cancellationToken: cancellationToken)
+                    : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken));
+            }, cancellationToken);
         }
 
         private void AssertNoRelationshipsAreTargeted()
@@ -209,14 +210,12 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
 
             FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, resourceFromDatabase.Id);
 
-            try
+            await SaveChangesAsync(async () =>
             {
-                await Collection.ReplaceOneAsync(filter, resourceFromDatabase, new ReplaceOptions(), cancellationToken);
-            }
-            catch (MongoWriteException exception)
-            {
-                throw new DataStoreUpdateException(exception);
-            }
+                await (_mongoDataAccess.ActiveSession != null
+                    ? Collection.ReplaceOneAsync(_mongoDataAccess.ActiveSession, filter, resourceFromDatabase, cancellationToken: cancellationToken)
+                    : Collection.ReplaceOneAsync(filter, resourceFromDatabase, cancellationToken: cancellationToken));
+            }, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -224,16 +223,10 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         {
             FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, id);
 
-            DeleteResult result;
-
-            try
-            {
-                result = await Collection.DeleteOneAsync(filter, new DeleteOptions(), cancellationToken);
-            }
-            catch (MongoWriteException exception)
-            {
-                throw new DataStoreUpdateException(exception);
-            }
+            DeleteResult result = await SaveChangesAsync(
+                async () => _mongoDataAccess.ActiveSession != null
+                    ? await Collection.DeleteOneAsync(_mongoDataAccess.ActiveSession, filter, cancellationToken: cancellationToken)
+                    : await Collection.DeleteOneAsync(filter, cancellationToken), cancellationToken);
 
             if (!result.IsAcknowledged)
             {
@@ -250,7 +243,7 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         /// <inheritdoc />
         public virtual Task SetRelationshipAsync(TResource primaryResource, object secondaryResourceIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            throw new UnsupportedRelationshipException();
         }
 
         /// <inheritdoc />
@@ -263,7 +256,36 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
         public virtual Task RemoveFromToManyRelationshipAsync(TResource primaryResource, ISet<IIdentifiable> secondaryResourceIds,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            throw new UnsupportedRelationshipException();
+        }
+
+        protected virtual async Task SaveChangesAsync(Func<Task> asyncSaveAction, CancellationToken cancellationToken)
+        {
+            _ = await SaveChangesAsync<object>(async () =>
+            {
+                await asyncSaveAction();
+                return null;
+            }, cancellationToken);
+        }
+
+        protected virtual async Task<TResult> SaveChangesAsync<TResult>(Func<Task<TResult>> asyncSaveAction, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await asyncSaveAction();
+            }
+            catch (MongoException exception)
+            {
+                if (_mongoDataAccess.ActiveSession != null)
+                {
+                    // The ResourceService calling us needs to run additional SQL queries after an aborted transaction,
+                    // to determine error cause. This fails when a failed transaction is still in progress.
+                    await _mongoDataAccess.ActiveSession.AbortTransactionAsync(cancellationToken);
+                    _mongoDataAccess.ActiveSession = null;
+                }
+
+                throw new DataStoreUpdateException(exception);
+            }
         }
     }
 
@@ -273,9 +295,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories
     public sealed class MongoDbRepository<TResource> : MongoDbRepository<TResource, int>, IResourceRepository<TResource>
         where TResource : class, IIdentifiable<int>
     {
-        public MongoDbRepository(IMongoDatabase mongoDatabase, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
+        public MongoDbRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
             IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
-            : base(mongoDatabase, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
+            : base(mongoDataAccess, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
         {
         }
     }

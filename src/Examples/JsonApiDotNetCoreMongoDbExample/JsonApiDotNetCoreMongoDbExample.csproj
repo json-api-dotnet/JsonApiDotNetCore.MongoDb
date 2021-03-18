@@ -4,11 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreVersion)" />
-    <PackageReference Include="MongoDB.Driver" Version="$(MongoDBDriverVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
@@ -31,22 +32,43 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
         where TStartup : class
     {
         private readonly Lazy<WebApplicationFactory<EmptyStartup>> _lazyFactory;
-        private readonly MongoDbRunner _runner;
+        private readonly Lazy<MongoDbRunner> _runner;
 
         private Action<IServiceCollection> _beforeServicesConfiguration;
         private Action<IServiceCollection> _afterServicesConfiguration;
 
         internal WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
 
+        /// <summary>
+        /// Set this to <c>true</c> to enable transactions support in MongoDB.
+        /// </summary>
+        internal bool StartMongoDbInSingleNodeReplicaSetMode { get; set; }
+
         public IntegrationTestContext()
         {
+            _runner = new Lazy<MongoDbRunner>(StartMongoDb);
             _lazyFactory = new Lazy<WebApplicationFactory<EmptyStartup>>(CreateFactory);
-            _runner = MongoDbRunner.Start();
         }
 
         protected override HttpClient CreateClient()
         {
             return Factory.CreateClient();
+        }
+
+        private MongoDbRunner StartMongoDb()
+        {
+            // Increasing maxTransactionLockRequestTimeoutMillis (default=5) as workaround for occasional
+            // "Unable to acquire lock" error when running tests locally.
+            string arguments = "--quiet --setParameter maxTransactionLockRequestTimeoutMillis=40";
+
+            if (!StartMongoDbInSingleNodeReplicaSetMode)
+            {
+                // MongoDbRunner watches console output to detect when the replica set has stabilized. So we can only fully
+                // suppress console output if not running in this mode.
+                arguments += RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? " --logappend --logpath NUL" : " --logpath /dev/null";
+            }
+
+            return MongoDbRunner.Start(singleNodeReplSet: StartMongoDbInSingleNodeReplicaSetMode, additionalMongodArguments: arguments);
         }
 
         private WebApplicationFactory<EmptyStartup> CreateFactory()
@@ -59,7 +81,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
                 services.AddSingleton(_ =>
                 {
-                    var client = new MongoClient(_runner.ConnectionString);
+                    var client = new MongoClient(_runner.Value.ConnectionString);
                     return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{new Random().Next()}_Test");
                 });
 
@@ -88,8 +110,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         public void Dispose()
         {
-            _runner.Dispose();
-            Factory.Dispose();
+            if (_lazyFactory.IsValueCreated)
+            {
+                _lazyFactory.Value.Dispose();
+            }
+
+            if (_runner.IsValueCreated)
+            {
+                _runner.Value.Dispose();
+            }
         }
 
         internal void ConfigureServicesBeforeStartup(Action<IServiceCollection> servicesConfiguration)

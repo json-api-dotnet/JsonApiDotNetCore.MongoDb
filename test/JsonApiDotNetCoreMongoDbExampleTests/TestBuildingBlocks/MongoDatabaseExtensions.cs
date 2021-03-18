@@ -10,10 +10,15 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
             return database.GetCollection<TResource>(typeof(TResource).Name);
         }
 
-        public static async Task ClearCollectionAsync<TResource>(this IMongoDatabase database)
+        public static Task ClearCollectionAsync<TResource>(this IMongoDatabase database)
         {
-            IMongoCollection<TResource> collection = GetCollection<TResource>(database);
-            await collection.DeleteManyAsync(Builders<TResource>.Filter.Empty);
+            return database.DropCollectionAsync(typeof(TResource).Name);
+        }
+
+        public static async Task EnsureEmptyCollectionAsync<TResource>(this IMongoDatabase database)
+        {
+            await database.DropCollectionAsync(typeof(TResource).Name);
+            await database.CreateCollectionAsync(typeof(TResource).Name);
         }
 
         public static Task InsertManyAsync<TDocument>(this IMongoCollection<TDocument> collection, params TDocument[] documents)

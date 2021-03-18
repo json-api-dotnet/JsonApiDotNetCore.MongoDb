@@ -23,5 +23,9 @@ namespace JsonApiDotNetCore.MongoDb.Resources
             get => Id;
             set => Id = value;
         }
+
+        /// <inheritdoc />
+        [BsonIgnore]
+        public string LocalId { get; set; }
     }
 }
