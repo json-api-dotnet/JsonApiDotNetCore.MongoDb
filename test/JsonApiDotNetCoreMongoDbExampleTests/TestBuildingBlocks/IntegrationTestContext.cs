@@ -54,7 +54,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         private MongoDbRunner StartMongoDb()
         {
-            string arguments = "--quiet";
+            string arguments = "--quiet --setParameter maxTransactionLockRequestTimeoutMillis=40";
 
             if (!StartMongoDbInSingleNodeReplicaSetMode)
             {
