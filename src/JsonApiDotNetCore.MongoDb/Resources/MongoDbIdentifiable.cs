@@ -1,5 +1,4 @@
 using JsonApiDotNetCore.Resources;
-using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -13,7 +12,6 @@ namespace JsonApiDotNetCore.MongoDb.Resources
         /// <inheritdoc />
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        [Attr]
         public virtual string Id { get; set; }
 
         /// <inheritdoc />
