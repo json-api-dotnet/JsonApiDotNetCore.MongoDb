@@ -31,7 +31,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         {
             // Arrange
             RgbColor newColor = _fakers.RgbColor.Generate();
-            newColor.Id = "507f191e810c19729de860ea";
+            newColor.Id = "free-format-client-generated-id";
 
             var requestBody = new
             {
@@ -72,7 +72,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creati
         {
             // Arrange
             WorkItemGroup newGroup = _fakers.WorkItemGroup.Generate();
-            newGroup.Id = "5ffcc0d1d69a27c92b8c62dd";
+            newGroup.Id = "free-format-client-generated-id";
 
             var requestBody = new
             {

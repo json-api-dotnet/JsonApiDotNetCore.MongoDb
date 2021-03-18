@@ -6,7 +6,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class Appointment : MongoIdentifiable
+    public sealed class Appointment : MongoObjectIdentifiable
     {
         [Attr]
         public string Title { get; set; }

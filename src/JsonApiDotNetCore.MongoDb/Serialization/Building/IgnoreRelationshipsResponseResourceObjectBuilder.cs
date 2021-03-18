@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
@@ -22,7 +22,7 @@ namespace JsonApiDotNetCore.MongoDb.Serialization.Building
         /// <inheritdoc />
         protected override RelationshipEntry GetRelationshipData(RelationshipAttribute relationship, IIdentifiable resource)
         {
-            if (resource is MongoIdentifiable)
+            if (resource is IMongoIdentifiable)
             {
                 return null;
             }
