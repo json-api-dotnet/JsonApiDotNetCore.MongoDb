@@ -39,6 +39,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         internal WebApplicationFactory<EmptyStartup> Factory => _lazyFactory.Value;
 
+        /// <summary>
+        /// Set this to <c>true</c> to enable transactions support in MongoDB.
+        /// </summary>
         internal bool StartMongoDbInSingleNodeReplicaSetMode { get; set; }
 
         public IntegrationTestContext()
@@ -54,10 +57,14 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         private MongoDbRunner StartMongoDb()
         {
+            // Increasing maxTransactionLockRequestTimeoutMillis (default=5) as workaround for occasional
+            // "Unable to acquire lock" error when running tests locally.
             string arguments = "--quiet --setParameter maxTransactionLockRequestTimeoutMillis=40";
 
             if (!StartMongoDbInSingleNodeReplicaSetMode)
             {
+                // MongoDbRunner watches console output to detect when the replica set has stabilized. So we can only fully
+                // suppress console output if not running in this mode.
                 arguments += RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? " --logappend --logpath NUL" : " --logpath /dev/null";
             }
 
