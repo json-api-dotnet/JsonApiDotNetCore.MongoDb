@@ -97,7 +97,7 @@ Have a question, found a bug or want to submit code changes? See our [contributi
 
 ## Trying out the latest build
 
-After each commit to the master branch, a new prerelease NuGet package is automatically published to AppVeyor at https://ci.appveyor.com/nuget/jsonapidotnetcore. To try it out, follow the next steps:
+After each commit to the master branch, a new prerelease NuGet package is automatically published to AppVeyor at https://ci.appveyor.com/nuget/jsonapidotnetcore-mongodb. To try it out, follow the next steps:
 
 * In Visual Studio: **Tools**, **NuGet Package Manager**, **Package Manager Settings**, **Package Sources**
     * Click **+**
