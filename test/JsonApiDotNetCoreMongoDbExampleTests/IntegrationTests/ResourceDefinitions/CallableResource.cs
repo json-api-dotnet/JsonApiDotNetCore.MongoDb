@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class CallableResource : MongoIdentifiable
+    public sealed class CallableResource : MongoObjectIdentifiable
     {
         [Attr]
         public string Label { get; set; }

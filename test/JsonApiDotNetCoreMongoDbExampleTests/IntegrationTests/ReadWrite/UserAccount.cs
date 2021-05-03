@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class UserAccount : MongoIdentifiable
+    public sealed class UserAccount : MongoObjectIdentifiable
     {
         [Attr]
         public string FirstName { get; set; }

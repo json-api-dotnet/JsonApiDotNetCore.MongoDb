@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
 {
     [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class WorkTag : MongoIdentifiable
+    public sealed class WorkTag : MongoObjectIdentifiable
     {
         [Attr]
         public string Text { get; set; }

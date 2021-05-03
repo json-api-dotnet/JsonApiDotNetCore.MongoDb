@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.MongoDb.Resources;
 using MongoDB.Driver.Linq;
 
 namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
@@ -10,7 +10,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
     {
         public static async Task<TResource> FirstWithIdAsync<TResource, TId>(this IMongoQueryable<TResource> resources, TId id,
             CancellationToken cancellationToken = default)
-            where TResource : IIdentifiable<TId>
+            where TResource : IMongoIdentifiable
         {
             TResource firstOrDefault = await resources.FirstOrDefaultAsync(resource => Equals(resource.Id, id), cancellationToken);
 
@@ -24,7 +24,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
 
         public static Task<TResource> FirstWithIdOrDefaultAsync<TResource, TId>(this IMongoQueryable<TResource> resources, TId id,
             CancellationToken cancellationToken = default)
-            where TResource : IIdentifiable<TId>
+            where TResource : IMongoIdentifiable
         {
             return resources.FirstOrDefaultAsync(resource => Equals(resource.Id, id), cancellationToken);
         }

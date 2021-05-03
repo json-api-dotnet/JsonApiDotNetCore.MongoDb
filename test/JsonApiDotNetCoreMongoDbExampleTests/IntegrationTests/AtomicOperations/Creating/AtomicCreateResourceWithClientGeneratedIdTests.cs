@@ -32,7 +32,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
         {
             // Arrange
             TextLanguage newLanguage = _fakers.TextLanguage.Generate();
-            newLanguage.Id = "507f191e810c19729de860ea";
+            newLanguage.Id = "free-format-client-generated-id";
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
@@ -88,7 +88,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
         {
             // Arrange
             MusicTrack newTrack = _fakers.MusicTrack.Generate();
-            newTrack.Id = "5ffcc0d1d69a27c92b8c62dd";
+            newTrack.Id = "free-format-client-generated-id";
 
             await _testContext.RunOnDatabaseAsync(async db =>
             {
