@@ -23,6 +23,6 @@
   <ItemGroup>
     <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreVersion)" />
     <PackageReference Include="MongoDB.Driver" Version="$(MongoDBDriverVersion)" />
-    <PackageReference Include="SauceControl.InheritDoc" Version="1.2.0" PrivateAssets="All" />
+    <PackageReference Include="SauceControl.InheritDoc" Version="1.3.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

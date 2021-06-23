@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
+using JsonApiDotNetCore.Queries.Internal;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using JsonApiDotNetCore.Serialization.Building;
@@ -14,8 +15,10 @@ namespace JsonApiDotNetCore.MongoDb.Serialization.Building
     {
         public IgnoreRelationshipsResponseResourceObjectBuilder(ILinkBuilder linkBuilder, IIncludedResourceObjectBuilder includedBuilder,
             IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceContextProvider resourceContextProvider,
-            IResourceDefinitionAccessor resourceDefinitionAccessor, IResourceObjectBuilderSettingsProvider settingsProvider)
-            : base(linkBuilder, includedBuilder, constraintProviders, resourceContextProvider, resourceDefinitionAccessor, settingsProvider)
+            IResourceDefinitionAccessor resourceDefinitionAccessor, IResourceObjectBuilderSettingsProvider settingsProvider,
+            IEvaluatedIncludeCache evaluatedIncludeCache)
+            : base(linkBuilder, includedBuilder, constraintProviders, resourceContextProvider, resourceDefinitionAccessor, settingsProvider,
+                evaluatedIncludeCache)
         {
         }
 
