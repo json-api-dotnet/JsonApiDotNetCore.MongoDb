@@ -47,7 +47,12 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
                 {
                     if (text.Length > 0)
                     {
-                        return JsonConvert.DeserializeObject<JObject>(text).ToString();
+                        var json = JsonConvert.DeserializeObject<JObject>(text);
+
+                        if (json != null)
+                        {
+                            return json.ToString();
+                        }
                     }
                 }
 #pragma warning disable AV1210 // Catch a specific exception instead of Exception, SystemException or ApplicationException

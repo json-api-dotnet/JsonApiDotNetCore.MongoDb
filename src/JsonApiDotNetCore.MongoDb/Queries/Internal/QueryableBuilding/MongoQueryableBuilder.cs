@@ -18,6 +18,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
     {
         private readonly Type _elementType;
         private readonly Type _extensionType;
+        private readonly LambdaParameterNameFactory _nameFactory;
         private readonly LambdaScopeFactory _lambdaScopeFactory;
 
         public MongoQueryableBuilder(Expression source, Type elementType, Type extensionType, LambdaParameterNameFactory nameFactory,
@@ -25,11 +26,9 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
             LambdaScopeFactory lambdaScopeFactory = null)
             : base(source, elementType, extensionType, nameFactory, resourceFactory, resourceContextProvider, entityModel, lambdaScopeFactory)
         {
-            ArgumentGuard.NotNull(elementType, nameof(elementType));
-            ArgumentGuard.NotNull(extensionType, nameof(extensionType));
-
             _elementType = elementType;
             _extensionType = extensionType;
+            _nameFactory = nameFactory;
             _lambdaScopeFactory = lambdaScopeFactory ?? new LambdaScopeFactory(nameFactory);
         }
 
@@ -37,7 +36,7 @@ namespace JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding
         {
             using LambdaScope lambdaScope = _lambdaScopeFactory.CreateScope(_elementType);
 
-            var builder = new MongoWhereClauseBuilder(source, lambdaScope, _extensionType);
+            var builder = new MongoWhereClauseBuilder(source, lambdaScope, _extensionType, _nameFactory);
             return builder.ApplyWhere(filter);
         }
     }

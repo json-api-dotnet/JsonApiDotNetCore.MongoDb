@@ -14,16 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="31.0.3" />
+    <PackageReference Include="Bogus" Version="$(BogusVersion)" />
     <PackageReference Include="coverlet.collector" Version="$(CoverletVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionsVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.9" />
-    <PackageReference Include="Mongo2Go" Version="2.2.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.16" />
+    <PackageReference Include="Mongo2Go" Version="2.*" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
     <PackageReference Include="xunit" Version="$(XUnitVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitVersion)">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitVersion)" PrivateAssets="All" />
   </ItemGroup>
 </Project>
