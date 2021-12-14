@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using SysNotNull = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 
 #pragma warning disable AV1008 // Class should not be static
 
@@ -7,8 +8,7 @@ namespace JsonApiDotNetCore.MongoDb;
 internal static class ArgumentGuard
 {
     [AssertionMethod]
-    [ContractAnnotation("value: null => halt")]
-    public static void NotNull<T>([CanBeNull] [NoEnumeration] T value, [NotNull] [InvokerParameterName] string name)
+    public static void NotNull<T>([NoEnumeration] [SysNotNull] T? value, [InvokerParameterName] string name)
         where T : class
     {
         if (value is null)

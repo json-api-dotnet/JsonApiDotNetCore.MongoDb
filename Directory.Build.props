@@ -2,11 +2,12 @@
   <PropertyGroup>
     <TargetFrameworkName>net6.0</TargetFrameworkName>
     <AspNetVersion>6.0.*</AspNetVersion>
-    <JsonApiDotNetCoreVersion>4.2.0</JsonApiDotNetCoreVersion>
+    <JsonApiDotNetCoreVersion>5.0.0-pre1</JsonApiDotNetCoreVersion>
     <MongoDBDriverVersion>2.14.*</MongoDBDriverVersion>
     <JsonApiDotNetCoreMongoDbVersionPrefix>5.0.0</JsonApiDotNetCoreMongoDbVersionPrefix>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
     <WarningLevel>9999</WarningLevel>
+    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
@@ -19,7 +20,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NoWarn>$(NoWarn);1591;NU5104</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

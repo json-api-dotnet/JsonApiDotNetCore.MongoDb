@@ -13,7 +13,7 @@ namespace JsonApiDotNetCore.MongoDb.Errors;
 public sealed class AttributeComparisonInFilterNotSupportedException : JsonApiException
 {
     public AttributeComparisonInFilterNotSupportedException()
-        : base(new Error(HttpStatusCode.BadRequest)
+        : base(new ErrorObject(HttpStatusCode.BadRequest)
         {
             Title = "Comparing attributes against each other is not supported when using MongoDB."
         })

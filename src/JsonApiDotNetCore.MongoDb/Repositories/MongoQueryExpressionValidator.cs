@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories;
 
-internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<object>
+internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<object?>
 {
     public void Validate(QueryLayer layer)
     {
@@ -24,7 +24,7 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
         ValidateExpression(layer.Pagination);
     }
 
-    private void ValidateExpression(QueryExpression expression)
+    private void ValidateExpression(QueryExpression? expression)
     {
         if (expression != null)
         {
@@ -32,22 +32,19 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
         }
     }
 
-    public override QueryExpression VisitResourceFieldChain(ResourceFieldChainExpression expression, object argument)
+    public override QueryExpression? VisitResourceFieldChain(ResourceFieldChainExpression expression, object? argument)
     {
-        if (expression != null)
+        if (expression.Fields.Count > 1 || expression.Fields.First() is RelationshipAttribute)
         {
-            if (expression.Fields.Count > 1 || expression.Fields.First() is RelationshipAttribute)
-            {
-                throw new UnsupportedRelationshipException();
-            }
+            throw new UnsupportedRelationshipException();
         }
 
         return base.VisitResourceFieldChain(expression, argument);
     }
 
-    public override QueryExpression VisitComparison(ComparisonExpression expression, object argument)
+    public override QueryExpression? VisitComparison(ComparisonExpression expression, object? argument)
     {
-        if (expression?.Left is ResourceFieldChainExpression && expression.Right is ResourceFieldChainExpression)
+        if (expression.Left is ResourceFieldChainExpression && expression.Right is ResourceFieldChainExpression)
         {
             throw new AttributeComparisonInFilterNotSupportedException();
         }

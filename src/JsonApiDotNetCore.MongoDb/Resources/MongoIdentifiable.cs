@@ -7,16 +7,16 @@ namespace JsonApiDotNetCore.MongoDb.Resources;
 /// <summary>
 /// A convenient basic implementation of <see cref="IIdentifiable" /> for use with MongoDB models.
 /// </summary>
-public abstract class MongoIdentifiable : IIdentifiable<string>
+public abstract class MongoIdentifiable : IIdentifiable<string?>
 {
     /// <inheritdoc />
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public virtual string Id { get; set; }
+    public virtual string? Id { get; set; }
 
     /// <inheritdoc />
     [BsonIgnore]
-    public string StringId
+    public string? StringId
     {
         get => Id;
         set => Id = value;
@@ -24,5 +24,5 @@ public abstract class MongoIdentifiable : IIdentifiable<string>
 
     /// <inheritdoc />
     [BsonIgnore]
-    public string LocalId { get; set; }
+    public string? LocalId { get; set; }
 }

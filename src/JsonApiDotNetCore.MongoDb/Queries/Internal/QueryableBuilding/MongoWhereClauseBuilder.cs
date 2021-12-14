@@ -14,7 +14,7 @@ public class MongoWhereClauseBuilder : WhereClauseBuilder
     {
     }
 
-    public override Expression VisitLiteralConstant(LiteralConstantExpression expression, Type expressionType)
+    public override Expression VisitLiteralConstant(LiteralConstantExpression expression, Type? expressionType)
     {
         if (expressionType == typeof(DateTime) || expressionType == typeof(DateTime?))
         {

@@ -12,7 +12,7 @@ public sealed class MongoTransaction : IOperationsTransaction
     private readonly bool _ownsTransaction;
 
     /// <inheritdoc />
-    public string TransactionId => _mongoDataAccess.TransactionId;
+    public string TransactionId => _mongoDataAccess.TransactionId!;
 
     public MongoTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
     {
@@ -37,7 +37,7 @@ public sealed class MongoTransaction : IOperationsTransaction
     /// <inheritdoc />
     public async Task CommitAsync(CancellationToken cancellationToken)
     {
-        if (_ownsTransaction)
+        if (_ownsTransaction && _mongoDataAccess.ActiveSession != null)
         {
             await _mongoDataAccess.ActiveSession.CommitTransactionAsync(cancellationToken);
         }

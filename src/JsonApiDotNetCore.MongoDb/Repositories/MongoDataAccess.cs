@@ -9,10 +9,10 @@ public sealed class MongoDataAccess : IMongoDataAccess
     public IMongoDatabase MongoDatabase { get; }
 
     /// <inheritdoc />
-    public IClientSessionHandle ActiveSession { get; set; }
+    public IClientSessionHandle? ActiveSession { get; set; }
 
     /// <inheritdoc />
-    public string TransactionId => ActiveSession != null && ActiveSession.IsInTransaction ? ActiveSession.GetHashCode().ToString() : null;
+    public string? TransactionId => ActiveSession is { IsInTransaction: true } ? ActiveSession.GetHashCode().ToString() : null;
 
     public MongoDataAccess(IMongoDatabase mongoDatabase)
     {

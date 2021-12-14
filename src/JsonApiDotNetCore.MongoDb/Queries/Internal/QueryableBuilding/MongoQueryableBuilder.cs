@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
@@ -21,8 +20,8 @@ public sealed class MongoQueryableBuilder : QueryableBuilder
     private readonly LambdaScopeFactory _lambdaScopeFactory;
 
     public MongoQueryableBuilder(Expression source, Type elementType, Type extensionType, LambdaParameterNameFactory nameFactory,
-        IResourceFactory resourceFactory, IResourceContextProvider resourceContextProvider, IModel entityModel, LambdaScopeFactory lambdaScopeFactory = null)
-        : base(source, elementType, extensionType, nameFactory, resourceFactory, resourceContextProvider, entityModel, lambdaScopeFactory)
+        IResourceFactory resourceFactory, IModel entityModel, LambdaScopeFactory? lambdaScopeFactory = null)
+        : base(source, elementType, extensionType, nameFactory, resourceFactory, entityModel, lambdaScopeFactory)
     {
         _elementType = elementType;
         _extensionType = extensionType;

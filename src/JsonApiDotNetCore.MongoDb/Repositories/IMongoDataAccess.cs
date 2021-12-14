@@ -15,10 +15,10 @@ public interface IMongoDataAccess : IAsyncDisposable
     /// <summary>
     /// Provides access to the active session, if any.
     /// </summary>
-    IClientSessionHandle ActiveSession { get; set; }
+    IClientSessionHandle? ActiveSession { get; set; }
 
     /// <summary>
     /// Identifies the current transaction, if any.
     /// </summary>
-    string TransactionId { get; }
+    string? TransactionId { get; }
 }

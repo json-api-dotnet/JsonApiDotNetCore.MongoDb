@@ -12,7 +12,7 @@ namespace JsonApiDotNetCore.MongoDb.Errors;
 public sealed class UnsupportedRelationshipException : JsonApiException
 {
     public UnsupportedRelationshipException()
-        : base(new Error(HttpStatusCode.BadRequest)
+        : base(new ErrorObject(HttpStatusCode.BadRequest)
         {
             Title = "Relationships are not supported when using MongoDB."
         })

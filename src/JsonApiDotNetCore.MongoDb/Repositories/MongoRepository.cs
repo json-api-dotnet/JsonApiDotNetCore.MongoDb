@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Errors;
+using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.Queries;
@@ -24,29 +25,32 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 {
     private readonly IMongoDataAccess _mongoDataAccess;
     private readonly ITargetedFields _targetedFields;
-    private readonly IResourceContextProvider _resourceContextProvider;
+    private readonly IResourceGraph _resourceGraph;
     private readonly IResourceFactory _resourceFactory;
     private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
+    private readonly IResourceDefinitionAccessor _resourceDefinitionAccessor;
 
     protected virtual IMongoCollection<TResource> Collection => _mongoDataAccess.MongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
 
     /// <inheritdoc />
-    public virtual string TransactionId => _mongoDataAccess.TransactionId;
+    public virtual string? TransactionId => _mongoDataAccess.TransactionId;
 
-    public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
-        IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
+    public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
+        IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor)
     {
         ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
         ArgumentGuard.NotNull(targetedFields, nameof(targetedFields));
-        ArgumentGuard.NotNull(resourceContextProvider, nameof(resourceContextProvider));
+        ArgumentGuard.NotNull(resourceGraph, nameof(resourceGraph));
         ArgumentGuard.NotNull(resourceFactory, nameof(resourceFactory));
         ArgumentGuard.NotNull(constraintProviders, nameof(constraintProviders));
+        ArgumentGuard.NotNull(resourceDefinitionAccessor, nameof(resourceDefinitionAccessor));
 
         _mongoDataAccess = mongoDataAccess;
         _targetedFields = targetedFields;
-        _resourceContextProvider = resourceContextProvider;
+        _resourceGraph = resourceGraph;
         _resourceFactory = resourceFactory;
         _constraintProviders = constraintProviders;
+        _resourceDefinitionAccessor = resourceDefinitionAccessor;
 
         if (typeof(TId) != typeof(string))
         {
@@ -55,21 +59,20 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer, CancellationToken cancellationToken)
+    public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(layer, nameof(layer));
+        ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
 
-        IMongoQueryable<TResource> query = ApplyQueryLayer(layer);
-        List<TResource> resources = await query.ToListAsync(cancellationToken);
-        return resources.AsReadOnly();
+        IMongoQueryable<TResource> query = ApplyQueryLayer(queryLayer);
+        return await query.ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public virtual Task<int> CountAsync(FilterExpression topFilter, CancellationToken cancellationToken)
+    public virtual Task<int> CountAsync(FilterExpression? topFilter, CancellationToken cancellationToken)
     {
-        ResourceContext resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+        ResourceType resourceType = _resourceGraph.GetResourceType<TResource>();
 
-        var layer = new QueryLayer(resourceContext)
+        var layer = new QueryLayer(resourceType)
         {
             Filter = topFilter
         };
@@ -78,12 +81,12 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         return query.CountAsync(cancellationToken);
     }
 
-    protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer layer)
+    protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
     {
-        ArgumentGuard.NotNull(layer, nameof(layer));
+        ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
 
         var queryExpressionValidator = new MongoQueryExpressionValidator();
-        queryExpressionValidator.Validate(layer);
+        queryExpressionValidator.Validate(queryLayer);
 
         AssertNoRelationshipsInSparseFieldSets();
 
@@ -110,9 +113,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         var nameFactory = new LambdaParameterNameFactory();
 
         var builder = new MongoQueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
-            _resourceContextProvider, new MongoModel(_resourceContextProvider));
+            new MongoModel(_resourceGraph));
 
-        Expression expression = builder.ApplyQuery(layer);
+        Expression expression = builder.ApplyQuery(queryLayer);
         return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
     }
 
@@ -123,7 +126,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
     private void AssertNoRelationshipsInSparseFieldSets()
     {
-        ResourceContext resourceContext = _resourceContextProvider.GetResourceContext<TResource>();
+        ResourceType resourceType = _resourceGraph.GetResourceType<TResource>();
 
         // @formatter:wrap_chained_method_calls chop_always
         // @formatter:keep_existing_linebreaks true
@@ -133,7 +136,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             .Select(expressionInScope => expressionInScope.Expression)
             .OfType<SparseFieldTableExpression>()
             .Any(fieldTable =>
-                fieldTable.Table.Keys.Any(targetResourceContext => targetResourceContext != resourceContext) ||
+                fieldTable.Table.Keys.Any(targetResourceType => !resourceType.Equals(targetResourceType)) ||
                 fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
 
         // @formatter:keep_existing_linebreaks restore
@@ -167,12 +170,16 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             attribute.SetValue(resourceForDatabase, attribute.GetValue(resourceFromRequest));
         }
 
+        await _resourceDefinitionAccessor.OnWritingAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
+
         await SaveChangesAsync(async () =>
         {
             await (_mongoDataAccess.ActiveSession != null
                 ? Collection.InsertOneAsync(_mongoDataAccess.ActiveSession, resourceForDatabase, cancellationToken: cancellationToken)
                 : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken));
         }, cancellationToken);
+
+        await _resourceDefinitionAccessor.OnWriteSucceededAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
     }
 
     private void AssertNoRelationshipsAreTargeted()
@@ -184,8 +191,10 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual async Task<TResource> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
+    public virtual async Task<TResource?> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
+        ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
+
         IReadOnlyCollection<TResource> resources = await GetAsync(queryLayer, cancellationToken);
         return resources.FirstOrDefault();
     }
@@ -203,6 +212,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             attr.SetValue(resourceFromDatabase, attr.GetValue(resourceFromRequest));
         }
 
+        await _resourceDefinitionAccessor.OnWritingAsync(resourceFromDatabase, WriteOperationKind.UpdateResource, cancellationToken);
+
         FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, resourceFromDatabase.Id);
 
         await SaveChangesAsync(async () =>
@@ -211,11 +222,18 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
                 ? Collection.ReplaceOneAsync(_mongoDataAccess.ActiveSession, filter, resourceFromDatabase, cancellationToken: cancellationToken)
                 : Collection.ReplaceOneAsync(filter, resourceFromDatabase, cancellationToken: cancellationToken));
         }, cancellationToken);
+
+        await _resourceDefinitionAccessor.OnWriteSucceededAsync(resourceFromDatabase, WriteOperationKind.UpdateResource, cancellationToken);
     }
 
     /// <inheritdoc />
     public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
     {
+        var placeholderResource = _resourceFactory.CreateInstance<TResource>();
+        placeholderResource.Id = id;
+
+        await _resourceDefinitionAccessor.OnWritingAsync(placeholderResource, WriteOperationKind.DeleteResource, cancellationToken);
+
         FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, id);
 
         DeleteResult result = await SaveChangesAsync(
@@ -233,30 +251,31 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         {
             throw new DataStoreUpdateException(new Exception($"Failed to delete document with id '{id}', because it does not exist."));
         }
+
+        await _resourceDefinitionAccessor.OnWriteSucceededAsync(placeholderResource, WriteOperationKind.DeleteResource, cancellationToken);
     }
 
     /// <inheritdoc />
-    public virtual Task SetRelationshipAsync(TResource primaryResource, object secondaryResourceIds, CancellationToken cancellationToken)
+    public virtual Task SetRelationshipAsync(TResource leftResource, object? rightValue, CancellationToken cancellationToken)
     {
         throw new UnsupportedRelationshipException();
     }
 
     /// <inheritdoc />
-    public virtual Task AddToToManyRelationshipAsync(TId primaryId, ISet<IIdentifiable> secondaryResourceIds, CancellationToken cancellationToken)
+    public virtual Task AddToToManyRelationshipAsync(TId leftId, ISet<IIdentifiable> rightResourceIds, CancellationToken cancellationToken)
     {
         throw new UnsupportedRelationshipException();
     }
 
     /// <inheritdoc />
-    public virtual Task RemoveFromToManyRelationshipAsync(TResource primaryResource, ISet<IIdentifiable> secondaryResourceIds,
-        CancellationToken cancellationToken)
+    public virtual Task RemoveFromToManyRelationshipAsync(TResource leftResource, ISet<IIdentifiable> rightResourceIds, CancellationToken cancellationToken)
     {
         throw new UnsupportedRelationshipException();
     }
 
     protected virtual async Task SaveChangesAsync(Func<Task> asyncSaveAction, CancellationToken cancellationToken)
     {
-        _ = await SaveChangesAsync<object>(async () =>
+        _ = await SaveChangesAsync<object?>(async () =>
         {
             await asyncSaveAction();
             return null;
@@ -281,18 +300,5 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
             throw new DataStoreUpdateException(exception);
         }
-    }
-}
-
-/// <summary>
-/// Do not use. This type exists solely to produce a proper error message when trying to use MongoDB with a non-string Id.
-/// </summary>
-public sealed class MongoRepository<TResource> : MongoRepository<TResource, int>, IResourceRepository<TResource>
-    where TResource : class, IIdentifiable<int>
-{
-    public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
-        IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
-        : base(mongoDataAccess, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
-    {
     }
 }
