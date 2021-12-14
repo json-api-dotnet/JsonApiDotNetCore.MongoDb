@@ -1,132 +1,129 @@
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Meta
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Meta;
+
+[Collection("AtomicOperationsFixture")]
+public sealed class AtomicResourceMetaTests
 {
-    [Collection("AtomicOperationsFixture")]
-    public sealed class AtomicResourceMetaTests
+    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly OperationsFakers _fakers = new();
+
+    public AtomicResourceMetaTests(AtomicOperationsFixture fixture)
     {
-        private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly OperationsFakers _fakers = new OperationsFakers();
+        _testContext = fixture.TestContext;
 
-        public AtomicResourceMetaTests(AtomicOperationsFixture fixture)
+        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+    }
+
+    [Fact]
+    public async Task Returns_resource_meta_in_create_resource_with_side_effects()
+    {
+        // Arrange
+        string newTitle1 = _fakers.MusicTrack.Generate().Title;
+        string newTitle2 = _fakers.MusicTrack.Generate().Title;
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            _testContext = fixture.TestContext;
+            await db.EnsureEmptyCollectionAsync<MusicTrack>();
+        });
 
-            fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
-        }
-
-        [Fact]
-        public async Task Returns_resource_meta_in_create_resource_with_side_effects()
+        var requestBody = new
         {
-            // Arrange
-            string newTitle1 = _fakers.MusicTrack.Generate().Title;
-            string newTitle2 = _fakers.MusicTrack.Generate().Title;
-
-            await _testContext.RunOnDatabaseAsync(async db =>
+            atomic__operations = new[]
             {
-                await db.EnsureEmptyCollectionAsync<MusicTrack>();
-            });
-
-            var requestBody = new
-            {
-                atomic__operations = new[]
+                new
                 {
-                    new
+                    op = "add",
+                    data = new
                     {
-                        op = "add",
-                        data = new
+                        type = "musicTracks",
+                        attributes = new
                         {
-                            type = "musicTracks",
-                            attributes = new
-                            {
-                                title = newTitle1,
-                                releasedAt = 1.January(2018)
-                            }
+                            title = newTitle1,
+                            releasedAt = 1.January(2018)
                         }
-                    },
-                    new
+                    }
+                },
+                new
+                {
+                    op = "add",
+                    data = new
                     {
-                        op = "add",
-                        data = new
+                        type = "musicTracks",
+                        attributes = new
                         {
-                            type = "musicTracks",
-                            attributes = new
-                            {
-                                title = newTitle2,
-                                releasedAt = 23.August(1994)
-                            }
+                            title = newTitle2,
+                            releasedAt = 23.August(1994)
                         }
                     }
                 }
-            };
+            }
+        };
 
-            const string route = "/operations";
+        const string route = "/operations";
 
-            // Act
-            (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
-                await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
+        // Act
+        (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
+            await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            responseDocument.Results.Should().HaveCount(2);
+        responseDocument.Results.Should().HaveCount(2);
 
-            responseDocument.Results[0].SingleData.Meta.Should().HaveCount(1);
-            responseDocument.Results[0].SingleData.Meta["Copyright"].Should().Be("(C) 2018. All rights reserved.");
+        responseDocument.Results[0].SingleData.Meta.Should().HaveCount(1);
+        responseDocument.Results[0].SingleData.Meta["Copyright"].Should().Be("(C) 2018. All rights reserved.");
 
-            responseDocument.Results[1].SingleData.Meta.Should().HaveCount(1);
-            responseDocument.Results[1].SingleData.Meta["Copyright"].Should().Be("(C) 1994. All rights reserved.");
-        }
+        responseDocument.Results[1].SingleData.Meta.Should().HaveCount(1);
+        responseDocument.Results[1].SingleData.Meta["Copyright"].Should().Be("(C) 1994. All rights reserved.");
+    }
 
-        [Fact]
-        public async Task Returns_resource_meta_in_update_resource_with_side_effects()
+    [Fact]
+    public async Task Returns_resource_meta_in_update_resource_with_side_effects()
+    {
+        // Arrange
+        TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
+            await db.GetCollection<TextLanguage>().InsertOneAsync(existingLanguage);
+        });
 
-            await _testContext.RunOnDatabaseAsync(async db =>
+        var requestBody = new
+        {
+            atomic__operations = new[]
             {
-                await db.GetCollection<TextLanguage>().InsertOneAsync(existingLanguage);
-            });
-
-            var requestBody = new
-            {
-                atomic__operations = new[]
+                new
                 {
-                    new
+                    op = "update",
+                    data = new
                     {
-                        op = "update",
-                        data = new
+                        type = "textLanguages",
+                        id = existingLanguage.StringId,
+                        attributes = new
                         {
-                            type = "textLanguages",
-                            id = existingLanguage.StringId,
-                            attributes = new
-                            {
-                            }
                         }
                     }
                 }
-            };
+            }
+        };
 
-            const string route = "/operations";
+        const string route = "/operations";
 
-            // Act
-            (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
-                await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
+        // Act
+        (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
+            await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            responseDocument.Results.Should().HaveCount(1);
-            responseDocument.Results[0].SingleData.Meta.Should().HaveCount(1);
-            responseDocument.Results[0].SingleData.Meta["Notice"].Should().Be(TextLanguageMetaDefinition.NoticeText);
-        }
+        responseDocument.Results.Should().HaveCount(1);
+        responseDocument.Results[0].SingleData.Meta.Should().HaveCount(1);
+        responseDocument.Results[0].SingleData.Meta["Notice"].Should().Be(TextLanguageMetaDefinition.NoticeText);
     }
 }

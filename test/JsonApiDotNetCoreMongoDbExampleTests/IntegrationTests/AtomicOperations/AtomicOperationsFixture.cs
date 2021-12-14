@@ -1,25 +1,23 @@
-using System;
 using JetBrains.Annotations;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations;
+
+[UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
+public sealed class AtomicOperationsFixture : IDisposable
 {
-    [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-    public sealed class AtomicOperationsFixture : IDisposable
+    internal IntegrationTestContext<TestableStartup> TestContext { get; }
+
+    public AtomicOperationsFixture()
     {
-        internal IntegrationTestContext<TestableStartup> TestContext { get; }
-
-        public AtomicOperationsFixture()
+        TestContext = new IntegrationTestContext<TestableStartup>
         {
-            TestContext = new IntegrationTestContext<TestableStartup>
-            {
-                StartMongoDbInSingleNodeReplicaSetMode = true
-            };
-        }
+            StartMongoDbInSingleNodeReplicaSetMode = true
+        };
+    }
 
-        public void Dispose()
-        {
-            TestContext.Dispose();
-        }
+    public void Dispose()
+    {
+        TestContext.Dispose();
     }
 }

@@ -3,16 +3,15 @@ using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
-{
-    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class RgbColor : MongoIdentifiable
-    {
-        [Attr]
-        public string DisplayName { get; set; }
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
 
-        [HasOne]
-        [BsonIgnore]
-        public WorkItemGroup Group { get; set; }
-    }
+[UsedImplicitly(ImplicitUseTargetFlags.Members)]
+public sealed class RgbColor : MongoIdentifiable
+{
+    [Attr]
+    public string DisplayName { get; set; }
+
+    [HasOne]
+    [BsonIgnore]
+    public WorkItemGroup Group { get; set; }
 }

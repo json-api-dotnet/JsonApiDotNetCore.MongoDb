@@ -3,13 +3,12 @@ using JsonApiDotNetCore.Controllers;
 using JsonApiDotNetCore.Services;
 using Microsoft.Extensions.Logging;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+
+public sealed class RgbColorsController : JsonApiController<RgbColor, string>
 {
-    public sealed class RgbColorsController : JsonApiController<RgbColor, string>
+    public RgbColorsController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<RgbColor, string> resourceService)
+        : base(options, loggerFactory, resourceService)
     {
-        public RgbColorsController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<RgbColor, string> resourceService)
-            : base(options, loggerFactory, resourceService)
-        {
-        }
     }
 }

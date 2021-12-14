@@ -1,12 +1,11 @@
 using JetBrains.Annotations;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+
+[UsedImplicitly(ImplicitUseTargetFlags.Members)]
+public enum WorkItemPriority
 {
-    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public enum WorkItemPriority
-    {
-        Low,
-        Medium,
-        High
-    }
+    Low,
+    Medium,
+    High
 }

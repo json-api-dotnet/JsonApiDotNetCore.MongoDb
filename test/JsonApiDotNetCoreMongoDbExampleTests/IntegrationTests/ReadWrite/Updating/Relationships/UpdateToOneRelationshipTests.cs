@@ -1,62 +1,57 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
 using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Relationships
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Relationships;
+
+public sealed class UpdateToOneRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
 {
-    public sealed class UpdateToOneRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly ReadWriteFakers _fakers = new();
+
+    public UpdateToOneRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
     {
-        private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly ReadWriteFakers _fakers = new ReadWriteFakers();
+        _testContext = testContext;
+    }
 
-        public UpdateToOneRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
+    [Fact]
+    public async Task Cannot_replace_relationship()
+    {
+        // Arrange
+        List<WorkItemGroup> existingGroups = _fakers.WorkItemGroup.Generate(2);
+        existingGroups[0].Color = _fakers.RgbColor.Generate();
+        existingGroups[1].Color = _fakers.RgbColor.Generate();
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            _testContext = testContext;
-        }
+            await db.GetCollection<RgbColor>().InsertManyAsync(existingGroups.Select(group => group.Color));
+            await db.GetCollection<WorkItemGroup>().InsertManyAsync(existingGroups);
+        });
 
-        [Fact]
-        public async Task Cannot_replace_relationship()
+        var requestBody = new
         {
-            // Arrange
-            List<WorkItemGroup> existingGroups = _fakers.WorkItemGroup.Generate(2);
-            existingGroups[0].Color = _fakers.RgbColor.Generate();
-            existingGroups[1].Color = _fakers.RgbColor.Generate();
-
-            await _testContext.RunOnDatabaseAsync(async db =>
+            data = new
             {
-                await db.GetCollection<RgbColor>().InsertManyAsync(existingGroups.Select(group => group.Color));
-                await db.GetCollection<WorkItemGroup>().InsertManyAsync(existingGroups);
-            });
+                type = "rgbColors",
+                id = existingGroups[0].Color.StringId
+            }
+        };
 
-            var requestBody = new
-            {
-                data = new
-                {
-                    type = "rgbColors",
-                    id = existingGroups[0].Color.StringId
-                }
-            };
+        string route = $"/workItemGroups/{existingGroups[1].StringId}/relationships/color";
 
-            string route = $"/workItemGroups/{existingGroups[1].StringId}/relationships/color";
+        // Act
+        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
 
-            // Act
-            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        responseDocument.Errors.Should().HaveCount(1);
 
-            responseDocument.Errors.Should().HaveCount(1);
-
-            Error error = responseDocument.Errors[0];
-            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
-            error.Detail.Should().BeNull();
-        }
+        Error error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
     }
 }

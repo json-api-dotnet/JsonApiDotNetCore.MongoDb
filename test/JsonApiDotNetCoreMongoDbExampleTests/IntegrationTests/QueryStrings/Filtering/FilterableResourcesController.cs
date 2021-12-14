@@ -3,14 +3,12 @@ using JsonApiDotNetCore.Controllers;
 using JsonApiDotNetCore.Services;
 using Microsoft.Extensions.Logging;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering;
+
+public sealed class FilterableResourcesController : JsonApiController<FilterableResource, string>
 {
-    public sealed class FilterableResourcesController : JsonApiController<FilterableResource, string>
+    public FilterableResourcesController(IJsonApiOptions options, ILoggerFactory loggerFactory, IResourceService<FilterableResource, string> resourceService)
+        : base(options, loggerFactory, resourceService)
     {
-        public FilterableResourcesController(IJsonApiOptions options, ILoggerFactory loggerFactory,
-            IResourceService<FilterableResource, string> resourceService)
-            : base(options, loggerFactory, resourceService)
-        {
-        }
     }
 }

@@ -6,21 +6,20 @@ using JsonApiDotNetCore.MongoDb.Serialization.Building;
 using JsonApiDotNetCore.Serialization.Building;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace JsonApiDotNetCore.MongoDb.Configuration
-{
-    public static class ServiceCollectionExtensions
-    {
-        /// <summary>
-        /// Expands JsonApiDotNetCore configuration for usage with MongoDB.
-        /// </summary>
-        [PublicAPI]
-        public static IServiceCollection AddJsonApiMongoDb(this IServiceCollection services)
-        {
-            services.AddScoped<IMongoDataAccess, MongoDataAccess>();
-            services.AddScoped<IOperationsTransactionFactory, MongoTransactionFactory>();
-            services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
+namespace JsonApiDotNetCore.MongoDb.Configuration;
 
-            return services;
-        }
+public static class ServiceCollectionExtensions
+{
+    /// <summary>
+    /// Expands JsonApiDotNetCore configuration for usage with MongoDB.
+    /// </summary>
+    [PublicAPI]
+    public static IServiceCollection AddJsonApiMongoDb(this IServiceCollection services)
+    {
+        services.AddScoped<IMongoDataAccess, MongoDataAccess>();
+        services.AddScoped<IOperationsTransactionFactory, MongoTransactionFactory>();
+        services.AddScoped<IResourceObjectBuilder, IgnoreRelationshipsResponseResourceObjectBuilder>();
+
+        return services;
     }
 }

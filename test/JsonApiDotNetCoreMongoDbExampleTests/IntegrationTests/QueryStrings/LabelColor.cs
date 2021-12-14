@@ -1,12 +1,11 @@
 using JetBrains.Annotations;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings;
+
+[UsedImplicitly(ImplicitUseTargetFlags.Members)]
+public enum LabelColor
 {
-    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public enum LabelColor
-    {
-        Red,
-        Green,
-        Blue
-    }
+    Red,
+    Green,
+    Blue
 }

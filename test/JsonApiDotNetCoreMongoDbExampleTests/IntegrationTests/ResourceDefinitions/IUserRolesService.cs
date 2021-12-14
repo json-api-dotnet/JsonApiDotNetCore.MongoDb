@@ -1,7 +1,6 @@
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ResourceDefinitions;
+
+public interface IUserRolesService
 {
-    public interface IUserRolesService
-    {
-        bool AllowIncludeOwner { get; }
-    }
+    bool AllowIncludeOwner { get; }
 }

@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -9,72 +6,71 @@ using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Pagination
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Pagination;
+
+public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<TestableStartup>>
 {
-    public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    private const int DefaultPageSize = 5;
+
+    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly QueryStringFakers _fakers = new();
+
+    public RangeValidationTests(IntegrationTestContext<TestableStartup> testContext)
     {
-        private const int DefaultPageSize = 5;
+        _testContext = testContext;
 
-        private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly QueryStringFakers _fakers = new QueryStringFakers();
+        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        options.DefaultPageSize = new PageSize(DefaultPageSize);
+        options.MaximumPageSize = null;
+        options.MaximumPageNumber = null;
+    }
 
-        public RangeValidationTests(IntegrationTestContext<TestableStartup> testContext)
+    [Fact]
+    public async Task Returns_empty_set_of_resources_when_page_number_is_too_high()
+    {
+        // Arrange
+        List<Blog> blogs = _fakers.Blog.Generate(3);
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            _testContext = testContext;
+            await db.ClearCollectionAsync<Blog>();
+            await db.GetCollection<Blog>().InsertManyAsync(blogs);
+        });
 
-            var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-            options.DefaultPageSize = new PageSize(DefaultPageSize);
-            options.MaximumPageSize = null;
-            options.MaximumPageNumber = null;
-        }
+        const string route = "/blogs?sort=id&page[size]=3&page[number]=2";
 
-        [Fact]
-        public async Task Returns_empty_set_of_resources_when_page_number_is_too_high()
-        {
-            // Arrange
-            List<Blog> blogs = _fakers.Blog.Generate(3);
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.ClearCollectionAsync<Blog>();
-                await db.GetCollection<Blog>().InsertManyAsync(blogs);
-            });
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            const string route = "/blogs?sort=id&page[size]=3&page[number]=2";
+        responseDocument.ManyData.Should().BeEmpty();
+    }
 
-            // Act
-            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+    [Fact]
+    public async Task Can_use_zero_page_size()
+    {
+        // Arrange
+        const string route = "/blogs?page[size]=0";
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        // Act
+        (HttpResponseMessage httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            responseDocument.ManyData.Should().BeEmpty();
-        }
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+    }
 
-        [Fact]
-        public async Task Can_use_zero_page_size()
-        {
-            // Arrange
-            const string route = "/blogs?page[size]=0";
+    [Fact]
+    public async Task Can_use_positive_page_size()
+    {
+        // Arrange
+        const string route = "/blogs?page[size]=50";
 
-            // Act
-            (HttpResponseMessage httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);
+        // Act
+        (HttpResponseMessage httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-        }
-
-        [Fact]
-        public async Task Can_use_positive_page_size()
-        {
-            // Arrange
-            const string route = "/blogs?page[size]=50";
-
-            // Act
-            (HttpResponseMessage httpResponse, _) = await _testContext.ExecuteGetAsync<Document>(route);
-
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-        }
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
     }
 }

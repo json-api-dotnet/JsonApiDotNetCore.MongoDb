@@ -1,7 +1,4 @@
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -9,297 +6,296 @@ using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets
+namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets;
+
+public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<TestableStartup>>
 {
-    public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly QueryStringFakers _fakers = new();
+
+    public SparseFieldSetTests(IntegrationTestContext<TestableStartup> testContext)
     {
-        private readonly IntegrationTestContext<TestableStartup> _testContext;
-        private readonly QueryStringFakers _fakers = new QueryStringFakers();
+        _testContext = testContext;
 
-        public SparseFieldSetTests(IntegrationTestContext<TestableStartup> testContext)
+        testContext.ConfigureServicesAfterStartup(services =>
         {
-            _testContext = testContext;
+            services.AddSingleton<ResourceCaptureStore>();
 
-            testContext.ConfigureServicesAfterStartup(services =>
-            {
-                services.AddSingleton<ResourceCaptureStore>();
+            services.AddResourceRepository<ResultCapturingRepository<Blog>>();
+            services.AddResourceRepository<ResultCapturingRepository<BlogPost>>();
+            services.AddResourceRepository<ResultCapturingRepository<WebAccount>>();
+        });
+    }
 
-                services.AddResourceRepository<ResultCapturingRepository<Blog>>();
-                services.AddResourceRepository<ResultCapturingRepository<BlogPost>>();
-                services.AddResourceRepository<ResultCapturingRepository<WebAccount>>();
-            });
-        }
+    [Fact]
+    public async Task Cannot_select_fields_with_relationship_in_primary_resources()
+    {
+        // Arrange
+        BlogPost post = _fakers.BlogPost.Generate();
 
-        [Fact]
-        public async Task Cannot_select_fields_with_relationship_in_primary_resources()
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            BlogPost post = _fakers.BlogPost.Generate();
+            await db.ClearCollectionAsync<BlogPost>();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.ClearCollectionAsync<BlogPost>();
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        const string route = "/blogPosts?fields[blogPosts]=caption,author";
 
-            const string route = "/blogPosts?fields[blogPosts]=caption,author";
+        // Act
+        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
-            // Act
-            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        responseDocument.Errors.Should().HaveCount(1);
 
-            responseDocument.Errors.Should().HaveCount(1);
+        Error error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
+    }
 
-            Error error = responseDocument.Errors[0];
-            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
-            error.Detail.Should().BeNull();
-        }
+    [Fact]
+    public async Task Can_select_attribute_in_primary_resources()
+    {
+        // Arrange
+        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        store.Clear();
 
-        [Fact]
-        public async Task Can_select_attribute_in_primary_resources()
+        BlogPost post = _fakers.BlogPost.Generate();
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
+            await db.ClearCollectionAsync<BlogPost>();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            BlogPost post = _fakers.BlogPost.Generate();
+        const string route = "/blogPosts?fields[blogPosts]=caption";
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.ClearCollectionAsync<BlogPost>();
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            const string route = "/blogPosts?fields[blogPosts]=caption";
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            // Act
-            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+        responseDocument.ManyData.Should().HaveCount(1);
+        responseDocument.ManyData[0].Id.Should().Be(post.StringId);
+        responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
+        responseDocument.ManyData[0].Attributes["caption"].Should().Be(post.Caption);
+        responseDocument.ManyData[0].Relationships.Should().BeNull();
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        postCaptured.Caption.Should().Be(post.Caption);
+        postCaptured.Url.Should().BeNull();
+    }
 
-            responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(post.StringId);
-            responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
-            responseDocument.ManyData[0].Attributes["caption"].Should().Be(post.Caption);
-            responseDocument.ManyData[0].Relationships.Should().BeNull();
+    [Fact]
+    public async Task Cannot_select_relationship_in_primary_resources()
+    {
+        // Arrange
+        BlogPost post = _fakers.BlogPost.Generate();
 
-            var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
-            postCaptured.Caption.Should().Be(post.Caption);
-            postCaptured.Url.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task Cannot_select_relationship_in_primary_resources()
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            BlogPost post = _fakers.BlogPost.Generate();
+            await db.ClearCollectionAsync<BlogPost>();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.ClearCollectionAsync<BlogPost>();
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        const string route = "/blogPosts?fields[blogPosts]=author";
 
-            const string route = "/blogPosts?fields[blogPosts]=author";
+        // Act
+        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
-            // Act
-            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        responseDocument.Errors.Should().HaveCount(1);
 
-            responseDocument.Errors.Should().HaveCount(1);
+        Error error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
+    }
 
-            Error error = responseDocument.Errors[0];
-            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
-            error.Detail.Should().BeNull();
-        }
+    [Fact]
+    public async Task Can_select_attribute_in_primary_resource_by_ID()
+    {
+        // Arrange
+        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        store.Clear();
 
-        [Fact]
-        public async Task Can_select_attribute_in_primary_resource_by_ID()
+        BlogPost post = _fakers.BlogPost.Generate();
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            BlogPost post = _fakers.BlogPost.Generate();
+        string route = $"/blogPosts/{post.StringId}?fields[blogPosts]=url";
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            string route = $"/blogPosts/{post.StringId}?fields[blogPosts]=url";
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            // Act
-            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+        responseDocument.SingleData.Should().NotBeNull();
+        responseDocument.SingleData.Id.Should().Be(post.StringId);
+        responseDocument.SingleData.Attributes.Should().HaveCount(1);
+        responseDocument.SingleData.Attributes["url"].Should().Be(post.Url);
+        responseDocument.SingleData.Relationships.Should().BeNull();
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        postCaptured.Url.Should().Be(post.Url);
+        postCaptured.Caption.Should().BeNull();
+    }
 
-            responseDocument.SingleData.Should().NotBeNull();
-            responseDocument.SingleData.Id.Should().Be(post.StringId);
-            responseDocument.SingleData.Attributes.Should().HaveCount(1);
-            responseDocument.SingleData.Attributes["url"].Should().Be(post.Url);
-            responseDocument.SingleData.Relationships.Should().BeNull();
+    [Fact]
+    public async Task Cannot_select_fields_of_HasOne_relationship()
+    {
+        // Arrange
+        BlogPost post = _fakers.BlogPost.Generate();
 
-            var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
-            postCaptured.Url.Should().Be(post.Url);
-            postCaptured.Caption.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task Cannot_select_fields_of_HasOne_relationship()
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            BlogPost post = _fakers.BlogPost.Generate();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        string route = $"/blogPosts/{post.StringId}?fields[webAccounts]=displayName,emailAddress,preferences";
 
-            string route = $"/blogPosts/{post.StringId}?fields[webAccounts]=displayName,emailAddress,preferences";
+        // Act
+        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
-            // Act
-            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        responseDocument.Errors.Should().HaveCount(1);
 
-            responseDocument.Errors.Should().HaveCount(1);
+        Error error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
+    }
 
-            Error error = responseDocument.Errors[0];
-            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
-            error.Detail.Should().BeNull();
-        }
+    [Fact]
+    public async Task Cannot_select_fields_of_HasMany_relationship()
+    {
+        // Arrange
+        WebAccount account = _fakers.WebAccount.Generate();
 
-        [Fact]
-        public async Task Cannot_select_fields_of_HasMany_relationship()
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            WebAccount account = _fakers.WebAccount.Generate();
+            await db.GetCollection<WebAccount>().InsertOneAsync(account);
+        });
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<WebAccount>().InsertOneAsync(account);
-            });
+        string route = $"/webAccounts/{account.StringId}?fields[blogPosts]=caption,labels";
 
-            string route = $"/webAccounts/{account.StringId}?fields[blogPosts]=caption,labels";
+        // Act
+        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
-            // Act
-            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        responseDocument.Errors.Should().HaveCount(1);
 
-            responseDocument.Errors.Should().HaveCount(1);
+        Error error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
+    }
 
-            Error error = responseDocument.Errors[0];
-            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
-            error.Detail.Should().BeNull();
-        }
+    [Fact]
+    public async Task Cannot_select_fields_of_HasManyThrough_relationship()
+    {
+        // Arrange
+        BlogPost post = _fakers.BlogPost.Generate();
 
-        [Fact]
-        public async Task Cannot_select_fields_of_HasManyThrough_relationship()
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            BlogPost post = _fakers.BlogPost.Generate();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        string route = $"/blogPosts/{post.StringId}?fields[labels]=color";
 
-            string route = $"/blogPosts/{post.StringId}?fields[labels]=color";
+        // Act
+        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
 
-            // Act
-            (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        responseDocument.Errors.Should().HaveCount(1);
 
-            responseDocument.Errors.Should().HaveCount(1);
+        Error error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
+    }
 
-            Error error = responseDocument.Errors[0];
-            error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-            error.Title.Should().Be("Relationships are not supported when using MongoDB.");
-            error.Detail.Should().BeNull();
-        }
+    [Fact]
+    public async Task Can_select_ID()
+    {
+        // Arrange
+        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        store.Clear();
 
-        [Fact]
-        public async Task Can_select_ID()
+        BlogPost post = _fakers.BlogPost.Generate();
+
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
+            await db.ClearCollectionAsync<BlogPost>();
+            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+        });
 
-            BlogPost post = _fakers.BlogPost.Generate();
+        const string route = "/blogPosts?fields[blogPosts]=id,caption";
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.ClearCollectionAsync<BlogPost>();
-                await db.GetCollection<BlogPost>().InsertOneAsync(post);
-            });
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            const string route = "/blogPosts?fields[blogPosts]=id,caption";
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            // Act
-            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+        responseDocument.ManyData.Should().HaveCount(1);
+        responseDocument.ManyData[0].Id.Should().Be(post.StringId);
+        responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
+        responseDocument.ManyData[0].Attributes["caption"].Should().Be(post.Caption);
+        responseDocument.ManyData[0].Relationships.Should().BeNull();
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        postCaptured.Id.Should().Be(post.Id);
+        postCaptured.Caption.Should().Be(post.Caption);
+        postCaptured.Url.Should().BeNull();
+    }
 
-            responseDocument.ManyData.Should().HaveCount(1);
-            responseDocument.ManyData[0].Id.Should().Be(post.StringId);
-            responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
-            responseDocument.ManyData[0].Attributes["caption"].Should().Be(post.Caption);
-            responseDocument.ManyData[0].Relationships.Should().BeNull();
+    [Fact]
+    public async Task Retrieves_all_properties_when_fieldset_contains_readonly_attribute()
+    {
+        // Arrange
+        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        store.Clear();
 
-            var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
-            postCaptured.Id.Should().Be(post.Id);
-            postCaptured.Caption.Should().Be(post.Caption);
-            postCaptured.Url.Should().BeNull();
-        }
+        Blog blog = _fakers.Blog.Generate();
 
-        [Fact]
-        public async Task Retrieves_all_properties_when_fieldset_contains_readonly_attribute()
+        await _testContext.RunOnDatabaseAsync(async db =>
         {
-            // Arrange
-            var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
-            store.Clear();
+            await db.GetCollection<Blog>().InsertOneAsync(blog);
+        });
 
-            Blog blog = _fakers.Blog.Generate();
+        string route = $"/blogs/{blog.StringId}?fields[blogs]=showAdvertisements";
 
-            await _testContext.RunOnDatabaseAsync(async db =>
-            {
-                await db.GetCollection<Blog>().InsertOneAsync(blog);
-            });
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
-            string route = $"/blogs/{blog.StringId}?fields[blogs]=showAdvertisements";
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-            // Act
-            (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+        responseDocument.SingleData.Should().NotBeNull();
+        responseDocument.SingleData.Id.Should().Be(blog.StringId);
+        responseDocument.SingleData.Attributes.Should().HaveCount(1);
+        responseDocument.SingleData.Attributes["showAdvertisements"].Should().Be(blog.ShowAdvertisements);
+        responseDocument.SingleData.Relationships.Should().BeNull();
 
-            // Assert
-            httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
-
-            responseDocument.SingleData.Should().NotBeNull();
-            responseDocument.SingleData.Id.Should().Be(blog.StringId);
-            responseDocument.SingleData.Attributes.Should().HaveCount(1);
-            responseDocument.SingleData.Attributes["showAdvertisements"].Should().Be(blog.ShowAdvertisements);
-            responseDocument.SingleData.Relationships.Should().BeNull();
-
-            var blogCaptured = (Blog)store.Resources.Should().ContainSingle(resource => resource is Blog).And.Subject.Single();
-            blogCaptured.ShowAdvertisements.Should().Be(blogCaptured.ShowAdvertisements);
-            blogCaptured.Title.Should().Be(blog.Title);
-        }
+        var blogCaptured = (Blog)store.Resources.Should().ContainSingle(resource => resource is Blog).And.Subject.Single();
+        blogCaptured.ShowAdvertisements.Should().Be(blogCaptured.ShowAdvertisements);
+        blogCaptured.Title.Should().Be(blog.Title);
     }
 }

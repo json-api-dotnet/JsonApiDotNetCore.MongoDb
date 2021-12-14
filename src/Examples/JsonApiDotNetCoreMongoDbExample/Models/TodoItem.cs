@@ -1,20 +1,18 @@
-using System;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 
-namespace JsonApiDotNetCoreMongoDbExample.Models
+namespace JsonApiDotNetCoreMongoDbExample.Models;
+
+[UsedImplicitly(ImplicitUseTargetFlags.Members)]
+public sealed class TodoItem : MongoIdentifiable
 {
-    [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-    public sealed class TodoItem : MongoIdentifiable
-    {
-        [Attr]
-        public string Description { get; set; }
+    [Attr]
+    public string Description { get; set; }
 
-        [Attr]
-        public DateTimeOffset CreatedAt { get; set; }
+    [Attr]
+    public DateTimeOffset CreatedAt { get; set; }
 
-        [Attr]
-        public DateTimeOffset? CompletedAt { get; set; }
-    }
+    [Attr]
+    public DateTimeOffset? CompletedAt { get; set; }
 }
