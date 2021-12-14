@@ -21,9 +21,9 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
         {
             protected override string Identifier => "response";
 
-            public HttpResponseMessageAssertions(HttpResponseMessage instance)
+            public HttpResponseMessageAssertions(HttpResponseMessage subject)
+                : base(subject)
             {
-                Subject = instance;
             }
 
             // ReSharper disable once UnusedMethodReturnValue.Global

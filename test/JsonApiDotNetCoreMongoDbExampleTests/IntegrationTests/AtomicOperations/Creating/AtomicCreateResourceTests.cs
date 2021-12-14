@@ -81,7 +81,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
                 Performer performerInDatabase = await db.GetCollection<Performer>().AsQueryable().FirstWithIdAsync(newPerformerId);
 
                 performerInDatabase.ArtistName.Should().Be(newArtistName);
-                performerInDatabase.BornAt.Should().BeCloseTo(newBornAt);
+                performerInDatabase.BornAt.Should().BeCloseTo(newBornAt, TimeSpan.FromMilliseconds(20));
             });
         }
 
@@ -164,7 +164,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
                     trackInDatabase.Title.Should().Be(newTracks[index].Title);
                     trackInDatabase.LengthInSeconds.Should().BeApproximately(newTracks[index].LengthInSeconds);
                     trackInDatabase.Genre.Should().Be(newTracks[index].Genre);
-                    trackInDatabase.ReleasedAt.Should().BeCloseTo(newTracks[index].ReleasedAt);
+                    trackInDatabase.ReleasedAt.Should().BeCloseTo(newTracks[index].ReleasedAt, TimeSpan.FromMilliseconds(20));
                 }
             });
         }

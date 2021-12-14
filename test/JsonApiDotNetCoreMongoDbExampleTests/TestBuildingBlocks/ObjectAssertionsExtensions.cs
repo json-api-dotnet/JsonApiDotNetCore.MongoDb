@@ -30,7 +30,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks
                 }
 
                 // We lose a little bit of precision (milliseconds) on roundtrip through MongoDB database.
-                value.Should().BeCloseTo(expected.Value, because: because, becauseArgs: becauseArgs);
+                value.Should().BeCloseTo(expected.Value, TimeSpan.FromMilliseconds(20), because, becauseArgs);
             }
         }
 

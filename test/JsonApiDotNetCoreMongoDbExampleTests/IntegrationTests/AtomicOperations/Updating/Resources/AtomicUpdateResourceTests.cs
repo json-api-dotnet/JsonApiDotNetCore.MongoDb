@@ -193,7 +193,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
                 trackInDatabase.Title.Should().Be(existingTrack.Title);
                 trackInDatabase.LengthInSeconds.Should().BeApproximately(existingTrack.LengthInSeconds);
                 trackInDatabase.Genre.Should().Be(newGenre);
-                trackInDatabase.ReleasedAt.Should().BeCloseTo(existingTrack.ReleasedAt);
+                trackInDatabase.ReleasedAt.Should().BeCloseTo(existingTrack.ReleasedAt, TimeSpan.FromMilliseconds(20));
             });
         }
 
@@ -253,7 +253,7 @@ namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations
                 trackInDatabase.Title.Should().Be(newTitle);
                 trackInDatabase.LengthInSeconds.Should().BeApproximately(newLengthInSeconds);
                 trackInDatabase.Genre.Should().Be(newGenre);
-                trackInDatabase.ReleasedAt.Should().BeCloseTo(newReleasedAt);
+                trackInDatabase.ReleasedAt.Should().BeCloseTo(newReleasedAt, TimeSpan.FromMilliseconds(20));
             });
         }
 
