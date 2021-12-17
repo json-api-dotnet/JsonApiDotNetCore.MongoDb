@@ -1,35 +1,34 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Updating.Relationships;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Updating.Relationships;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class AtomicRemoveFromToManyRelationshipTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicRemoveFromToManyRelationshipTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
-
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
     }
 
     [Fact]
-    public async Task Cannot_remove_from_HasMany_relationship()
+    public async Task Cannot_remove_from_OneToMany_relationship()
     {
         // Arrange
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
         existingTrack.Performers = _fakers.Performer.Generate(1);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<Performer>().InsertOneAsync(existingTrack.Performers[0]);
-            await db.GetCollection<MusicTrack>().InsertOneAsync(existingTrack);
+            dbContext.Performers.Add(existingTrack.Performers[0]);
+            dbContext.MusicTracks.Add(existingTrack);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -60,35 +59,33 @@ public sealed class AtomicRemoveFromToManyRelationshipTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
     }
 
     [Fact]
-    public async Task Cannot_remove_from_HasManyThrough_relationship()
+    public async Task Cannot_remove_from_ManyToMany_relationship()
     {
         // Arrange
-        var existingPlaylistMusicTrack = new PlaylistMusicTrack
-        {
-            Playlist = _fakers.Playlist.Generate(),
-            MusicTrack = _fakers.MusicTrack.Generate()
-        };
+        Playlist existingPlaylist = _fakers.Playlist.Generate();
+        existingPlaylist.Tracks = _fakers.MusicTrack.Generate(1);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<Playlist>().InsertOneAsync(existingPlaylistMusicTrack.Playlist);
-            await db.GetCollection<MusicTrack>().InsertOneAsync(existingPlaylistMusicTrack.MusicTrack);
-            await db.GetCollection<PlaylistMusicTrack>().InsertOneAsync(existingPlaylistMusicTrack);
+            dbContext.MusicTracks.Add(existingPlaylist.Tracks[0]);
+            dbContext.Playlists.Add(existingPlaylist);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -101,7 +98,7 @@ public sealed class AtomicRemoveFromToManyRelationshipTests
                     @ref = new
                     {
                         type = "playlists",
-                        id = existingPlaylistMusicTrack.Playlist.StringId,
+                        id = existingPlaylist.StringId,
                         relationship = "tracks"
                     },
                     data = new[]
@@ -109,7 +106,7 @@ public sealed class AtomicRemoveFromToManyRelationshipTests
                         new
                         {
                             type = "musicTracks",
-                            id = existingPlaylistMusicTrack.MusicTrack.StringId
+                            id = existingPlaylist.Tracks[0].StringId
                         }
                     }
                 }
@@ -119,17 +116,18 @@ public sealed class AtomicRemoveFromToManyRelationshipTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
     }
 }

@@ -1,22 +1,28 @@
 using System.Net;
-using System.Reflection;
 using FluentAssertions;
-using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using MongoDB.Driver;
+using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite.Creating;
 
-public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup, ReadWriteDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, ReadWriteDbContext> _testContext;
     private readonly ReadWriteFakers _fakers = new();
 
-    public CreateResourceTests(IntegrationTestContext<TestableStartup> testContext)
+    public CreateResourceTests(IntegrationTestContext<TestableStartup, ReadWriteDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<WorkItemsController>();
+        testContext.UseController<RgbColorsController>();
+        testContext.UseController<ModelWithIntIdsController>();
+
+        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        options.AllowClientGeneratedIds = false;
     }
 
     [Fact]
@@ -46,24 +52,21 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItems");
-        responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
-        responseDocument.SingleData.Attributes["dueAt"].Should().Be(newWorkItem.DueAt);
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Type.Should().Be("workItems");
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(newWorkItem.Description));
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().Be(newWorkItem.DueAt));
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
-        string newWorkItemId = responseDocument.SingleData.Id;
+        string newWorkItemId = responseDocument.Data.SingleValue.Id.ShouldNotBeNull();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(newWorkItemId);
+            WorkItem workItemInDatabase = await dbContext.WorkItems.FirstWithIdAsync(newWorkItemId);
 
             workItemInDatabase.Description.Should().Be(newWorkItem.Description);
             workItemInDatabase.DueAt.Should().Be(newWorkItem.DueAt);
         });
-
-        PropertyInfo property = typeof(WorkItem).GetProperty(nameof(Identifiable.Id));
-        property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
     }
 
     [Fact]
@@ -85,14 +88,14 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         const string route = "/modelWithIntIds";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         error.Title.Should().Be("An unhandled error occurred while processing this request.");
         error.Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
@@ -124,17 +127,17 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItems");
-        responseDocument.SingleData.Attributes["description"].Should().BeNull();
-        responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Type.Should().Be("workItems");
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().BeNull());
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().BeNull());
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
-        string newWorkItemId = responseDocument.SingleData.Id;
+        string newWorkItemId = responseDocument.Data.SingleValue.Id.ShouldNotBeNull();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(newWorkItemId);
+            WorkItem workItemInDatabase = await dbContext.WorkItems.FirstWithIdAsync(newWorkItemId);
 
             workItemInDatabase.Description.Should().BeNull();
             workItemInDatabase.DueAt.Should().BeNull();
@@ -142,90 +145,38 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
     }
 
     [Fact]
-    public async Task Can_create_resource_with_unknown_attribute()
+    public async Task Cannot_create_resource_with_client_generated_ID()
     {
         // Arrange
-        WorkItem newWorkItem = _fakers.WorkItem.Generate();
-
         var requestBody = new
         {
             data = new
             {
-                type = "workItems",
+                type = "rgbColors",
+                id = "0A0B0C",
                 attributes = new
                 {
-                    doesNotExist = "ignored",
-                    description = newWorkItem.Description
+                    displayName = "Black"
                 }
             }
         };
 
-        const string route = "/workItems";
+        const string route = "/rgbColors";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.Forbidden);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItems");
-        responseDocument.SingleData.Attributes["description"].Should().Be(newWorkItem.Description);
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        string newWorkItemId = responseDocument.SingleData.Id;
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(newWorkItemId);
-
-            workItemInDatabase.Description.Should().Be(newWorkItem.Description);
-        });
-    }
-
-    [Fact]
-    public async Task Can_create_resource_with_unknown_relationship()
-    {
-        // Arrange
-        var requestBody = new
-        {
-            data = new
-            {
-                type = "workItems",
-                relationships = new
-                {
-                    doesNotExist = new
-                    {
-                        data = new
-                        {
-                            type = "doesNotExist",
-                            id = "ffffffffffffffffffffffff"
-                        }
-                    }
-                }
-            }
-        };
-
-        const string route = "/workItems";
-
-        // Act
-        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
-
-        // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
-
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItems");
-        responseDocument.SingleData.Attributes.Should().NotBeEmpty();
-        responseDocument.SingleData.Relationships.Should().BeNull();
-
-        string newWorkItemId = responseDocument.SingleData.Id;
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdOrDefaultAsync(newWorkItemId);
-
-            workItemInDatabase.Should().NotBeNull();
-        });
+        ErrorObject error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        error.Title.Should().Be("Failed to deserialize request body: The use of client-generated IDs is disabled.");
+        error.Detail.Should().BeNull();
+        error.Source.ShouldNotBeNull();
+        error.Source.Pointer.Should().Be("/data/id");
+        error.Meta.ShouldContainKey("requestBody").With(value => value.ShouldNotBeNull().ToString().ShouldNotBeEmpty());
     }
 }

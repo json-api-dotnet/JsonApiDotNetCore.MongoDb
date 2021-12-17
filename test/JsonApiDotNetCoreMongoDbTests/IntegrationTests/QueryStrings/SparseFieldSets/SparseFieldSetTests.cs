@@ -2,28 +2,32 @@ using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.SparseFieldSets;
 
-public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<TestableStartup, QueryStringDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, QueryStringDbContext> _testContext;
     private readonly QueryStringFakers _fakers = new();
 
-    public SparseFieldSetTests(IntegrationTestContext<TestableStartup> testContext)
+    public SparseFieldSetTests(IntegrationTestContext<TestableStartup, QueryStringDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<BlogPostsController>();
+        testContext.UseController<WebAccountsController>();
+        testContext.UseController<BlogsController>();
 
         testContext.ConfigureServicesAfterStartup(services =>
         {
             services.AddSingleton<ResourceCaptureStore>();
 
-            services.AddResourceRepository<ResultCapturingRepository<Blog>>();
-            services.AddResourceRepository<ResultCapturingRepository<BlogPost>>();
-            services.AddResourceRepository<ResultCapturingRepository<WebAccount>>();
+            services.AddResourceRepository<ResultCapturingRepository<Blog, string?>>();
+            services.AddResourceRepository<ResultCapturingRepository<BlogPost, string?>>();
+            services.AddResourceRepository<ResultCapturingRepository<WebAccount, string?>>();
         });
     }
 
@@ -31,28 +35,21 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Cannot_select_fields_with_relationship_in_primary_resources()
     {
         // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
         const string route = "/blogPosts?fields[blogPosts]=caption,author";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
@@ -64,10 +61,11 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
 
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.Add(post);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts?fields[blogPosts]=caption";
@@ -78,11 +76,11 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Id.Should().Be(post.StringId);
-        responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["caption"].Should().Be(post.Caption);
-        responseDocument.ManyData[0].Relationships.Should().BeNull();
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(post.StringId);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("caption").With(value => value.Should().Be(post.Caption));
+        responseDocument.Data.ManyValue[0].Relationships.Should().BeNull();
 
         var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
         postCaptured.Caption.Should().Be(post.Caption);
@@ -93,28 +91,21 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Cannot_select_relationship_in_primary_resources()
     {
         // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
         const string route = "/blogPosts?fields[blogPosts]=author";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
@@ -126,9 +117,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
 
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+            dbContext.Posts.Add(post);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[blogPosts]=url";
@@ -139,11 +131,11 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Id.Should().Be(post.StringId);
-        responseDocument.SingleData.Attributes.Should().HaveCount(1);
-        responseDocument.SingleData.Attributes["url"].Should().Be(post.Url);
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Id.Should().Be(post.StringId);
+        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(1);
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("url").With(value => value.Should().Be(post.Url));
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
         postCaptured.Url.Should().Be(post.Url);
@@ -151,84 +143,90 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     }
 
     [Fact]
-    public async Task Cannot_select_fields_of_HasOne_relationship()
+    public async Task Cannot_select_fields_of_ManyToOne_relationship()
     {
         // Arrange
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+            dbContext.Posts.Add(post);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[webAccounts]=displayName,emailAddress,preferences";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_select_fields_of_HasMany_relationship()
+    public async Task Cannot_select_fields_of_OneToMany_relationship()
     {
         // Arrange
         WebAccount account = _fakers.WebAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<WebAccount>().InsertOneAsync(account);
+            dbContext.Accounts.Add(account);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/webAccounts/{account.StringId}?fields[blogPosts]=caption,labels";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_select_fields_of_HasManyThrough_relationship()
+    public async Task Cannot_select_fields_of_ManyToMany_relationship()
     {
         // Arrange
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+            dbContext.Posts.Add(post);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[labels]=color";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
@@ -240,10 +238,11 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
 
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.Add(post);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts?fields[blogPosts]=id,caption";
@@ -254,15 +253,49 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Id.Should().Be(post.StringId);
-        responseDocument.ManyData[0].Attributes.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["caption"].Should().Be(post.Caption);
-        responseDocument.ManyData[0].Relationships.Should().BeNull();
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(post.StringId);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("caption").With(value => value.Should().Be(post.Caption));
+        responseDocument.Data.ManyValue[0].Relationships.Should().BeNull();
 
         var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
         postCaptured.Id.Should().Be(post.Id);
         postCaptured.Caption.Should().Be(post.Caption);
+        postCaptured.Url.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Can_select_empty_fieldset()
+    {
+        // Arrange
+        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        store.Clear();
+
+        BlogPost post = _fakers.BlogPost.Generate();
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.Add(post);
+            await dbContext.SaveChangesAsync();
+        });
+
+        const string route = "/blogPosts?fields[blogPosts]=";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(post.StringId);
+        responseDocument.Data.ManyValue[0].Attributes.Should().BeNull();
+        responseDocument.Data.ManyValue[0].Relationships.Should().BeNull();
+
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        postCaptured.Id.Should().Be(post.Id);
         postCaptured.Url.Should().BeNull();
     }
 
@@ -275,9 +308,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
 
         Blog blog = _fakers.Blog.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<Blog>().InsertOneAsync(blog);
+            dbContext.Blogs.Add(blog);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogs/{blog.StringId}?fields[blogs]=showAdvertisements";
@@ -288,11 +322,11 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Id.Should().Be(blog.StringId);
-        responseDocument.SingleData.Attributes.Should().HaveCount(1);
-        responseDocument.SingleData.Attributes["showAdvertisements"].Should().Be(blog.ShowAdvertisements);
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Id.Should().Be(blog.StringId);
+        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(1);
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("showAdvertisements").With(value => value.Should().Be(blog.ShowAdvertisements));
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         var blogCaptured = (Blog)store.Resources.Should().ContainSingle(resource => resource is Blog).And.Subject.Single();
         blogCaptured.ShowAdvertisements.Should().Be(blogCaptured.ShowAdvertisements);

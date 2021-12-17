@@ -1,11 +1,11 @@
 using System.Globalization;
 using Bogus;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using TestBuildingBlocks;
 
 // @formatter:wrap_chained_method_calls chop_always
 // @formatter:keep_existing_linebreaks true
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 internal sealed class OperationsFakers : FakerContainer
 {
@@ -27,7 +27,8 @@ internal sealed class OperationsFakers : FakerContainer
             .RuleFor(musicTrack => musicTrack.Title, faker => faker.Lorem.Word())
             .RuleFor(musicTrack => musicTrack.LengthInSeconds, faker => faker.Random.Decimal(3 * 60, 5 * 60))
             .RuleFor(musicTrack => musicTrack.Genre, faker => faker.Lorem.Word())
-            .RuleFor(musicTrack => musicTrack.ReleasedAt, faker => faker.Date.PastOffset()));
+            .RuleFor(musicTrack => musicTrack.ReleasedAt, faker => faker.Date.PastOffset()
+                .TruncateToWholeMilliseconds()));
 
     private readonly Lazy<Faker<Lyric>> _lazyLyricFaker = new(() =>
         new Faker<Lyric>()
@@ -44,7 +45,8 @@ internal sealed class OperationsFakers : FakerContainer
         new Faker<Performer>()
             .UseSeed(GetFakerSeed())
             .RuleFor(performer => performer.ArtistName, faker => faker.Name.FullName())
-            .RuleFor(performer => performer.BornAt, faker => faker.Date.PastOffset()));
+            .RuleFor(performer => performer.BornAt, faker => faker.Date.PastOffset()
+                .TruncateToWholeMilliseconds()));
 
     private readonly Lazy<Faker<RecordCompany>> _lazyRecordCompanyFaker = new(() =>
         new Faker<RecordCompany>()

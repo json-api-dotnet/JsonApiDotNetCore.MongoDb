@@ -1,10 +1,11 @@
 using Bogus;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using MongoDB.Bson;
+using TestBuildingBlocks;
 
 // @formatter:wrap_chained_method_calls chop_always
 // @formatter:keep_existing_linebreaks true
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 internal sealed class ReadWriteFakers : FakerContainer
 {
@@ -12,7 +13,8 @@ internal sealed class ReadWriteFakers : FakerContainer
         new Faker<WorkItem>()
             .UseSeed(GetFakerSeed())
             .RuleFor(workItem => workItem.Description, faker => faker.Lorem.Sentence())
-            .RuleFor(workItem => workItem.DueAt, faker => faker.Date.Future())
+            .RuleFor(workItem => workItem.DueAt, faker => faker.Date.Future()
+                .TruncateToWholeMilliseconds())
             .RuleFor(workItem => workItem.Priority, faker => faker.PickRandom<WorkItemPriority>()));
 
     private readonly Lazy<Faker<WorkTag>> _lazyWorkTagFaker = new(() =>
@@ -36,7 +38,9 @@ internal sealed class ReadWriteFakers : FakerContainer
     private readonly Lazy<Faker<RgbColor>> _lazyRgbColorFaker = new(() =>
         new Faker<RgbColor>()
             .UseSeed(GetFakerSeed())
-            .RuleFor(color => color.DisplayName, faker => faker.Lorem.Word()));
+            .RuleFor(color => color.Id, faker => ObjectId.GenerateNewId(faker.Date.Past())
+                .ToString())
+            .RuleFor(color => color.DisplayName, faker => faker.Commerce.Color()));
 
     public Faker<WorkItem> WorkItem => _lazyWorkItemFaker.Value;
     public Faker<WorkTag> WorkTag => _lazyWorkTagFaker.Value;

@@ -1,30 +1,33 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Creating;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite.Creating;
 
-public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup, ReadWriteDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, ReadWriteDbContext> _testContext;
     private readonly ReadWriteFakers _fakers = new();
 
-    public CreateResourceWithToManyRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
+    public CreateResourceWithToManyRelationshipTests(IntegrationTestContext<TestableStartup, ReadWriteDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<WorkItemsController>();
     }
 
     [Fact]
-    public async Task Cannot_create_HasMany_relationship()
+    public async Task Cannot_create_resource_with_ToMany_relationship()
     {
         // Arrange
-        List<UserAccount> existingUserAccounts = _fakers.UserAccount.Generate(2);
+        UserAccount? existingUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<UserAccount>().InsertManyAsync(existingUserAccounts);
+            dbContext.UserAccounts.Add(existingUserAccount);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -41,12 +44,7 @@ public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<In
                             new
                             {
                                 type = "userAccounts",
-                                id = existingUserAccounts[0].StringId
-                            },
-                            new
-                            {
-                                type = "userAccounts",
-                                id = existingUserAccounts[1].StringId
+                                id = existingUserAccount.StringId
                             }
                         }
                     }
@@ -57,16 +55,17 @@ public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<In
         const string route = "/workItems";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 }

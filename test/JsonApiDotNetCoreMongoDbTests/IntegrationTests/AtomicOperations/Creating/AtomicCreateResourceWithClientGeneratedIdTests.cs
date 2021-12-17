@@ -2,24 +2,22 @@ using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
+using MongoDB.Bson;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Creating;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Creating;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class AtomicCreateResourceWithClientGeneratedIdTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicCreateResourceWithClientGeneratedIdTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
-
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
 
         var options = (JsonApiOptions)fixture.TestContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.AllowClientGeneratedIds = true;
@@ -30,12 +28,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
     {
         // Arrange
         TextLanguage newLanguage = _fakers.TextLanguage.Generate();
-        newLanguage.Id = "507f191e810c19729de860ea";
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.EnsureEmptyCollectionAsync<TextLanguage>();
-        });
+        newLanguage.Id = ObjectId.GenerateNewId().ToString();
 
         var requestBody = new
         {
@@ -60,24 +53,28 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
-            await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.Should().HaveCount(1);
-        responseDocument.Results[0].SingleData.Should().NotBeNull();
-        responseDocument.Results[0].SingleData.Type.Should().Be("textLanguages");
-        responseDocument.Results[0].SingleData.Attributes["isoCode"].Should().Be(newLanguage.IsoCode);
-        responseDocument.Results[0].SingleData.Attributes.Should().NotContainKey("concurrencyToken");
-        responseDocument.Results[0].SingleData.Relationships.Should().BeNull();
+        string isoCode = $"{newLanguage.IsoCode}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        responseDocument.Results.ShouldHaveCount(1);
+
+        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
         {
-            TextLanguage languageInDatabase = await db.GetCollection<TextLanguage>().AsQueryable().FirstWithIdAsync(newLanguage.Id);
+            resource.Type.Should().Be("textLanguages");
+            resource.Attributes.ShouldContainKey("isoCode").With(value => value.Should().Be(isoCode));
+            resource.Attributes.Should().NotContainKey("isRightToLeft");
+            resource.Relationships.Should().BeNull();
+        });
 
-            languageInDatabase.IsoCode.Should().Be(newLanguage.IsoCode);
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            TextLanguage languageInDatabase = await dbContext.TextLanguages.FirstWithIdAsync(newLanguage.Id);
+
+            languageInDatabase.IsoCode.Should().Be(isoCode);
         });
     }
 
@@ -86,12 +83,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
     {
         // Arrange
         MusicTrack newTrack = _fakers.MusicTrack.Generate();
-        newTrack.Id = "5ffcc0d1d69a27c92b8c62dd";
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.EnsureEmptyCollectionAsync<MusicTrack>();
-        });
+        newTrack.Id = ObjectId.GenerateNewId().ToString();
 
         var requestBody = new
         {
@@ -107,7 +99,8 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
                         attributes = new
                         {
                             title = newTrack.Title,
-                            lengthInSeconds = newTrack.LengthInSeconds
+                            lengthInSeconds = newTrack.LengthInSeconds,
+                            releasedAt = newTrack.ReleasedAt
                         }
                     }
                 }
@@ -124,9 +117,9 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            MusicTrack trackInDatabase = await db.GetCollection<MusicTrack>().AsQueryable().FirstWithIdAsync(newTrack.Id);
+            MusicTrack trackInDatabase = await dbContext.MusicTracks.FirstWithIdAsync(newTrack.Id);
 
             trackInDatabase.Title.Should().Be(newTrack.Title);
             trackInDatabase.LengthInSeconds.Should().BeApproximately(newTrack.LengthInSeconds);
@@ -138,13 +131,14 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
     {
         // Arrange
         TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
+        existingLanguage.Id = ObjectId.GenerateNewId().ToString();
 
-        TextLanguage languageToCreate = _fakers.TextLanguage.Generate();
+        string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<TextLanguage>().InsertOneAsync(existingLanguage);
-            languageToCreate.Id = existingLanguage.Id;
+            dbContext.TextLanguages.Add(existingLanguage);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -157,10 +151,10 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
                     data = new
                     {
                         type = "textLanguages",
-                        id = languageToCreate.StringId,
+                        id = existingLanguage.StringId,
                         attributes = new
                         {
-                            isoCode = languageToCreate.IsoCode
+                            isoCode = newIsoCode
                         }
                     }
                 }
@@ -170,17 +164,19 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.Conflict);
         error.Title.Should().Be("Another resource with the specified ID already exists.");
-        error.Detail.Should().Be($"Another resource of type 'textLanguages' with ID '{languageToCreate.StringId}' already exists.");
+        error.Detail.Should().Be($"Another resource of type 'textLanguages' with ID '{existingLanguage.StringId}' already exists.");
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
+        error.Meta.Should().NotContainKey("requestBody");
     }
 }

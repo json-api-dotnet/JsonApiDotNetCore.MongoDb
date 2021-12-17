@@ -1,23 +1,20 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using MongoDB.Driver;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Updating.Resources;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Updating.Resources;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class AtomicUpdateResourceTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
-
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
     }
 
     [Fact]
@@ -29,10 +26,11 @@ public sealed class AtomicUpdateResourceTests
         List<MusicTrack> existingTracks = _fakers.MusicTrack.Generate(elementCount);
         string[] newTrackTitles = _fakers.MusicTrack.Generate(elementCount).Select(musicTrack => musicTrack.Title).ToArray();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<MusicTrack>();
-            await db.GetCollection<MusicTrack>().InsertManyAsync(existingTracks);
+            await dbContext.ClearTableAsync<MusicTrack>();
+            dbContext.MusicTracks.AddRange(existingTracks);
+            await dbContext.SaveChangesAsync();
         });
 
         var operationElements = new List<object>(elementCount);
@@ -69,11 +67,11 @@ public sealed class AtomicUpdateResourceTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            List<MusicTrack> tracksInDatabase = await db.GetCollection<MusicTrack>().AsQueryable().ToListAsync();
+            List<MusicTrack> tracksInDatabase = await dbContext.MusicTracks.ToListAsync();
 
-            tracksInDatabase.Should().HaveCount(elementCount);
+            tracksInDatabase.ShouldHaveCount(elementCount);
 
             for (int index = 0; index < elementCount; index++)
             {
@@ -91,9 +89,10 @@ public sealed class AtomicUpdateResourceTests
         // Arrange
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<MusicTrack>().InsertOneAsync(existingTrack);
+            dbContext.MusicTracks.Add(existingTrack);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -128,9 +127,9 @@ public sealed class AtomicUpdateResourceTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            MusicTrack trackInDatabase = await db.GetCollection<MusicTrack>().AsQueryable().FirstWithIdAsync(existingTrack.Id);
+            MusicTrack trackInDatabase = await dbContext.MusicTracks.FirstWithIdAsync(existingTrack.Id);
 
             trackInDatabase.Title.Should().Be(existingTrack.Title);
             trackInDatabase.Genre.Should().Be(existingTrack.Genre);
@@ -142,13 +141,13 @@ public sealed class AtomicUpdateResourceTests
     {
         // Arrange
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
-        existingTrack.OwnedBy = _fakers.RecordCompany.Generate();
 
-        string newGenre = _fakers.MusicTrack.Generate().Genre;
+        string newGenre = _fakers.MusicTrack.Generate().Genre!;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<MusicTrack>().InsertOneAsync(existingTrack);
+            dbContext.MusicTracks.Add(existingTrack);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -181,14 +180,14 @@ public sealed class AtomicUpdateResourceTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            MusicTrack trackInDatabase = await db.GetCollection<MusicTrack>().AsQueryable().FirstWithIdAsync(existingTrack.Id);
+            MusicTrack trackInDatabase = await dbContext.MusicTracks.FirstWithIdAsync(existingTrack.Id);
 
             trackInDatabase.Title.Should().Be(existingTrack.Title);
             trackInDatabase.LengthInSeconds.Should().BeApproximately(existingTrack.LengthInSeconds);
             trackInDatabase.Genre.Should().Be(newGenre);
-            trackInDatabase.ReleasedAt.Should().BeCloseTo(existingTrack.ReleasedAt, TimeSpan.FromMilliseconds(20));
+            trackInDatabase.ReleasedAt.Should().Be(existingTrack.ReleasedAt);
         });
     }
 
@@ -200,12 +199,13 @@ public sealed class AtomicUpdateResourceTests
 
         string newTitle = _fakers.MusicTrack.Generate().Title;
         decimal? newLengthInSeconds = _fakers.MusicTrack.Generate().LengthInSeconds;
-        string newGenre = _fakers.MusicTrack.Generate().Genre;
+        string newGenre = _fakers.MusicTrack.Generate().Genre!;
         DateTimeOffset newReleasedAt = _fakers.MusicTrack.Generate().ReleasedAt;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<MusicTrack>().InsertOneAsync(existingTrack);
+            dbContext.MusicTracks.Add(existingTrack);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -241,14 +241,14 @@ public sealed class AtomicUpdateResourceTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            MusicTrack trackInDatabase = await db.GetCollection<MusicTrack>().AsQueryable().FirstWithIdAsync(existingTrack.Id);
+            MusicTrack trackInDatabase = await dbContext.MusicTracks.FirstWithIdAsync(existingTrack.Id);
 
             trackInDatabase.Title.Should().Be(newTitle);
             trackInDatabase.LengthInSeconds.Should().BeApproximately(newLengthInSeconds);
             trackInDatabase.Genre.Should().Be(newGenre);
-            trackInDatabase.ReleasedAt.Should().BeCloseTo(newReleasedAt, TimeSpan.FromMilliseconds(20));
+            trackInDatabase.ReleasedAt.Should().Be(newReleasedAt);
         });
     }
 
@@ -257,11 +257,12 @@ public sealed class AtomicUpdateResourceTests
     {
         // Arrange
         TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
-        string newIsoCode = _fakers.TextLanguage.Generate().IsoCode;
+        string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<TextLanguage>().InsertOneAsync(existingLanguage);
+            dbContext.TextLanguages.Add(existingLanguage);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -287,24 +288,27 @@ public sealed class AtomicUpdateResourceTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
-            await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.Should().HaveCount(1);
-        responseDocument.Results[0].SingleData.Should().NotBeNull();
-        responseDocument.Results[0].SingleData.Type.Should().Be("textLanguages");
-        responseDocument.Results[0].SingleData.Attributes["isoCode"].Should().Be(newIsoCode);
-        responseDocument.Results[0].SingleData.Attributes.Should().NotContainKey("concurrencyToken");
-        responseDocument.Results[0].SingleData.Relationships.Should().BeNull();
+        responseDocument.Results.ShouldHaveCount(1);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        string isoCode = $"{newIsoCode}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition.Suffix}";
+
+        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
         {
-            TextLanguage languageInDatabase = await db.GetCollection<TextLanguage>().AsQueryable().FirstWithIdAsync(existingLanguage.Id);
+            resource.Type.Should().Be("textLanguages");
+            resource.Attributes.ShouldContainKey("isoCode").With(value => value.Should().Be(isoCode));
+            resource.Attributes.Should().NotContainKey("isRightToLeft");
+            resource.Relationships.Should().BeNull();
+        });
 
-            languageInDatabase.IsoCode.Should().Be(newIsoCode);
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            TextLanguage languageInDatabase = await dbContext.TextLanguages.FirstWithIdAsync(existingLanguage.Id);
+            languageInDatabase.IsoCode.Should().Be(isoCode);
         });
     }
 
@@ -312,6 +316,8 @@ public sealed class AtomicUpdateResourceTests
     public async Task Cannot_update_resource_for_unknown_ID()
     {
         // Arrange
+        string performerId = Unknown.StringId.For<Performer, string?>();
+
         var requestBody = new
         {
             atomic__operations = new[]
@@ -322,7 +328,7 @@ public sealed class AtomicUpdateResourceTests
                     data = new
                     {
                         type = "performers",
-                        id = "ffffffffffffffffffffffff",
+                        id = performerId,
                         attributes = new
                         {
                         },
@@ -337,17 +343,19 @@ public sealed class AtomicUpdateResourceTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'performers' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'performers' with ID '{performerId}' does not exist.");
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
+        error.Meta.Should().NotContainKey("requestBody");
     }
 }

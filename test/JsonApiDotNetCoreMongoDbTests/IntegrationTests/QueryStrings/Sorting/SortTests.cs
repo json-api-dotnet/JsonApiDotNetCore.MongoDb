@@ -1,19 +1,23 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Sorting;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Sorting;
 
-public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableStartup, QueryStringDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, QueryStringDbContext> _testContext;
     private readonly QueryStringFakers _fakers = new();
 
-    public SortTests(IntegrationTestContext<TestableStartup> testContext)
+    public SortTests(IntegrationTestContext<TestableStartup, QueryStringDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<BlogPostsController>();
+        testContext.UseController<BlogsController>();
+        testContext.UseController<WebAccountsController>();
     }
 
     [Fact]
@@ -25,10 +29,11 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         posts[1].Caption = "A";
         posts[2].Caption = "C";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertManyAsync(posts);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.AddRange(posts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts?sort=caption";
@@ -39,91 +44,73 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(3);
-        responseDocument.ManyData[0].Id.Should().Be(posts[1].StringId);
-        responseDocument.ManyData[1].Id.Should().Be(posts[0].StringId);
-        responseDocument.ManyData[2].Id.Should().Be(posts[2].StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(posts[1].StringId);
+        responseDocument.Data.ManyValue[1].Id.Should().Be(posts[0].StringId);
+        responseDocument.Data.ManyValue[2].Id.Should().Be(posts[2].StringId);
     }
 
     [Fact]
-    public async Task Cannot_sort_on_HasMany_relationship()
+    public async Task Cannot_sort_on_OneToMany_relationship()
     {
         // Arrange
-        Blog blog = _fakers.Blog.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<Blog>().InsertOneAsync(blog);
-        });
-
         const string route = "/blogs?sort=count(posts)";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_sort_on_HasManyThrough_relationship()
+    public async Task Cannot_sort_on_ManyToMany_relationship()
     {
         // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
         const string route = "/blogPosts?sort=-count(labels)";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_sort_on_HasOne_relationship()
+    public async Task Cannot_sort_on_ManyToOne_relationship()
     {
         // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
         const string route = "/blogPosts?sort=-author.displayName";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
@@ -139,10 +126,11 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         accounts[1].DisplayName = "A";
         accounts[2].DisplayName = "A";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<WebAccount>();
-            await db.GetCollection<WebAccount>().InsertManyAsync(accounts);
+            await dbContext.ClearTableAsync<WebAccount>();
+            dbContext.Accounts.AddRange(accounts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/webAccounts?sort=displayName,-id";
@@ -153,10 +141,10 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(3);
-        responseDocument.ManyData[0].Id.Should().Be(accounts[1].StringId);
-        responseDocument.ManyData[1].Id.Should().Be(accounts[2].StringId);
-        responseDocument.ManyData[2].Id.Should().Be(accounts[0].StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(accounts[1].StringId);
+        responseDocument.Data.ManyValue[1].Id.Should().Be(accounts[2].StringId);
+        responseDocument.Data.ManyValue[2].Id.Should().Be(accounts[0].StringId);
     }
 
     [Fact]
@@ -169,10 +157,11 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         accounts[2].Id = "5ff8a7bbb2a9b83724282716";
         accounts[3].Id = "5ff8a7bdb2a9b83724282719";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<WebAccount>();
-            await db.GetCollection<WebAccount>().InsertManyAsync(accounts);
+            await dbContext.ClearTableAsync<WebAccount>();
+            dbContext.Accounts.AddRange(accounts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/webAccounts";
@@ -183,10 +172,10 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(4);
-        responseDocument.ManyData[0].Id.Should().Be(accounts[2].StringId);
-        responseDocument.ManyData[1].Id.Should().Be(accounts[1].StringId);
-        responseDocument.ManyData[2].Id.Should().Be(accounts[0].StringId);
-        responseDocument.ManyData[3].Id.Should().Be(accounts[3].StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(4);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(accounts[2].StringId);
+        responseDocument.Data.ManyValue[1].Id.Should().Be(accounts[1].StringId);
+        responseDocument.Data.ManyValue[2].Id.Should().Be(accounts[0].StringId);
+        responseDocument.Data.ManyValue[3].Id.Should().Be(accounts[3].StringId);
     }
 }

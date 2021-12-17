@@ -1,33 +1,47 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.Meta;
 
-public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<TestableStartup, MetaDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
-    private readonly SupportFakers _fakers = new();
+    private readonly IntegrationTestContext<TestableStartup, MetaDbContext> _testContext;
+    private readonly MetaFakers _fakers = new();
 
-    public ResourceMetaTests(IntegrationTestContext<TestableStartup> testContext)
+    public ResourceMetaTests(IntegrationTestContext<TestableStartup, MetaDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<SupportTicketsController>();
+
+        testContext.ConfigureServicesAfterStartup(services =>
+        {
+            services.AddSingleton<ResourceDefinitionHitCounter>();
+        });
+
+        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        hitCounter.Reset();
     }
 
     [Fact]
     public async Task Returns_resource_meta_from_ResourceDefinition()
     {
         // Arrange
-        List<SupportTicket> tickets = _fakers.SupportTicket.Generate(3);
-        tickets[0].Description = "Critical: " + tickets[0].Description;
-        tickets[2].Description = "Critical: " + tickets[2].Description;
+        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        List<SupportTicket> tickets = _fakers.SupportTicket.Generate(3);
+        tickets[0].Description = $"Critical: {tickets[0].Description}";
+        tickets[2].Description = $"Critical: {tickets[2].Description}";
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<SupportTicket>();
-            await db.GetCollection<SupportTicket>().InsertManyAsync(tickets);
+            await dbContext.ClearTableAsync<SupportTicket>();
+            dbContext.SupportTickets.AddRange(tickets);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/supportTickets";
@@ -38,9 +52,16 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(3);
-        responseDocument.ManyData[0].Meta.Should().ContainKey("hasHighPriority");
-        responseDocument.ManyData[1].Meta.Should().BeNull();
-        responseDocument.ManyData[2].Meta.Should().ContainKey("hasHighPriority");
+        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue[0].Meta.ShouldContainKey("hasHighPriority");
+        responseDocument.Data.ManyValue[1].Meta.Should().BeNull();
+        responseDocument.Data.ManyValue[2].Meta.ShouldContainKey("hasHighPriority");
+
+        hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
+        {
+            (typeof(SupportTicket), ResourceDefinitionExtensibilityPoints.GetMeta),
+            (typeof(SupportTicket), ResourceDefinitionExtensibilityPoints.GetMeta),
+            (typeof(SupportTicket), ResourceDefinitionExtensibilityPoints.GetMeta)
+        }, options => options.WithStrictOrdering());
     }
 }

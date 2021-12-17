@@ -4,20 +4,18 @@ using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Resources;
 
-#pragma warning disable AV1008 // Class should not be static
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Transactions;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Transactions;
-
-internal static class ContainerTypeToHideMusicTrackRepositoryFromAutoDiscovery
+internal sealed partial class ContainerTypeToHideFromAutoDiscovery
 {
     [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-    public sealed class MusicTrackRepository : MongoRepository<MusicTrack, string>
+    public sealed class MusicTrackRepository : MongoRepository<MusicTrack, string?>
     {
-        public override string TransactionId => null;
+        public override string? TransactionId => null;
 
-        public MusicTrackRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
-            IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders)
-            : base(mongoDataAccess, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
+        public MusicTrackRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph,
+            IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor)
+            : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor)
         {
         }
     }

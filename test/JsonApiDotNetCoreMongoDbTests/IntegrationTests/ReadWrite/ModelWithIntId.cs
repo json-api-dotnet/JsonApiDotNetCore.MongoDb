@@ -2,11 +2,12 @@ using JetBrains.Annotations;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-public sealed class ModelWithIntId : Identifiable
+[Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite")]
+public sealed class ModelWithIntId : Identifiable<int>
 {
     [Attr]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 }

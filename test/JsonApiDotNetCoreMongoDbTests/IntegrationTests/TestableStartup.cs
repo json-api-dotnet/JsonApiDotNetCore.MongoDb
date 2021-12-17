@@ -1,18 +1,11 @@
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCoreMongoDbExample.Startups;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests;
 
-public sealed class TestableStartup : EmptyStartup
+public sealed class TestableStartup
 {
-    public override void ConfigureServices(IServiceCollection services)
-    {
-    }
-
-    public override void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
+    public void Configure(IApplicationBuilder app)
     {
         app.UseRouting();
         app.UseJsonApi();

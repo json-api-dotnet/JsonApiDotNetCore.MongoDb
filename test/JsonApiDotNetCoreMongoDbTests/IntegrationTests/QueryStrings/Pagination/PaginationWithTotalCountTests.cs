@@ -2,29 +2,27 @@ using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Pagination;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Pagination;
 
-public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTestContext<TestableStartup, QueryStringDbContext>>
 {
     private const string HostPrefix = "http://localhost";
-    private const int DefaultPageSize = 5;
 
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, QueryStringDbContext> _testContext;
     private readonly QueryStringFakers _fakers = new();
 
-    public PaginationWithTotalCountTests(IntegrationTestContext<TestableStartup> testContext)
+    public PaginationWithTotalCountTests(IntegrationTestContext<TestableStartup, QueryStringDbContext> testContext)
     {
         _testContext = testContext;
 
+        testContext.UseController<BlogPostsController>();
+
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.IncludeTotalResourceCount = true;
-        options.DefaultPageSize = new PageSize(DefaultPageSize);
-        options.MaximumPageSize = null;
-        options.MaximumPageNumber = null;
     }
 
     [Fact]
@@ -33,10 +31,11 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Arrange
         List<BlogPost> posts = _fakers.BlogPost.Generate(2);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertManyAsync(posts);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.AddRange(posts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts?page[number]=2&page[size]=1";
@@ -47,13 +46,13 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Id.Should().Be(posts[1].StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(posts[1].StringId);
 
-        responseDocument.Links.Should().NotBeNull();
-        responseDocument.Links.Self.Should().Be(HostPrefix + route);
-        responseDocument.Links.First.Should().Be(HostPrefix + "/blogPosts?page[size]=1");
-        responseDocument.Links.Last.Should().Be(responseDocument.Links.Self);
+        responseDocument.Links.ShouldNotBeNull();
+        responseDocument.Links.Self.Should().Be($"{HostPrefix}{route}");
+        responseDocument.Links.First.Should().Be($"{HostPrefix}/blogPosts?page%5Bsize%5D=1");
+        responseDocument.Links.Last.Should().Be($"{HostPrefix}/blogPosts?page%5Bnumber%5D=2&page%5Bsize%5D=1");
         responseDocument.Links.Prev.Should().Be(responseDocument.Links.First);
         responseDocument.Links.Next.Should().BeNull();
     }
@@ -67,10 +66,11 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
 
         List<BlogPost> posts = _fakers.BlogPost.Generate(3);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertManyAsync(posts);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.AddRange(posts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts";
@@ -81,14 +81,14 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(2);
-        responseDocument.ManyData[0].Id.Should().Be(posts[0].StringId);
-        responseDocument.ManyData[1].Id.Should().Be(posts[1].StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(2);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(posts[0].StringId);
+        responseDocument.Data.ManyValue[1].Id.Should().Be(posts[1].StringId);
 
-        responseDocument.Links.Should().NotBeNull();
-        responseDocument.Links.Self.Should().Be(HostPrefix + route);
+        responseDocument.Links.ShouldNotBeNull();
+        responseDocument.Links.Self.Should().Be($"{HostPrefix}{route}");
         responseDocument.Links.First.Should().Be(responseDocument.Links.Self);
-        responseDocument.Links.Last.Should().Be(HostPrefix + "/blogPosts?page[number]=2");
+        responseDocument.Links.Last.Should().Be($"{HostPrefix}{route}?page%5Bnumber%5D=2");
         responseDocument.Links.Prev.Should().BeNull();
         responseDocument.Links.Next.Should().Be(responseDocument.Links.Last);
     }
@@ -102,10 +102,11 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
 
         List<BlogPost> posts = _fakers.BlogPost.Generate(25);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertManyAsync(posts);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.AddRange(posts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts";
@@ -116,10 +117,10 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(25);
+        responseDocument.Data.ManyValue.ShouldHaveCount(25);
 
-        responseDocument.Links.Should().NotBeNull();
-        responseDocument.Links.Self.Should().Be(HostPrefix + route);
+        responseDocument.Links.ShouldNotBeNull();
+        responseDocument.Links.Self.Should().Be($"{HostPrefix}{route}");
         responseDocument.Links.First.Should().BeNull();
         responseDocument.Links.Last.Should().BeNull();
         responseDocument.Links.Prev.Should().BeNull();

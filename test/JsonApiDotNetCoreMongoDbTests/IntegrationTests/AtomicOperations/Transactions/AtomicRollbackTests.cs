@@ -1,36 +1,37 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using MongoDB.Driver;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Transactions;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Transactions;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class AtomicRollbackTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicRollbackTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
 
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+        fixture.TestContext.UseController<OperationsController>();
     }
 
     [Fact]
     public async Task Can_rollback_created_resource_on_error()
     {
         // Arrange
-        string newArtistName = _fakers.Performer.Generate().ArtistName;
+        string newArtistName = _fakers.Performer.Generate().ArtistName!;
         DateTimeOffset newBornAt = _fakers.Performer.Generate().BornAt;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.EnsureEmptyCollectionAsync<Performer>();
+            await dbContext.ClearTableAsync<Performer>();
         });
+
+        string unknownPerformerId = Unknown.StringId.For<Performer, string?>();
 
         var requestBody = new
         {
@@ -39,7 +40,6 @@ public sealed class AtomicRollbackTests
                 new
                 {
                     op = "add",
-                    id = "507f191e810c19729de860ea",
                     data = new
                     {
                         type = "performers",
@@ -56,7 +56,7 @@ public sealed class AtomicRollbackTests
                     @ref = new
                     {
                         type = "performers",
-                        id = "ffffffffffffffffffffffff"
+                        id = unknownPerformerId
                     }
                 }
             }
@@ -65,23 +65,23 @@ public sealed class AtomicRollbackTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'performers' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'performers' with ID '{unknownPerformerId}' does not exist.");
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[1]");
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            List<Performer> performersInDatabase = await db.GetCollection<Performer>().AsQueryable().ToListAsync();
-
+            List<Performer> performersInDatabase = await dbContext.Performers.ToListAsync();
             performersInDatabase.Should().BeEmpty();
         });
     }
@@ -92,12 +92,15 @@ public sealed class AtomicRollbackTests
         // Arrange
         Performer existingPerformer = _fakers.Performer.Generate();
 
-        string newArtistName = _fakers.Performer.Generate().ArtistName;
+        string newArtistName = _fakers.Performer.Generate().ArtistName!;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<Performer>().InsertOneAsync(existingPerformer);
+            dbContext.Performers.Add(existingPerformer);
+            await dbContext.SaveChangesAsync();
         });
+
+        string unknownPerformerId = Unknown.StringId.For<Performer, string?>();
 
         var requestBody = new
         {
@@ -122,7 +125,7 @@ public sealed class AtomicRollbackTests
                     @ref = new
                     {
                         type = "performers",
-                        id = "ffffffffffffffffffffffff"
+                        id = unknownPerformerId
                     }
                 }
             }
@@ -131,22 +134,23 @@ public sealed class AtomicRollbackTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'performers' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'performers' with ID '{unknownPerformerId}' does not exist.");
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[1]");
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            Performer performerInDatabase = await db.GetCollection<Performer>().AsQueryable().FirstWithIdAsync(existingPerformer.Id);
+            Performer performerInDatabase = await dbContext.Performers.FirstWithIdAsync(existingPerformer.Id);
 
             performerInDatabase.ArtistName.Should().Be(existingPerformer.ArtistName);
         });
@@ -158,11 +162,14 @@ public sealed class AtomicRollbackTests
         // Arrange
         Performer existingPerformer = _fakers.Performer.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<Performer>();
-            await db.GetCollection<Performer>().InsertOneAsync(existingPerformer);
+            await dbContext.ClearTableAsync<Performer>();
+            dbContext.Performers.Add(existingPerformer);
+            await dbContext.SaveChangesAsync();
         });
+
+        string unknownPerformerId = Unknown.StringId.For<Performer, string?>();
 
         var requestBody = new
         {
@@ -183,7 +190,7 @@ public sealed class AtomicRollbackTests
                     @ref = new
                     {
                         type = "performers",
-                        id = "ffffffffffffffffffffffff"
+                        id = unknownPerformerId
                     }
                 }
             }
@@ -192,22 +199,23 @@ public sealed class AtomicRollbackTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'performers' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'performers' with ID '{unknownPerformerId}' does not exist.");
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[1]");
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            List<Performer> performersInDatabase = await db.GetCollection<Performer>().AsQueryable().ToListAsync();
+            List<Performer> performersInDatabase = await dbContext.Performers.ToListAsync();
 
             performersInDatabase.Should().HaveCount(1);
         });

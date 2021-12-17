@@ -1,22 +1,31 @@
 using System.Net;
-using System.Reflection;
 using FluentAssertions;
-using JsonApiDotNetCore.Resources;
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using MongoDB.Driver;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Resources;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite.Updating.Resources;
 
-public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<TestableStartup, ReadWriteDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, ReadWriteDbContext> _testContext;
     private readonly ReadWriteFakers _fakers = new();
 
-    public UpdateResourceTests(IntegrationTestContext<TestableStartup> testContext)
+    public UpdateResourceTests(IntegrationTestContext<TestableStartup, ReadWriteDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<WorkItemsController>();
+        testContext.UseController<WorkItemGroupsController>();
+        testContext.UseController<UserAccountsController>();
+        testContext.UseController<RgbColorsController>();
+
+        testContext.ConfigureServicesAfterStartup(services =>
+        {
+            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition>();
+            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition>();
+        });
     }
 
     [Fact]
@@ -25,9 +34,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         UserAccount existingUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
+            dbContext.UserAccounts.Add(existingUserAccount);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -45,44 +55,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
             }
         };
 
-        string route = "/userAccounts/" + existingUserAccount.StringId;
-
-        // Act
-        (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
-
-        // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.NoContent);
-
-        responseDocument.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task Can_update_resource_with_unknown_attribute()
-    {
-        // Arrange
-        UserAccount existingUserAccount = _fakers.UserAccount.Generate();
-        string newFirstName = _fakers.UserAccount.Generate().FirstName;
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
-        });
-
-        var requestBody = new
-        {
-            data = new
-            {
-                type = "userAccounts",
-                id = existingUserAccount.StringId,
-                attributes = new
-                {
-                    firstName = newFirstName,
-                    doesNotExist = "Ignored"
-                }
-            }
-        };
-
-        string route = "/userAccounts/" + existingUserAccount.StringId;
+        string route = $"/userAccounts/{existingUserAccount.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -92,11 +65,11 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            UserAccount userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable().FirstWithIdAsync(existingUserAccount.Id);
+            UserAccount userAccountInDatabase = await dbContext.UserAccounts.FirstWithIdAsync(existingUserAccount.Id);
 
-            userAccountInDatabase.FirstName.Should().Be(newFirstName);
+            userAccountInDatabase.FirstName.Should().Be(existingUserAccount.FirstName);
             userAccountInDatabase.LastName.Should().Be(existingUserAccount.LastName);
         });
     }
@@ -108,9 +81,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
         string newName = _fakers.WorkItemGroup.Generate().Name;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<WorkItemGroup>().InsertOneAsync(existingGroup);
+            dbContext.Groups.Add(existingGroup);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -126,7 +100,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
             }
         };
 
-        string route = "/workItemGroups/" + existingGroup.StringId;
+        string route = $"/workItemGroups/{existingGroup.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
@@ -134,23 +108,22 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItemGroups");
-        responseDocument.SingleData.Id.Should().Be(existingGroup.StringId);
-        responseDocument.SingleData.Attributes["name"].Should().Be(newName);
-        responseDocument.SingleData.Attributes["isPublic"].Should().Be(existingGroup.IsPublic);
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        string groupName = $"{newName}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
+        responseDocument.Data.SingleValue.Id.Should().Be(existingGroup.StringId);
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(groupName));
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("isPublic").With(value => value.Should().Be(existingGroup.IsPublic));
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItemGroup groupInDatabase = await db.GetCollection<WorkItemGroup>().AsQueryable().FirstWithIdAsync(existingGroup.Id);
+            WorkItemGroup groupInDatabase = await dbContext.Groups.FirstWithIdAsync(existingGroup.Id);
 
-            groupInDatabase.Name.Should().Be(newName);
+            groupInDatabase.Name.Should().Be(groupName);
             groupInDatabase.IsPublic.Should().Be(existingGroup.IsPublic);
         });
-
-        PropertyInfo property = typeof(WorkItemGroup).GetProperty(nameof(Identifiable.Id));
-        property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
     }
 
     [Fact]
@@ -160,9 +133,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         RgbColor existingColor = _fakers.RgbColor.Generate();
         string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<RgbColor>().InsertOneAsync(existingColor);
+            dbContext.RgbColors.Add(existingColor);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -178,7 +152,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
             }
         };
 
-        string route = "/rgbColors/" + existingColor.StringId;
+        string route = $"/rgbColors/{existingColor.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -188,15 +162,12 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            RgbColor colorInDatabase = await db.GetCollection<RgbColor>().AsQueryable().FirstWithIdAsync(existingColor.Id);
+            RgbColor colorInDatabase = await dbContext.RgbColors.FirstWithIdAsync(existingColor.Id);
 
             colorInDatabase.DisplayName.Should().Be(newDisplayName);
         });
-
-        PropertyInfo property = typeof(RgbColor).GetProperty(nameof(Identifiable.Id));
-        property.Should().NotBeNull().And.Subject.PropertyType.Should().Be(typeof(string));
     }
 
     [Fact]
@@ -206,9 +177,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         UserAccount existingUserAccount = _fakers.UserAccount.Generate();
         UserAccount newUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<UserAccount>().InsertOneAsync(existingUserAccount);
+            dbContext.UserAccounts.Add(existingUserAccount);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -225,7 +197,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
             }
         };
 
-        string route = "/userAccounts/" + existingUserAccount.StringId;
+        string route = $"/userAccounts/{existingUserAccount.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecutePatchAsync<string>(route, requestBody);
@@ -235,9 +207,9 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            UserAccount userAccountInDatabase = await db.GetCollection<UserAccount>().AsQueryable().FirstWithIdAsync(existingUserAccount.Id);
+            UserAccount userAccountInDatabase = await dbContext.UserAccounts.FirstWithIdAsync(existingUserAccount.Id);
 
             userAccountInDatabase.FirstName.Should().Be(newUserAccount.FirstName);
             userAccountInDatabase.LastName.Should().Be(newUserAccount.LastName);
@@ -249,11 +221,12 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     {
         // Arrange
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        string newDescription = _fakers.WorkItem.Generate().Description;
+        string newDescription = _fakers.WorkItem.Generate().Description!;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
+            dbContext.WorkItems.Add(existingWorkItem);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -270,7 +243,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
             }
         };
 
-        string route = "/workItems/" + existingWorkItem.StringId;
+        string route = $"/workItems/{existingWorkItem.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
@@ -278,20 +251,22 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItems");
-        responseDocument.SingleData.Id.Should().Be(existingWorkItem.StringId);
-        responseDocument.SingleData.Attributes["description"].Should().Be(newDescription);
-        responseDocument.SingleData.Attributes["dueAt"].Should().BeNull();
-        responseDocument.SingleData.Attributes["priority"].Should().Be(existingWorkItem.Priority.ToString("G"));
-        responseDocument.SingleData.Attributes.Should().ContainKey("concurrencyToken");
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        string itemDescription = $"{newDescription}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition.Suffix}";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Type.Should().Be("workItems");
+        responseDocument.Data.SingleValue.Id.Should().Be(existingWorkItem.StringId);
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(itemDescription));
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().BeNull());
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(existingWorkItem.Priority));
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("isImportant").With(value => value.Should().Be(existingWorkItem.IsImportant));
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(existingWorkItem.Id);
+            WorkItem workItemInDatabase = await dbContext.WorkItems.FirstWithIdAsync(existingWorkItem.Id);
 
-            workItemInDatabase.Description.Should().Be(newDescription);
+            workItemInDatabase.Description.Should().Be(itemDescription);
             workItemInDatabase.DueAt.Should().BeNull();
             workItemInDatabase.Priority.Should().Be(existingWorkItem.Priority);
         });
@@ -302,11 +277,12 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     {
         // Arrange
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        string newDescription = _fakers.WorkItem.Generate().Description;
+        string newDescription = _fakers.WorkItem.Generate().Description!;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
+            dbContext.WorkItems.Add(existingWorkItem);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -331,19 +307,21 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.SingleData.Should().NotBeNull();
-        responseDocument.SingleData.Type.Should().Be("workItems");
-        responseDocument.SingleData.Id.Should().Be(existingWorkItem.StringId);
-        responseDocument.SingleData.Attributes.Should().HaveCount(2);
-        responseDocument.SingleData.Attributes["description"].Should().Be(newDescription);
-        responseDocument.SingleData.Attributes["priority"].Should().Be(existingWorkItem.Priority.ToString("G"));
-        responseDocument.SingleData.Relationships.Should().BeNull();
+        string itemDescription = $"{newDescription}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition.Suffix}";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Type.Should().Be("workItems");
+        responseDocument.Data.SingleValue.Id.Should().Be(existingWorkItem.StringId);
+        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(2);
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(itemDescription));
+        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(existingWorkItem.Priority));
+        responseDocument.Data.SingleValue.Relationships.Should().BeNull();
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdAsync(existingWorkItem.Id);
+            WorkItem workItemInDatabase = await dbContext.WorkItems.FirstWithIdAsync(existingWorkItem.Id);
 
-            workItemInDatabase.Description.Should().Be(newDescription);
+            workItemInDatabase.Description.Should().Be(itemDescription);
             workItemInDatabase.DueAt.Should().BeNull();
             workItemInDatabase.Priority.Should().Be(existingWorkItem.Priority);
         });
@@ -353,28 +331,32 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Cannot_update_resource_on_unknown_resource_ID_in_url()
     {
         // Arrange
+        string workItemId = Unknown.StringId.For<WorkItem, string?>();
+
         var requestBody = new
         {
             data = new
             {
                 type = "workItems",
-                id = "ffffffffffffffffffffffff"
+                id = workItemId
             }
         };
 
-        const string route = "/workItems/ffffffffffffffffffffffff";
+        string route = $"/workItems/{workItemId}";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'workItems' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'workItems' with ID '{workItemId}' does not exist.");
+        error.Source.Should().BeNull();
+        error.Meta.Should().NotContainKey("requestBody");
     }
 }

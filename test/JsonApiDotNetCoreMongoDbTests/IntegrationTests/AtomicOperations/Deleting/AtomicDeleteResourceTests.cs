@@ -1,23 +1,20 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using MongoDB.Driver;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Deleting;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Deleting;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class AtomicDeleteResourceTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicDeleteResourceTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
-
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
     }
 
     [Fact]
@@ -26,9 +23,10 @@ public sealed class AtomicDeleteResourceTests
         // Arrange
         Performer existingPerformer = _fakers.Performer.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<Performer>().InsertOneAsync(existingPerformer);
+            dbContext.Performers.Add(existingPerformer);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -57,9 +55,9 @@ public sealed class AtomicDeleteResourceTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            Performer performerInDatabase = await db.GetCollection<Performer>().AsQueryable().FirstWithIdOrDefaultAsync(existingPerformer.Id);
+            Performer? performerInDatabase = await dbContext.Performers.FirstWithIdOrDefaultAsync(existingPerformer.Id);
 
             performerInDatabase.Should().BeNull();
         });
@@ -73,10 +71,11 @@ public sealed class AtomicDeleteResourceTests
 
         List<MusicTrack> existingTracks = _fakers.MusicTrack.Generate(elementCount);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<MusicTrack>();
-            await db.GetCollection<MusicTrack>().InsertManyAsync(existingTracks);
+            await dbContext.ClearTableAsync<MusicTrack>();
+            dbContext.MusicTracks.AddRange(existingTracks);
+            await dbContext.SaveChangesAsync();
         });
 
         var operationElements = new List<object>(elementCount);
@@ -109,9 +108,9 @@ public sealed class AtomicDeleteResourceTests
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            List<MusicTrack> tracksInDatabase = await db.GetCollection<MusicTrack>().AsQueryable().ToListAsync();
+            List<MusicTrack> tracksInDatabase = await dbContext.MusicTracks.ToListAsync();
 
             tracksInDatabase.Should().BeEmpty();
         });
@@ -121,10 +120,7 @@ public sealed class AtomicDeleteResourceTests
     public async Task Cannot_delete_resource_for_unknown_ID()
     {
         // Arrange
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.EnsureEmptyCollectionAsync<Performer>();
-        });
+        string performerId = Unknown.StringId.For<Performer, string?>();
 
         var requestBody = new
         {
@@ -136,7 +132,7 @@ public sealed class AtomicDeleteResourceTests
                     @ref = new
                     {
                         type = "performers",
-                        id = "ffffffffffffffffffffffff"
+                        id = performerId
                     }
                 }
             }
@@ -145,17 +141,19 @@ public sealed class AtomicDeleteResourceTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'performers' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'performers' with ID '{performerId}' does not exist.");
+        error.Source.ShouldNotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
+        error.Meta.Should().NotContainKey("requestBody");
     }
 }

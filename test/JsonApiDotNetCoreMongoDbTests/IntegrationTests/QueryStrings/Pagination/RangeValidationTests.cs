@@ -1,28 +1,21 @@
 using System.Net;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Pagination;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Pagination;
 
-public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<TestableStartup, QueryStringDbContext>>
 {
-    private const int DefaultPageSize = 5;
-
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, QueryStringDbContext> _testContext;
     private readonly QueryStringFakers _fakers = new();
 
-    public RangeValidationTests(IntegrationTestContext<TestableStartup> testContext)
+    public RangeValidationTests(IntegrationTestContext<TestableStartup, QueryStringDbContext> testContext)
     {
         _testContext = testContext;
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.DefaultPageSize = new PageSize(DefaultPageSize);
-        options.MaximumPageSize = null;
-        options.MaximumPageNumber = null;
+        testContext.UseController<BlogsController>();
     }
 
     [Fact]
@@ -31,10 +24,11 @@ public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<
         // Arrange
         List<Blog> blogs = _fakers.Blog.Generate(3);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<Blog>();
-            await db.GetCollection<Blog>().InsertManyAsync(blogs);
+            await dbContext.ClearTableAsync<Blog>();
+            dbContext.Blogs.AddRange(blogs);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogs?sort=id&page[size]=3&page[number]=2";
@@ -45,7 +39,7 @@ public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().BeEmpty();
+        responseDocument.Data.ManyValue.Should().BeEmpty();
     }
 
     [Fact]

@@ -3,23 +3,19 @@ using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
+[Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
 public sealed class TextLanguage : MongoIdentifiable
 {
     [Attr]
-    public string IsoCode { get; set; }
+    public string? IsoCode { get; set; }
 
     [Attr(Capabilities = AttrCapabilities.None)]
-    [BsonIgnore]
-    public Guid ConcurrencyToken
-    {
-        get => Guid.NewGuid();
-        set => _ = value;
-    }
+    public bool IsRightToLeft { get; set; }
 
     [HasMany]
     [BsonIgnore]
-    public ICollection<Lyric> Lyrics { get; set; }
+    public ICollection<Lyric> Lyrics { get; set; } = new List<Lyric>();
 }

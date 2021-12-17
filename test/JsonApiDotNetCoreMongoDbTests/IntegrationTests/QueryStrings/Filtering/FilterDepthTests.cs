@@ -1,24 +1,22 @@
 using System.Net;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
-public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<TestableStartup, QueryStringDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, QueryStringDbContext> _testContext;
     private readonly QueryStringFakers _fakers = new();
 
-    public FilterDepthTests(IntegrationTestContext<TestableStartup> testContext)
+    public FilterDepthTests(IntegrationTestContext<TestableStartup, QueryStringDbContext> testContext)
     {
         _testContext = testContext;
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.EnableLegacyFilterNotation = false;
+        testContext.UseController<BlogsController>();
+        testContext.UseController<BlogPostsController>();
     }
 
     [Fact]
@@ -29,10 +27,11 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
         posts[0].Caption = "One";
         posts[1].Caption = "Two";
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<BlogPost>();
-            await db.GetCollection<BlogPost>().InsertManyAsync(posts);
+            await dbContext.ClearTableAsync<BlogPost>();
+            dbContext.Posts.AddRange(posts);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/blogPosts?filter=equals(caption,'Two')";
@@ -43,116 +42,70 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Id.Should().Be(posts[1].StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(posts[1].StringId);
     }
 
     [Fact]
-    public async Task Cannot_filter_in_single_primary_resource()
+    public async Task Cannot_filter_on_ManyToOne_relationship()
     {
         // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
-        string route = $"/blogPosts/{post.StringId}?filter=equals(caption,'Two')";
+        const string route = "/blogPosts?filter=or(equals(author.userName,'Smith'),equals(author,null))";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
-        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        error.Title.Should().Be("The specified filter is invalid.");
-        error.Detail.Should().Be("This query string parameter can only be used on a collection of resources (not on a single resource).");
-        error.Source.Parameter.Should().Be("filter");
-    }
-
-    [Fact]
-    public async Task Cannot_filter_on_HasOne_relationship()
-    {
-        // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
-        const string route = "/blogPosts?filter=equals(author.userName,'Smith')";
-
-        // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
-
-        // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
-
-        responseDocument.Errors.Should().HaveCount(1);
-
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_filter_on_HasMany_relationship()
+    public async Task Cannot_filter_on_OneToMany_relationship()
     {
         // Arrange
-        Blog blog = _fakers.Blog.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<Blog>().InsertOneAsync(blog);
-        });
-
         const string route = "/blogs?filter=greaterThan(count(posts),'0')";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_filter_on_HasManyThrough_relationship()
+    public async Task Cannot_filter_on_ManyToMany_relationship()
     {
         // Arrange
-        BlogPost post = _fakers.BlogPost.Generate();
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<BlogPost>().InsertOneAsync(post);
-        });
-
         const string route = "/blogPosts?filter=has(labels)";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 }

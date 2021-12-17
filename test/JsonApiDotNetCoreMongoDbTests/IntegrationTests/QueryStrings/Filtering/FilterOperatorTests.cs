@@ -1,26 +1,25 @@
+using System.Globalization;
 using System.Net;
 using System.Web;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Humanizer;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
-public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<TestableStartup, FilterDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, FilterDbContext> _testContext;
 
-    public FilterOperatorTests(IntegrationTestContext<TestableStartup> testContext)
+    public FilterOperatorTests(IntegrationTestContext<TestableStartup, FilterDbContext> testContext)
     {
         _testContext = testContext;
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.EnableLegacyFilterNotation = false;
+        testContext.UseController<FilterableResourcesController>();
     }
 
     [Fact]
@@ -29,13 +28,14 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         var resource = new FilterableResource
         {
-            SomeString = "This, that & more"
+            SomeString = "This, that & more + some"
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, new FilterableResource());
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/filterableResources?filter=equals(someString,'{HttpUtility.UrlEncode(resource.SomeString)}')";
@@ -46,8 +46,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["someString"].Should().Be(resource.SomeString);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someString").With(value => value.Should().Be(resource.SomeString));
     }
 
     [Fact]
@@ -57,14 +57,14 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         const string route = "/filterableResources?filter=equals(someInt32,otherInt32)";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Comparing attributes against each other is not supported when using MongoDB.");
         error.Detail.Should().BeNull();
@@ -92,10 +92,11 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
             SomeInt32 = nonMatchingValue
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someInt32,'{filterValue}')";
@@ -106,8 +107,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["someInt32"].Should().Be(resource.SomeInt32);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someInt32").With(value => value.Should().Be(resource.SomeInt32));
     }
 
     [Theory]
@@ -133,10 +134,11 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
             SomeDouble = nonMatchingValue
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDouble,'{filterValue}')";
@@ -147,41 +149,41 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["someDouble"].Should().Be(resource.SomeDouble);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDouble").With(value => value.Should().Be(resource.SomeDouble));
     }
 
     [Theory]
-    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessThan, "2001-01-05")]
-    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessThan, "2001-01-09")]
-    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessOrEqual, "2001-01-05")]
-    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessOrEqual, "2001-01-01")]
-    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterThan, "2001-01-05")]
-    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterThan, "2001-01-01")]
-    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterOrEqual, "2001-01-05")]
-    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterOrEqual, "2001-01-09")]
-    public async Task Can_filter_comparison_on_DateTime(string matchingDateTime, string nonMatchingDateTime, ComparisonOperator filterOperator,
+    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessThan, "2001-01-05Z")]
+    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessThan, "2001-01-09Z")]
+    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessOrEqual, "2001-01-05Z")]
+    [InlineData("2001-01-01", "2001-01-09", ComparisonOperator.LessOrEqual, "2001-01-01Z")]
+    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterThan, "2001-01-05Z")]
+    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterThan, "2001-01-01Z")]
+    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterOrEqual, "2001-01-05Z")]
+    [InlineData("2001-01-09", "2001-01-01", ComparisonOperator.GreaterOrEqual, "2001-01-09Z")]
+    public async Task Can_filter_comparison_on_DateTime_in_UTC_time_zone(string matchingDateTime, string nonMatchingDateTime, ComparisonOperator filterOperator,
         string filterDateTime)
     {
         // Arrange
         var resource = new FilterableResource
         {
-            SomeDateTime = DateTime.SpecifyKind(DateTime.ParseExact(matchingDateTime, "yyyy-MM-dd", null), DateTimeKind.Utc)
+            SomeDateTimeInUtcZone = DateTime.Parse(matchingDateTime, CultureInfo.InvariantCulture).AsUtc()
         };
 
         var otherResource = new FilterableResource
         {
-            SomeDateTime = DateTime.SpecifyKind(DateTime.ParseExact(nonMatchingDateTime, "yyyy-MM-dd", null), DateTimeKind.Utc)
+            SomeDateTimeInUtcZone = DateTime.Parse(nonMatchingDateTime, CultureInfo.InvariantCulture).AsUtc()
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
         });
 
-        string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDateTime," +
-            $"'{DateTime.ParseExact(filterDateTime, "yyyy-MM-dd", null)}')";
+        string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDateTimeInUtcZone,'{filterDateTime}')";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -189,8 +191,10 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["someDateTime"].Should().BeCloseTo(resource.SomeDateTime);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeInUtcZone")
+            .With(value => value.Should().Be(resource.SomeDateTimeInUtcZone));
     }
 
     [Theory]
@@ -212,10 +216,11 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
             SomeString = nonMatchingText
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/filterableResources?filter={matchKind.ToString().Camelize()}(someString,'{filterText}')";
@@ -226,8 +231,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["someString"].Should().Be(resource.SomeString);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someString").With(value => value.Should().Be(resource.SomeString));
     }
 
     [Theory]
@@ -246,10 +251,11 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
             SomeString = nonMatchingText
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, otherResource);
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/filterableResources?filter=any(someString,{filterText})";
@@ -260,77 +266,71 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Attributes["someString"].Should().Be(resource.SomeString);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someString").With(value => value.Should().Be(resource.SomeString));
     }
 
     [Fact]
     public async Task Cannot_filter_on_has()
     {
         // Arrange
-        var resource = new FilterableResource
-        {
-            Children = new List<FilterableResource>
-            {
-                new()
-            }
-        };
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
-        });
-
         const string route = "/filterableResources?filter=has(children)";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Cannot_filter_on_has_with_nested_condition()
+    {
+        // Arrange
+        const string route = "/filterableResources?filter=has(children,equals(someBoolean,'true'))";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+
+        responseDocument.Errors.ShouldHaveCount(1);
+
+        ErrorObject error = responseDocument.Errors[0];
+        error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        error.Title.Should().Be("Relationships are not supported when using MongoDB.");
+        error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
     public async Task Cannot_filter_on_count()
     {
         // Arrange
-        var resource = new FilterableResource
-        {
-            Children = new List<FilterableResource>
-            {
-                new(),
-                new()
-            }
-        };
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource, new FilterableResource());
-        });
-
         const string route = "/filterableResources?filter=equals(count(children),'2')";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteGetAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Theory]
@@ -355,10 +355,11 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
             SomeEnum = DayOfWeek.Saturday
         };
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<FilterableResource>();
-            await db.GetCollection<FilterableResource>().InsertManyAsync(resource1, resource2);
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource1, resource2);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/filterableResources?filter={filterExpression}";
@@ -369,7 +370,7 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Id.Should().Be(resource1.StringId);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(resource1.StringId);
     }
 }

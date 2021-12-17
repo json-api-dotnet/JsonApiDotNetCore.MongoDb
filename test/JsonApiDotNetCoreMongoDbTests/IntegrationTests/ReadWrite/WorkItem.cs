@@ -3,13 +3,14 @@ using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
+[Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite")]
 public sealed class WorkItem : MongoIdentifiable
 {
     [Attr]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     [Attr]
     public DateTimeOffset? DueAt { get; set; }
@@ -19,50 +20,41 @@ public sealed class WorkItem : MongoIdentifiable
 
     [Attr(Capabilities = ~(AttrCapabilities.AllowCreate | AttrCapabilities.AllowChange))]
     [BsonIgnore]
-    public Guid ConcurrencyToken
+    public bool IsImportant
     {
-        get => Guid.NewGuid();
-        set => _ = value;
+        get => Priority == WorkItemPriority.High;
+        set => Priority = value ? WorkItemPriority.High : throw new NotSupportedException();
     }
 
     [HasOne]
     [BsonIgnore]
-    public UserAccount Assignee { get; set; }
+    public UserAccount? Assignee { get; set; }
 
     [HasMany]
     [BsonIgnore]
-    public ISet<UserAccount> Subscribers { get; set; }
-
-    [HasManyThrough(nameof(WorkItemTags))]
-    [BsonIgnore]
-    public ISet<WorkTag> Tags { get; set; }
-
-    [BsonIgnore]
-    public ICollection<WorkItemTag> WorkItemTags { get; set; }
-
-    [HasOne]
-    [BsonIgnore]
-    public WorkItem Parent { get; set; }
+    public ISet<UserAccount> Subscribers { get; set; } = new HashSet<UserAccount>();
 
     [HasMany]
     [BsonIgnore]
-    public IList<WorkItem> Children { get; set; }
-
-    [HasManyThrough(nameof(RelatedFromItems), LeftPropertyName = nameof(WorkItemToWorkItem.ToItem), RightPropertyName = nameof(WorkItemToWorkItem.FromItem))]
-    [BsonIgnore]
-    public IList<WorkItem> RelatedFrom { get; set; }
-
-    [BsonIgnore]
-    public IList<WorkItemToWorkItem> RelatedFromItems { get; set; }
-
-    [HasManyThrough(nameof(RelatedToItems), LeftPropertyName = nameof(WorkItemToWorkItem.FromItem), RightPropertyName = nameof(WorkItemToWorkItem.ToItem))]
-    [BsonIgnore]
-    public IList<WorkItem> RelatedTo { get; set; }
-
-    [BsonIgnore]
-    public IList<WorkItemToWorkItem> RelatedToItems { get; set; }
+    public ISet<WorkTag> Tags { get; set; } = new HashSet<WorkTag>();
 
     [HasOne]
     [BsonIgnore]
-    public WorkItemGroup Group { get; set; }
+    public WorkItem? Parent { get; set; }
+
+    [HasMany]
+    [BsonIgnore]
+    public IList<WorkItem> Children { get; set; } = new List<WorkItem>();
+
+    [HasMany]
+    [BsonIgnore]
+    public IList<WorkItem> RelatedFrom { get; set; } = new List<WorkItem>();
+
+    [HasMany]
+    [BsonIgnore]
+    public IList<WorkItem> RelatedTo { get; set; } = new List<WorkItem>();
+
+    [HasOne]
+    [BsonIgnore]
+    public WorkItemGroup? Group { get; set; }
 }

@@ -1,27 +1,30 @@
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
-using JsonApiDotNetCore.Resources;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.Meta;
 
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class SupportTicketDefinition : JsonApiResourceDefinition<SupportTicket, string>
+public sealed class SupportTicketDefinition : HitCountingResourceDefinition<SupportTicket, string?>
 {
-    public SupportTicketDefinition(IResourceGraph resourceGraph)
-        : base(resourceGraph)
+    protected override ResourceDefinitionExtensibilityPoints ExtensibilityPointsToTrack => ResourceDefinitionExtensibilityPoints.GetMeta;
+
+    public SupportTicketDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
+        : base(resourceGraph, hitCounter)
     {
     }
 
-    public override IDictionary<string, object> GetMeta(SupportTicket resource)
+    public override IDictionary<string, object?>? GetMeta(SupportTicket resource)
     {
-        if (resource.Description != null && resource.Description.StartsWith("Critical:", StringComparison.Ordinal))
+        base.GetMeta(resource);
+
+        if (!string.IsNullOrEmpty(resource.Description) && resource.Description.StartsWith("Critical:", StringComparison.Ordinal))
         {
-            return new Dictionary<string, object>
+            return new Dictionary<string, object?>
             {
                 ["hasHighPriority"] = true
             };
         }
 
-        return base.GetMeta(resource);
+        return null;
     }
 }

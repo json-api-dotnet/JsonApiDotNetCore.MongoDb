@@ -1,24 +1,21 @@
 using System.Net;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
-public sealed class FilterTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class FilterTests : IClassFixture<IntegrationTestContext<TestableStartup, QueryStringDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, QueryStringDbContext> _testContext;
     private readonly QueryStringFakers _fakers = new();
 
-    public FilterTests(IntegrationTestContext<TestableStartup> testContext)
+    public FilterTests(IntegrationTestContext<TestableStartup, QueryStringDbContext> testContext)
     {
         _testContext = testContext;
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.EnableLegacyFilterNotation = false;
+        testContext.UseController<WebAccountsController>();
     }
 
     [Fact]
@@ -27,10 +24,11 @@ public sealed class FilterTests : IClassFixture<IntegrationTestContext<TestableS
         // Arrange
         List<WebAccount> accounts = _fakers.WebAccount.Generate(2);
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<WebAccount>();
-            await db.GetCollection<WebAccount>().InsertManyAsync(accounts);
+            await dbContext.ClearTableAsync<WebAccount>();
+            dbContext.Accounts.AddRange(accounts);
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/webAccounts?filter=equals(id,'{accounts[0].StringId}')";
@@ -41,8 +39,8 @@ public sealed class FilterTests : IClassFixture<IntegrationTestContext<TestableS
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.ManyData.Should().HaveCount(1);
-        responseDocument.ManyData[0].Id.Should().Be(accounts[0].StringId);
-        responseDocument.ManyData[0].Attributes["userName"].Should().Be(accounts[0].UserName);
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue[0].Id.Should().Be(accounts[0].StringId);
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("userName").With(value => value.Should().Be(accounts[0].UserName));
     }
 }

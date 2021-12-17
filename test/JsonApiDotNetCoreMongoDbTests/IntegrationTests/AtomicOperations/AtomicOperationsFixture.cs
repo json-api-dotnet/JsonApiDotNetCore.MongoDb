@@ -1,19 +1,24 @@
 using JetBrains.Annotations;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
 public sealed class AtomicOperationsFixture : IDisposable
 {
-    internal IntegrationTestContext<TestableStartup> TestContext { get; }
+    internal IntegrationTestContext<TestableStartup, OperationsDbContext> TestContext { get; }
 
     public AtomicOperationsFixture()
     {
-        TestContext = new IntegrationTestContext<TestableStartup>
+        TestContext = new IntegrationTestContext<TestableStartup, OperationsDbContext>
         {
             StartMongoDbInSingleNodeReplicaSetMode = true
         };
+
+        TestContext.UseController<OperationsController>();
+
+        TestContext.ConfigureServicesAfterStartup(services => services.AddSingleton<ResourceDefinitionHitCounter>());
     }
 
     public void Dispose()

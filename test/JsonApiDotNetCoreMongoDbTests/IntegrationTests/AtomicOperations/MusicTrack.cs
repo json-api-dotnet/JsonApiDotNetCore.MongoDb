@@ -4,37 +4,41 @@ using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
+[Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
 public sealed class MusicTrack : MongoIdentifiable
 {
-    [RegularExpression(@"(?im)^[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?$")]
-    public override string Id { get; set; }
+    [RegularExpression(@"^[a-fA-F\d]{24}$")]
+    public override string? Id { get; set; }
 
     [Attr]
-    [Required]
-    public string Title { get; set; }
+    public string Title { get; set; } = null!;
 
     [Attr]
     [Range(1, 24 * 60)]
     public decimal? LengthInSeconds { get; set; }
 
     [Attr]
-    public string Genre { get; set; }
+    public string? Genre { get; set; }
 
     [Attr]
     public DateTimeOffset ReleasedAt { get; set; }
 
     [HasOne]
     [BsonIgnore]
-    public Lyric Lyric { get; set; }
+    public Lyric? Lyric { get; set; }
 
     [HasOne]
     [BsonIgnore]
-    public RecordCompany OwnedBy { get; set; }
+    public RecordCompany? OwnedBy { get; set; }
 
     [HasMany]
     [BsonIgnore]
-    public IList<Performer> Performers { get; set; }
+    public IList<Performer> Performers { get; set; } = new List<Performer>();
+
+    [HasMany]
+    [BsonIgnore]
+    public IList<Playlist> OccursIn { get; set; } = new List<Playlist>();
 }

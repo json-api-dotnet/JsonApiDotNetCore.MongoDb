@@ -1,26 +1,22 @@
-using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
+[Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
 public sealed class Playlist : MongoIdentifiable
 {
     [Attr]
-    [Required]
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
     [Attr]
     [BsonIgnore]
     public bool IsArchived => false;
 
-    [HasManyThrough(nameof(PlaylistMusicTracks))]
+    [HasMany]
     [BsonIgnore]
-    public IList<MusicTrack> Tracks { get; set; }
-
-    [BsonIgnore]
-    public IList<PlaylistMusicTrack> PlaylistMusicTracks { get; set; }
+    public IList<MusicTrack> Tracks { get; set; } = new List<MusicTrack>();
 }

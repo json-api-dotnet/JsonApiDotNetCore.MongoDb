@@ -1,20 +1,21 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
-using MongoDB.Driver;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Deleting;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite.Deleting;
 
-public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<TestableStartup, ReadWriteDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, ReadWriteDbContext> _testContext;
     private readonly ReadWriteFakers _fakers = new();
 
-    public DeleteResourceTests(IntegrationTestContext<TestableStartup> testContext)
+    public DeleteResourceTests(IntegrationTestContext<TestableStartup, ReadWriteDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<WorkItemsController>();
     }
 
     [Fact]
@@ -23,12 +24,13 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
+            dbContext.WorkItems.Add(existingWorkItem);
+            await dbContext.SaveChangesAsync();
         });
 
-        string route = "/workItems/" + existingWorkItem.StringId;
+        string route = $"/workItems/{existingWorkItem.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, string responseDocument) = await _testContext.ExecuteDeleteAsync<string>(route);
@@ -38,31 +40,35 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
 
         responseDocument.Should().BeEmpty();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItem workItemInDatabase = await db.GetCollection<WorkItem>().AsQueryable().FirstWithIdOrDefaultAsync(existingWorkItem.Id);
+            WorkItem? workItemsInDatabase = await dbContext.WorkItems.FirstWithIdOrDefaultAsync(existingWorkItem.Id);
 
-            workItemInDatabase.Should().BeNull();
+            workItemsInDatabase.Should().BeNull();
         });
     }
 
     [Fact]
-    public async Task Cannot_delete_missing_resource()
+    public async Task Cannot_delete_unknown_resource()
     {
         // Arrange
-        const string route = "/workItems/ffffffffffffffffffffffff";
+        string workItemId = Unknown.StringId.For<WorkItem, string?>();
+
+        string route = $"/workItems/{workItemId}";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecuteDeleteAsync<ErrorDocument>(route);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteDeleteAsync<Document>(route);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
-        error.Detail.Should().Be("Resource of type 'workItems' with ID 'ffffffffffffffffffffffff' does not exist.");
+        error.Detail.Should().Be($"Resource of type 'workItems' with ID '{workItemId}' does not exist.");
+        error.Source.Should().BeNull();
+        error.Meta.Should().NotContainKey("requestBody");
     }
 }

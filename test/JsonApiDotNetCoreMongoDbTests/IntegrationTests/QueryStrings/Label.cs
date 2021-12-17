@@ -3,21 +3,18 @@ using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 public sealed class Label : MongoIdentifiable
 {
     [Attr]
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
     [Attr]
     public LabelColor Color { get; set; }
 
-    [HasManyThrough(nameof(BlogPostLabels))]
+    [HasMany]
     [BsonIgnore]
-    public ISet<BlogPost> Posts { get; set; }
-
-    [BsonIgnore]
-    public ISet<BlogPostLabel> BlogPostLabels { get; set; }
+    public ISet<BlogPost> Posts { get; set; } = new HashSet<BlogPost>();
 }

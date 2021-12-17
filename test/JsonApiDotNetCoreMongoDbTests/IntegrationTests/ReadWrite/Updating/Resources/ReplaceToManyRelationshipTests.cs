@@ -1,35 +1,35 @@
 using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.ReadWrite.Updating.Resources;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite.Updating.Resources;
 
-public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTestContext<TestableStartup, ReadWriteDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, ReadWriteDbContext> _testContext;
     private readonly ReadWriteFakers _fakers = new();
 
-    public ReplaceToManyRelationshipTests(IntegrationTestContext<TestableStartup> testContext)
+    public ReplaceToManyRelationshipTests(IntegrationTestContext<TestableStartup, ReadWriteDbContext> testContext)
     {
         _testContext = testContext;
+
+        testContext.UseController<WorkItemsController>();
     }
 
     [Fact]
-    public async Task Cannot_replace_HasMany_relationship()
+    public async Task Cannot_replace_OneToMany_relationship()
     {
         // Arrange
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        existingWorkItem.Subscribers = _fakers.UserAccount.Generate(2).ToHashSet();
-
         UserAccount existingSubscriber = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<UserAccount>().InsertOneAsync(existingSubscriber);
-            await db.GetCollection<UserAccount>().InsertManyAsync(existingWorkItem.Subscribers);
-            await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
+            dbContext.UserAccounts.Add(existingSubscriber);
+            dbContext.WorkItems.Add(existingWorkItem);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -47,11 +47,6 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
                             new
                             {
                                 type = "userAccounts",
-                                id = existingWorkItem.Subscribers.ElementAt(1).StringId
-                            },
-                            new
-                            {
-                                type = "userAccounts",
                                 id = existingSubscriber.StringId
                             }
                         }
@@ -60,47 +55,35 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
             }
         };
 
-        string route = "/workItems/" + existingWorkItem.StringId;
+        string route = $"/workItems/{existingWorkItem.StringId}";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Fact]
-    public async Task Cannot_replace_HasManyThrough_relationship()
+    public async Task Cannot_replace_ManyToMany_relationship()
     {
         // Arrange
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
+        WorkTag existingTag = _fakers.WorkTag.Generate();
 
-        existingWorkItem.WorkItemTags = new[]
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            new WorkItemTag
-            {
-                Tag = _fakers.WorkTag.Generate()
-            },
-            new WorkItemTag
-            {
-                Tag = _fakers.WorkTag.Generate()
-            }
-        };
-
-        List<WorkTag> existingTags = _fakers.WorkTag.Generate(2);
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.GetCollection<WorkTag>().InsertManyAsync(existingTags);
-            await db.GetCollection<WorkTag>().InsertManyAsync(existingWorkItem.WorkItemTags.Select(workItemTag => workItemTag.Tag));
-            await db.GetCollection<WorkItem>().InsertOneAsync(existingWorkItem);
+            dbContext.WorkTags.Add(existingTag);
+            dbContext.WorkItems.Add(existingWorkItem);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -118,17 +101,7 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
                             new
                             {
                                 type = "workTags",
-                                id = existingWorkItem.WorkItemTags.ElementAt(0).Tag.StringId
-                            },
-                            new
-                            {
-                                type = "workTags",
-                                id = existingTags[0].StringId
-                            },
-                            new
-                            {
-                                type = "workTags",
-                                id = existingTags[1].StringId
+                                id = existingTag.StringId
                             }
                         }
                     }
@@ -136,19 +109,20 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
             }
         };
 
-        string route = "/workItems/" + existingWorkItem.StringId;
+        string route = $"/workItems/{existingWorkItem.StringId}";
 
         // Act
-        (HttpResponseMessage httpResponse, ErrorDocument responseDocument) = await _testContext.ExecutePatchAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.Should().HaveCount(1);
+        responseDocument.Errors.ShouldHaveCount(1);
 
-        Error error = responseDocument.Errors[0];
+        ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 }

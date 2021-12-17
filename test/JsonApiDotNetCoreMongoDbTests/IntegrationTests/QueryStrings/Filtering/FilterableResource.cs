@@ -3,13 +3,17 @@ using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.Filtering;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
+[Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering")]
 public sealed class FilterableResource : MongoIdentifiable
 {
     [Attr]
-    public string SomeString { get; set; }
+    public string SomeString { get; set; } = string.Empty;
+
+    [Attr]
+    public string? SomeNullableString { get; set; }
 
     [Attr]
     public bool SomeBoolean { get; set; }
@@ -54,7 +58,7 @@ public sealed class FilterableResource : MongoIdentifiable
     public Guid? SomeNullableGuid { get; set; }
 
     [Attr]
-    public DateTime SomeDateTime { get; set; }
+    public DateTime SomeDateTimeInUtcZone { get; set; }
 
     [Attr]
     public DateTime? SomeNullableDateTime { get; set; }
@@ -79,5 +83,5 @@ public sealed class FilterableResource : MongoIdentifiable
 
     [HasMany]
     [BsonIgnore]
-    public ICollection<FilterableResource> Children { get; set; }
+    public ICollection<FilterableResource> Children { get; set; } = new List<FilterableResource>();
 }

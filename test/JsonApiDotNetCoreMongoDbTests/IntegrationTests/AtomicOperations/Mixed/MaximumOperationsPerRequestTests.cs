@@ -1,22 +1,20 @@
 using System.Net;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Mixed;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Mixed;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class MaximumOperationsPerRequestTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
 
     public MaximumOperationsPerRequestTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
-
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
     }
 
     [Fact]
@@ -25,11 +23,6 @@ public sealed class MaximumOperationsPerRequestTests
         // Arrange
         var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.MaximumOperationsPerRequest = null;
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.EnsureEmptyCollectionAsync<Performer>();
-        });
 
         const int elementCount = 100;
 
@@ -58,7 +51,7 @@ public sealed class MaximumOperationsPerRequestTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, _) = await _testContext.ExecutePostAtomicAsync<ErrorDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, _) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);

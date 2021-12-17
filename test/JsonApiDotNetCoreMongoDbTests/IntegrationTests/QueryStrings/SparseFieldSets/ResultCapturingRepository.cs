@@ -4,27 +4,28 @@ using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Resources;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.QueryStrings.SparseFieldSets;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.SparseFieldSets;
 
 /// <summary>
 /// Enables sparse fieldset tests to verify which fields were (not) retrieved from the database.
 /// </summary>
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class ResultCapturingRepository<TResource> : MongoRepository<TResource, string>
-    where TResource : class, IIdentifiable<string>
+public sealed class ResultCapturingRepository<TResource, TId> : MongoRepository<TResource, TId>
+    where TResource : class, IIdentifiable<TId>
 {
     private readonly ResourceCaptureStore _captureStore;
 
-    public ResultCapturingRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceContextProvider resourceContextProvider,
-        IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, ResourceCaptureStore captureStore)
-        : base(mongoDataAccess, targetedFields, resourceContextProvider, resourceFactory, constraintProviders)
+    public ResultCapturingRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph,
+        IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor,
+        ResourceCaptureStore captureStore)
+        : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor)
     {
         _captureStore = captureStore;
     }
 
-    public override async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer layer, CancellationToken cancellationToken)
+    public override async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
-        IReadOnlyCollection<TResource> resources = await base.GetAsync(layer, cancellationToken);
+        IReadOnlyCollection<TResource> resources = await base.GetAsync(queryLayer, cancellationToken);
 
         _captureStore.Add(resources);
 

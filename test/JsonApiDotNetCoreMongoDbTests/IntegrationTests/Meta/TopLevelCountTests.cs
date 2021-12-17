@@ -1,25 +1,29 @@
 using System.Net;
+using System.Text.Json;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
 using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.Meta;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.Meta;
 
-public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<TestableStartup>>
+public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<TestableStartup, MetaDbContext>>
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
-    private readonly SupportFakers _fakers = new();
+    private readonly IntegrationTestContext<TestableStartup, MetaDbContext> _testContext;
+    private readonly MetaFakers _fakers = new();
 
-    public TopLevelCountTests(IntegrationTestContext<TestableStartup> testContext)
+    public TopLevelCountTests(IntegrationTestContext<TestableStartup, MetaDbContext> testContext)
     {
         _testContext = testContext;
 
+        testContext.UseController<SupportTicketsController>();
+
         testContext.ConfigureServicesAfterStartup(services =>
         {
+            services.AddSingleton<ResourceDefinitionHitCounter>();
             services.AddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>));
         });
 
@@ -33,10 +37,11 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         SupportTicket ticket = _fakers.SupportTicket.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<SupportTicket>();
-            await db.GetCollection<SupportTicket>().InsertOneAsync(ticket);
+            await dbContext.ClearTableAsync<SupportTicket>();
+            dbContext.SupportTickets.Add(ticket);
+            await dbContext.SaveChangesAsync();
         });
 
         const string route = "/supportTickets";
@@ -47,17 +52,22 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Meta.Should().NotBeNull();
-        responseDocument.Meta["totalResources"].Should().Be(1);
+        responseDocument.Meta.ShouldNotBeNull();
+
+        responseDocument.Meta.ShouldContainKey("total").With(value =>
+        {
+            JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
+            element.GetInt32().Should().Be(1);
+        });
     }
 
     [Fact]
     public async Task Renders_resource_count_for_empty_collection()
     {
         // Arrange
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.ClearCollectionAsync<SupportTicket>();
+            await dbContext.ClearTableAsync<SupportTicket>();
         });
 
         const string route = "/supportTickets";
@@ -68,8 +78,13 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Meta.Should().NotBeNull();
-        responseDocument.Meta["totalResources"].Should().Be(0);
+        responseDocument.Meta.ShouldNotBeNull();
+
+        responseDocument.Meta.ShouldContainKey("total").With(value =>
+        {
+            JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
+            element.GetInt32().Should().Be(0);
+        });
     }
 
     [Fact]
@@ -109,9 +124,10 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
 
         string newDescription = _fakers.SupportTicket.Generate().Description;
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<SupportTicket>().InsertOneAsync(existingTicket);
+            dbContext.SupportTickets.Add(existingTicket);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -127,7 +143,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
             }
         };
 
-        string route = "/supportTickets/" + existingTicket.StringId;
+        string route = $"/supportTickets/{existingTicket.StringId}";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePatchAsync<Document>(route, requestBody);

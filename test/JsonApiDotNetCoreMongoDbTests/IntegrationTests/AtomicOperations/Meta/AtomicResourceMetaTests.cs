@@ -1,36 +1,36 @@
 using System.Net;
+using System.Text.Json;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using JsonApiDotNetCore.Serialization.Objects;
-using JsonApiDotNetCoreMongoDbExampleTests.TestBuildingBlocks;
+using Microsoft.Extensions.DependencyInjection;
+using TestBuildingBlocks;
 using Xunit;
 
-namespace JsonApiDotNetCoreMongoDbExampleTests.IntegrationTests.AtomicOperations.Meta;
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Meta;
 
 [Collection("AtomicOperationsFixture")]
 public sealed class AtomicResourceMetaTests
 {
-    private readonly IntegrationTestContext<TestableStartup> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicResourceMetaTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
 
-        fixture.TestContext.ConfigureServicesAfterStartup(services => services.AddControllersFromExampleProject());
+        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        hitCounter.Reset();
     }
 
     [Fact]
     public async Task Returns_resource_meta_in_create_resource_with_side_effects()
     {
         // Arrange
+        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+
         string newTitle1 = _fakers.MusicTrack.Generate().Title;
         string newTitle2 = _fakers.MusicTrack.Generate().Title;
-
-        await _testContext.RunOnDatabaseAsync(async db =>
-        {
-            await db.EnsureEmptyCollectionAsync<MusicTrack>();
-        });
 
         var requestBody = new
         {
@@ -45,7 +45,7 @@ public sealed class AtomicResourceMetaTests
                         attributes = new
                         {
                             title = newTitle1,
-                            releasedAt = 1.January(2018)
+                            releasedAt = 1.January(2018).AsUtc()
                         }
                     }
                 },
@@ -58,7 +58,7 @@ public sealed class AtomicResourceMetaTests
                         attributes = new
                         {
                             title = newTitle2,
-                            releasedAt = 23.August(1994)
+                            releasedAt = 23.August(1994).AsUtc()
                         }
                     }
                 }
@@ -68,30 +68,54 @@ public sealed class AtomicResourceMetaTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
-            await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.Should().HaveCount(2);
+        responseDocument.Results.ShouldHaveCount(2);
 
-        responseDocument.Results[0].SingleData.Meta.Should().HaveCount(1);
-        responseDocument.Results[0].SingleData.Meta["Copyright"].Should().Be("(C) 2018. All rights reserved.");
+        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        {
+            resource.Meta.ShouldHaveCount(1);
 
-        responseDocument.Results[1].SingleData.Meta.Should().HaveCount(1);
-        responseDocument.Results[1].SingleData.Meta["Copyright"].Should().Be("(C) 1994. All rights reserved.");
+            resource.Meta.ShouldContainKey("copyright").With(value =>
+            {
+                JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
+                element.GetString().Should().Be("(C) 2018. All rights reserved.");
+            });
+        });
+
+        responseDocument.Results[1].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        {
+            resource.Meta.ShouldHaveCount(1);
+
+            resource.Meta.ShouldContainKey("copyright").With(value =>
+            {
+                JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
+                element.GetString().Should().Be("(C) 1994. All rights reserved.");
+            });
+        });
+
+        hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
+        {
+            (typeof(MusicTrack), ResourceDefinitionExtensibilityPoints.GetMeta),
+            (typeof(MusicTrack), ResourceDefinitionExtensibilityPoints.GetMeta)
+        }, options => options.WithStrictOrdering());
     }
 
     [Fact]
     public async Task Returns_resource_meta_in_update_resource_with_side_effects()
     {
         // Arrange
+        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+
         TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async db =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            await db.GetCollection<TextLanguage>().InsertOneAsync(existingLanguage);
+            dbContext.TextLanguages.Add(existingLanguage);
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -116,14 +140,27 @@ public sealed class AtomicResourceMetaTests
         const string route = "/operations";
 
         // Act
-        (HttpResponseMessage httpResponse, AtomicOperationsDocument responseDocument) =
-            await _testContext.ExecutePostAtomicAsync<AtomicOperationsDocument>(route, requestBody);
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAtomicAsync<Document>(route, requestBody);
 
         // Assert
         httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.Should().HaveCount(1);
-        responseDocument.Results[0].SingleData.Meta.Should().HaveCount(1);
-        responseDocument.Results[0].SingleData.Meta["Notice"].Should().Be(TextLanguageMetaDefinition.NoticeText);
+        responseDocument.Results.ShouldHaveCount(1);
+
+        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        {
+            resource.Meta.ShouldHaveCount(1);
+
+            resource.Meta.ShouldContainKey("notice").With(value =>
+            {
+                JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
+                element.GetString().Should().Be(TextLanguageMetaDefinition.NoticeText);
+            });
+        });
+
+        hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
+        {
+            (typeof(TextLanguage), ResourceDefinitionExtensibilityPoints.GetMeta)
+        }, options => options.WithStrictOrdering());
     }
 }
