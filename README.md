@@ -15,76 +15,62 @@ dotnet add package JsonApiDotNetCore.MongoDb
 ### Models
 
 ```c#
+#nullable enable
+
+[Resource]
 public class Book : MongoIdentifiable
 {
     [Attr]
-    public string Name { get; set; }
-}
-```
-
-### Controllers
-
-```c#
-public class BooksController : JsonApiController<Book, string>
-{
-    public BooksController(IJsonApiOptions options, ILoggerFactory loggerFactory,
-        IResourceService<Book, string> resourceService)
-        : base(options, loggerFactory, resourceService)
-    {
-    }
+    public string Name { get; set; } = null!;
 }
 ```
 
 ### Middleware
 
 ```c#
-public class Startup
+// Program.cs
+
+#nullable enable
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddSingleton<IMongoDatabase>(_ =>
 {
-    public IServiceProvider ConfigureServices(IServiceCollection services)
-    {
-        services.AddSingleton<IMongoDatabase>(_ =>
-        {
-            var client = new MongoClient("mongodb://localhost:27017");
-            return client.GetDatabase("ExampleDbName");
-        });
+    var client = new MongoClient("mongodb://localhost:27017");
+    return client.GetDatabase("ExampleDbName");
+});
 
-        services.AddJsonApi(resources: builder =>
-        {
-            builder.Add<Book, string>();
-        });
-        services.AddJsonApiMongoDb();
+builder.Services.AddJsonApi(resources: resourceGraphBuilder =>
+{
+    resourceGraphBuilder.Add<Book, string?>();
+});
 
-        services.AddResourceRepository<MongoRepository<Book, string>>();
-    }
+builder.Services.AddJsonApiMongoDb();
 
-    public void Configure(IApplicationBuilder app)
-    {
-        app.UseRouting();
-        app.UseJsonApi();
-        app.UseEndpoints(endpoints => endpoints.MapControllers());
-    }
-}
+builder.Services.AddResourceRepository<MongoRepository<Book, string?>>();
+
+// Configure the HTTP request pipeline.
+
+app.UseRouting();
+app.UseJsonApi();
+app.MapControllers();
+
+app.Run();
 ```
-Note: If your API project uses only MongoDB (not in combination with EF Core), then instead of
+
+Note: If your API project uses MongoDB only (so not in combination with EF Core), then instead of
 registering all MongoDB resources and repositories individually, you can use:
+
 ```c#
-public class Startup
-{
-    public IServiceProvider ConfigureServices(IServiceCollection services)
-    {
-	// ...
+builder.Services.AddJsonApi(facade => facade.AddCurrentAssembly());
+builder.Services.AddJsonApiMongoDb();
 
-        services.AddJsonApi(facade => facade.AddCurrentAssembly());
-        services.AddJsonApiMongoDb();
+builder.Services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+builder.Services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+builder.Services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
 
-        services.AddScoped(typeof(IResourceReadRepository<>), typeof(MongoRepository<>));
-        services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
-        services.AddScoped(typeof(IResourceWriteRepository<>), typeof(MongoRepository<>));
-        services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
-        services.AddScoped(typeof(IResourceRepository<>), typeof(MongoRepository<>));
-        services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
-    }
-}
 ```
 
 ## Limitations

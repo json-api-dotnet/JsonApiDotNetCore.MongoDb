@@ -1,21 +1,72 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using GettingStarted.Models;
+using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Configuration;
+using JsonApiDotNetCore.MongoDb.Repositories;
+using MongoDB.Driver;
 
-namespace GettingStarted
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddSingleton(_ =>
 {
-    internal static class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+    var client = new MongoClient(builder.Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
+    return client.GetDatabase(builder.Configuration.GetSection("DatabaseSettings:Database").Value);
+});
 
-        private static IHostBuilder CreateHostBuilder(string[] args)
+builder.Services.AddJsonApi(ConfigureJsonApiOptions, resources: resourceGraphBuilder =>
+{
+    resourceGraphBuilder.Add<Book, string?>();
+});
+
+builder.Services.AddJsonApiMongoDb();
+
+builder.Services.AddResourceRepository<MongoRepository<Book, string?>>();
+
+WebApplication app = builder.Build();
+
+// Configure the HTTP request pipeline.
+
+app.UseRouting();
+app.UseJsonApi();
+app.MapControllers();
+
+var database = app.Services.GetRequiredService<IMongoDatabase>();
+await CreateSampleDataAsync(database);
+
+app.Run();
+
+static void ConfigureJsonApiOptions(JsonApiOptions options)
+{
+    options.Namespace = "api";
+    options.UseRelativeLinks = true;
+    options.IncludeTotalResourceCount = true;
+    options.SerializerOptions.WriteIndented = true;
+}
+
+static async Task CreateSampleDataAsync(IMongoDatabase database)
+{
+    await database.DropCollectionAsync(nameof(Book));
+
+    await database.GetCollection<Book>(nameof(Book)).InsertManyAsync(new[]
+    {
+        new Book
         {
-            return Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
+            Title = "Frankenstein",
+            PublishYear = 1818,
+            Author = "Mary Shelley"
+        },
+        new Book
+        {
+            Title = "Robinson Crusoe",
+            PublishYear = 1719,
+            Author = "Daniel Defoe"
+        },
+        new Book
+        {
+            Title = "Gulliver's Travels",
+            PublishYear = 1726,
+            Author = "Jonathan Swift"
         }
-    }
+    });
 }

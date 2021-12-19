@@ -1,6 +1,6 @@
 image:
-  - Ubuntu
-  - Visual Studio 2019
+  - Ubuntu2004
+  - Visual Studio 2022
 
 version: '{build}'
 
@@ -24,7 +24,7 @@ for:
 -
   matrix:
     only:
-    - image: Visual Studio 2019
+    - image: Visual Studio 2022
   artifacts:
   - path: .\**\artifacts\**\*.nupkg
     name: NuGet

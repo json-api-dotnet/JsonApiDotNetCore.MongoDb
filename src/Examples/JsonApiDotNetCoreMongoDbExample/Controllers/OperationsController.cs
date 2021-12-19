@@ -3,16 +3,14 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Controllers;
 using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCore.Resources;
-using Microsoft.Extensions.Logging;
 
-namespace JsonApiDotNetCoreMongoDbExample.Controllers
+namespace JsonApiDotNetCoreMongoDbExample.Controllers;
+
+public sealed class OperationsController : JsonApiOperationsController
 {
-    public sealed class OperationsController : JsonApiOperationsController
+    public OperationsController(IJsonApiOptions options, IResourceGraph resourceGraph, ILoggerFactory loggerFactory, IOperationsProcessor processor,
+        IJsonApiRequest request, ITargetedFields targetedFields)
+        : base(options, resourceGraph, loggerFactory, processor, request, targetedFields)
     {
-        public OperationsController(IJsonApiOptions options, ILoggerFactory loggerFactory, IOperationsProcessor processor, IJsonApiRequest request,
-            ITargetedFields targetedFields)
-            : base(options, loggerFactory, processor, request, targetedFields)
-        {
-        }
     }
 }

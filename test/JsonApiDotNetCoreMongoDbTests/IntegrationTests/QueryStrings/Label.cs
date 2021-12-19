@@ -1,0 +1,20 @@
+using JetBrains.Annotations;
+using JsonApiDotNetCore.MongoDb.Resources;
+using JsonApiDotNetCore.Resources.Annotations;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings;
+
+[UsedImplicitly(ImplicitUseTargetFlags.Members)]
+public sealed class Label : MongoIdentifiable
+{
+    [Attr]
+    public string Name { get; set; } = null!;
+
+    [Attr]
+    public LabelColor Color { get; set; }
+
+    [HasMany]
+    [BsonIgnore]
+    public ISet<BlogPost> Posts { get; set; } = new HashSet<BlogPost>();
+}

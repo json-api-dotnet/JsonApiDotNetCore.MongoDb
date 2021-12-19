@@ -1,57 +1,54 @@
-using System.Threading;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.AtomicOperations;
 using JsonApiDotNetCore.MongoDb.Repositories;
 
-namespace JsonApiDotNetCore.MongoDb.AtomicOperations
+namespace JsonApiDotNetCore.MongoDb.AtomicOperations;
+
+/// <inheritdoc />
+[PublicAPI]
+public sealed class MongoTransaction : IOperationsTransaction
 {
+    private readonly IMongoDataAccess _mongoDataAccess;
+    private readonly bool _ownsTransaction;
+
     /// <inheritdoc />
-    [PublicAPI]
-    public sealed class MongoTransaction : IOperationsTransaction
+    public string TransactionId => _mongoDataAccess.TransactionId!;
+
+    public MongoTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
     {
-        private readonly IMongoDataAccess _mongoDataAccess;
-        private readonly bool _ownsTransaction;
+        ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
 
-        /// <inheritdoc />
-        public string TransactionId => _mongoDataAccess.TransactionId;
+        _mongoDataAccess = mongoDataAccess;
+        _ownsTransaction = ownsTransaction;
+    }
 
-        public MongoTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
+    /// <inheritdoc />
+    public Task BeforeProcessOperationAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public Task AfterProcessOperationAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public async Task CommitAsync(CancellationToken cancellationToken)
+    {
+        if (_ownsTransaction && _mongoDataAccess.ActiveSession != null)
         {
-            ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
-
-            _mongoDataAccess = mongoDataAccess;
-            _ownsTransaction = ownsTransaction;
+            await _mongoDataAccess.ActiveSession.CommitTransactionAsync(cancellationToken);
         }
+    }
 
-        /// <inheritdoc />
-        public Task BeforeProcessOperationAsync(CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_ownsTransaction)
         {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc />
-        public Task AfterProcessOperationAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc />
-        public async Task CommitAsync(CancellationToken cancellationToken)
-        {
-            if (_ownsTransaction)
-            {
-                await _mongoDataAccess.ActiveSession.CommitTransactionAsync(cancellationToken);
-            }
-        }
-
-        /// <inheritdoc />
-        public async ValueTask DisposeAsync()
-        {
-            if (_ownsTransaction)
-            {
-                await _mongoDataAccess.DisposeAsync();
-            }
+            await _mongoDataAccess.DisposeAsync();
         }
     }
 }

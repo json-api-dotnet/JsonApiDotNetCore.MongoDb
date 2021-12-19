@@ -1,31 +1,34 @@
 <Project>
   <PropertyGroup>
-    <NetCoreAppVersion>netcoreapp3.1</NetCoreAppVersion>
-    <AspNetCoreVersion>3.1.*</AspNetCoreVersion>
-    <JsonApiDotNetCoreVersion>4.2.*</JsonApiDotNetCoreVersion>
-    <MongoDBDriverVersion>2.12.*</MongoDBDriverVersion>
-    <CodeAnalysisRuleSet>$(SolutionDir)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
+    <TargetFrameworkName>net6.0</TargetFrameworkName>
+    <AspNetVersion>6.0.*</AspNetVersion>
+    <JsonApiDotNetCoreVersion>5.0.0-pre1</JsonApiDotNetCoreVersion>
+    <MongoDBDriverVersion>2.14.*</MongoDBDriverVersion>
+    <JsonApiDotNetCoreMongoDbVersionPrefix>5.0.0</JsonApiDotNetCoreMongoDbVersionPrefix>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>9999</WarningLevel>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" PrivateAssets="All" />
-    <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.6.0" PrivateAssets="All" />
-    <AdditionalFiles Include="$(SolutionDir)CSharpGuidelinesAnalyzer.config" Visible="False" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" PrivateAssets="All" />
+    <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.7.1" PrivateAssets="All" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)CSharpGuidelinesAnalyzer.config" Visible="False" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NoWarn>$(NoWarn);1591;NU5104</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Test Project Dependencies -->
   <PropertyGroup>
-    <BogusVersion>33.0.2</BogusVersion>
-    <CoverletVersion>3.0.3</CoverletVersion>
-    <FluentAssertionsVersion>5.10.3</FluentAssertionsVersion>
+    <CoverletVersion>3.1.0</CoverletVersion>
     <MoqVersion>4.16.1</MoqVersion>
-    <XUnitVersion>2.4.*</XUnitVersion>
-    <TestSdkVersion>16.10.0</TestSdkVersion>
+    <TestSdkVersion>17.0.0</TestSdkVersion>
   </PropertyGroup>
 </Project>
