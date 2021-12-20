@@ -307,6 +307,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         store.Clear();
 
         Blog blog = _fakers.Blog.Generate();
+        blog.IsPublished = true;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -329,7 +330,8 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         var blogCaptured = (Blog)store.Resources.Should().ContainSingle(resource => resource is Blog).And.Subject.Single();
-        blogCaptured.ShowAdvertisements.Should().Be(blogCaptured.ShowAdvertisements);
+        blogCaptured.ShowAdvertisements.Should().Be(blog.ShowAdvertisements);
+        blogCaptured.IsPublished.Should().Be(blog.IsPublished);
         blogCaptured.Title.Should().Be(blog.Title);
     }
 }

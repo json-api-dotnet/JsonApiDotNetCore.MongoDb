@@ -18,6 +18,8 @@ public sealed class Blog : HexStringMongoIdentifiable
     [Attr(Capabilities = AttrCapabilities.All & ~(AttrCapabilities.AllowCreate | AttrCapabilities.AllowChange))]
     public bool ShowAdvertisements => PlatformName.EndsWith("(using free account)", StringComparison.Ordinal);
 
+    public bool IsPublished { get; set; }
+
     [HasMany]
     [BsonIgnore]
     public IList<BlogPost> Posts { get; set; } = new List<BlogPost>();
