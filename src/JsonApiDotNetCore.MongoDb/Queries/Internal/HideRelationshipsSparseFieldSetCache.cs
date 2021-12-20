@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Internal;
 using JsonApiDotNetCore.Resources;
@@ -38,6 +39,11 @@ public sealed class HideRelationshipsSparseFieldSetCache : ISparseFieldSetCache
     {
         IImmutableSet<ResourceFieldAttribute> fieldSet = _innerCache.GetSparseFieldSetForSerializer(resourceType);
 
+        return resourceType.ClrType.IsAssignableTo(typeof(IMongoIdentifiable)) ? RemoveRelationships(fieldSet) : fieldSet;
+    }
+
+    private static IImmutableSet<ResourceFieldAttribute> RemoveRelationships(IImmutableSet<ResourceFieldAttribute> fieldSet)
+    {
         ResourceFieldAttribute[] relationships = fieldSet.Where(field => field is RelationshipAttribute).ToArray();
         return fieldSet.Except(relationships);
     }

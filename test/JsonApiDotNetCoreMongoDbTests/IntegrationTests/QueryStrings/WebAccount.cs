@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings")]
-public sealed class WebAccount : MongoIdentifiable
+public sealed class WebAccount : HexStringMongoIdentifiable
 {
     [Attr]
     public string UserName { get; set; } = null!;

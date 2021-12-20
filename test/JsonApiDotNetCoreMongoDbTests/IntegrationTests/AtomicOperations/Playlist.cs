@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
-public sealed class Playlist : MongoIdentifiable
+public sealed class Playlist : FreeStringMongoIdentifiable
 {
     [Attr]
     public string Name { get; set; } = null!;

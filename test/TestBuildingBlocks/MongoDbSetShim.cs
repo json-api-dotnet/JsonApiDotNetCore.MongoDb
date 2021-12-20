@@ -15,7 +15,7 @@ public abstract class MongoDbSetShim
 /// repository.
 /// </summary>
 public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
-    where TEntity : MongoIdentifiable
+    where TEntity : IMongoIdentifiable
 {
     private readonly IMongoCollection<TEntity> _collection;
     private readonly List<TEntity> _entitiesToInsert = new();
@@ -64,21 +64,19 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
 
     public async Task<TEntity> FirstWithIdAsync(string? id, CancellationToken cancellationToken = default)
     {
-        MongoIdentifiable? firstOrDefault = await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
+        TEntity entity = await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
 
-        if (Equals(firstOrDefault, default(MongoIdentifiable)))
+        if (entity is null)
         {
             throw new InvalidOperationException($"Resource with ID '{id}' was not found.");
         }
 
-        return (TEntity)firstOrDefault;
+        return entity;
     }
 
     public async Task<TEntity?> FirstWithIdOrDefaultAsync(string? id, CancellationToken cancellationToken = default)
     {
-        MongoIdentifiable? entity = await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
-
-        return (TEntity?)entity;
+        return await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
     }
 
     public async Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)

@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-public sealed class LoginAttempt : MongoIdentifiable
+public sealed class LoginAttempt : HexStringMongoIdentifiable
 {
     [Attr]
     public DateTimeOffset TriedAt { get; set; }

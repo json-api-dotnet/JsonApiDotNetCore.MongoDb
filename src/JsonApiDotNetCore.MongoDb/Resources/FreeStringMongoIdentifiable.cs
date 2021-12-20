@@ -1,17 +1,16 @@
-using JsonApiDotNetCore.Resources;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace JsonApiDotNetCore.MongoDb.Resources;
 
 /// <summary>
-/// A convenient basic implementation of <see cref="IIdentifiable" /> for use with MongoDB models.
+/// Basic implementation of a JSON:API resource whose Id is stored as a free-format string in MongoDB. Useful for resources that are created using
+/// client-generated IDs.
 /// </summary>
-public abstract class MongoIdentifiable : IIdentifiable<string?>
+public abstract class FreeStringMongoIdentifiable : IMongoIdentifiable
 {
     /// <inheritdoc />
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
+    [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
     public virtual string? Id { get; set; }
 
     /// <inheritdoc />

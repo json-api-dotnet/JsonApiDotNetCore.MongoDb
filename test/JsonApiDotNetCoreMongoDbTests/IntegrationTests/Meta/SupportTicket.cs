@@ -6,7 +6,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.Meta;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.Meta")]
-public sealed class SupportTicket : MongoIdentifiable
+public sealed class SupportTicket : HexStringMongoIdentifiable
 {
     [Attr]
     public string Description { get; set; } = null!;

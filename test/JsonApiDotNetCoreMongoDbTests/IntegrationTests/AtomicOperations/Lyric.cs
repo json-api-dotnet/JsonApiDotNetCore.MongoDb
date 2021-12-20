@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
-public sealed class Lyric : MongoIdentifiable
+public sealed class Lyric : HexStringMongoIdentifiable
 {
     [Attr]
     public string? Format { get; set; }

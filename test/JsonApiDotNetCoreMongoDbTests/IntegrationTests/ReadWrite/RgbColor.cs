@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite")]
-public sealed class RgbColor : MongoIdentifiable
+public sealed class RgbColor : FreeStringMongoIdentifiable
 {
     [Attr]
     public string DisplayName { get; set; } = null!;

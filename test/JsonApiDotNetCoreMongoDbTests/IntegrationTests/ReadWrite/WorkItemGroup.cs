@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite")]
-public sealed class WorkItemGroup : MongoIdentifiable
+public sealed class WorkItemGroup : FreeStringMongoIdentifiable
 {
     [Attr]
     public string Name { get; set; } = null!;

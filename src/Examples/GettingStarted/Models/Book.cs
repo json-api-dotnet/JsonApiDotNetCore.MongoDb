@@ -6,7 +6,7 @@ namespace GettingStarted.Models;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource]
-public sealed class Book : MongoIdentifiable
+public sealed class Book : HexStringMongoIdentifiable
 {
     [Attr]
     public string Title { get; set; } = null!;

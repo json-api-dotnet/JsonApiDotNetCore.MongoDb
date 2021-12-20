@@ -18,7 +18,7 @@ dotnet add package JsonApiDotNetCore.MongoDb
 #nullable enable
 
 [Resource]
-public class Book : MongoIdentifiable
+public class Book : HexStringMongoIdentifiable
 {
     [Attr]
     public string Name { get; set; } = null!;
@@ -70,8 +70,18 @@ builder.Services.AddJsonApiMongoDb();
 builder.Services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
 builder.Services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
 builder.Services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
-
 ```
+
+## Using client-generated IDs
+Resources that inherit from `HexStringMongoIdentifiable` use auto-generated (performant) 12-byte hexadecimal
+[Object IDs](https://docs.mongodb.com/manual/reference/bson-types/#objectid).
+You can assign an ID manually, but it must match the 12-byte hexadecimal pattern.
+
+To assign free-format string IDs manually, make your resources inherit from `FreeStringMongoIdentifiable` instead.
+When creating a resource without assigning an ID, a 12-byte hexadecimal ID will be auto-generated.
+
+Set `options.AllowClientGeneratedIds` to `true` in Program.cs to allow API clients to assign IDs. This can be combined
+with both base classes, but `FreeStringMongoIdentifiable` probably makes the most sense.
 
 ## Limitations
 
