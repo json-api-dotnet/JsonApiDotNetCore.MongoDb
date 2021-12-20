@@ -3,7 +3,6 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -28,7 +27,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
     {
         // Arrange
         TextLanguage newLanguage = _fakers.TextLanguage.Generate();
-        newLanguage.Id = ObjectId.GenerateNewId().ToString();
+        newLanguage.Id = "free-format-client-generated-id";
 
         var requestBody = new
         {
@@ -82,8 +81,8 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
     public async Task Can_create_resource_with_client_generated_string_ID_having_no_side_effects()
     {
         // Arrange
-        MusicTrack newTrack = _fakers.MusicTrack.Generate();
-        newTrack.Id = ObjectId.GenerateNewId().ToString();
+        Playlist newPlaylist = _fakers.Playlist.Generate();
+        newPlaylist.Id = "free-format-client-generated-id";
 
         var requestBody = new
         {
@@ -94,13 +93,11 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
                     op = "add",
                     data = new
                     {
-                        type = "musicTracks",
-                        id = newTrack.StringId,
+                        type = "playlists",
+                        id = newPlaylist.StringId,
                         attributes = new
                         {
-                            title = newTrack.Title,
-                            lengthInSeconds = newTrack.LengthInSeconds,
-                            releasedAt = newTrack.ReleasedAt
+                            name = newPlaylist.Name
                         }
                     }
                 }
@@ -119,10 +116,9 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            MusicTrack trackInDatabase = await dbContext.MusicTracks.FirstWithIdAsync(newTrack.Id);
+            Playlist playlistInDatabase = await dbContext.Playlists.FirstWithIdAsync(newPlaylist.Id);
 
-            trackInDatabase.Title.Should().Be(newTrack.Title);
-            trackInDatabase.LengthInSeconds.Should().BeApproximately(newTrack.LengthInSeconds);
+            playlistInDatabase.Name.Should().Be(newPlaylist.Name);
         });
     }
 
@@ -131,7 +127,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests
     {
         // Arrange
         TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
-        existingLanguage.Id = ObjectId.GenerateNewId().ToString();
+        existingLanguage.Id = "existing-free-format-client-generated-id";
 
         string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
 

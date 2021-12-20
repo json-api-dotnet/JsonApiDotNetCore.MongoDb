@@ -3,7 +3,6 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -35,7 +34,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         // Arrange
         WorkItemGroup newGroup = _fakers.WorkItemGroup.Generate();
-        newGroup.Id = ObjectId.GenerateNewId().ToString();
+        newGroup.Id = "free-format-client-generated-id-1";
 
         var requestBody = new
         {
@@ -79,7 +78,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         // Arrange
         WorkItemGroup newGroup = _fakers.WorkItemGroup.Generate();
-        newGroup.Id = ObjectId.GenerateNewId().ToString();
+        newGroup.Id = "free-format-client-generated-id-2";
 
         var requestBody = new
         {
@@ -124,7 +123,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         // Arrange
         RgbColor newColor = _fakers.RgbColor.Generate();
-        newColor.Id = ObjectId.GenerateNewId().ToString();
+        newColor.Id = "free-format-client-generated-id-3";
 
         var requestBody = new
         {
@@ -162,7 +161,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         // Arrange
         RgbColor newColor = _fakers.RgbColor.Generate();
-        newColor.Id = ObjectId.GenerateNewId().ToString();
+        newColor.Id = "free-format-client-generated-id-4";
 
         var requestBody = new
         {
@@ -200,7 +199,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         // Arrange
         RgbColor existingColor = _fakers.RgbColor.Generate();
-        existingColor.Id = ObjectId.GenerateNewId().ToString();
+        existingColor.Id = "free-format-client-generated-id-5";
 
         string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 

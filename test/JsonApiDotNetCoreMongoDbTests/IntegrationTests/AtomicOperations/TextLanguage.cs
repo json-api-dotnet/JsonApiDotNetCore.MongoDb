@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
-public sealed class TextLanguage : HexStringMongoIdentifiable
+public sealed class TextLanguage : FreeStringMongoIdentifiable
 {
     [Attr]
     public string? IsoCode { get; set; }
