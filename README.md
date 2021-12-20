@@ -120,7 +120,7 @@ dotnet test
 If you want to run the examples and explore them on your own **you are** going to need that running instance of MongoDB. If you have docker installed you can launch it like this:
 
 ```bash
-run-docker-mongodb.ps1
+pwsh run-docker-mongodb.ps1
 ```
 
 And then to run the API:
@@ -132,5 +132,5 @@ dotnet run --project src/Examples/GettingStarted
 Alternatively, to build and validate the code, run all tests, generate code coverage and produce the NuGet package:
 
 ```bash
-Build.ps1
+pwsh Build.ps1
 ```
