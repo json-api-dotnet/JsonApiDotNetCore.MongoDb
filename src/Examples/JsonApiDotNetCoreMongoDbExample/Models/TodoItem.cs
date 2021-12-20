@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Models;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource]
-public sealed class TodoItem : MongoIdentifiable
+public sealed class TodoItem : HexStringMongoIdentifiable
 {
     [Attr]
     public string Description { get; set; } = null!;

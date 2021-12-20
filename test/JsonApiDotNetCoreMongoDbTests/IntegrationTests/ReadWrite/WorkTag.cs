@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-public sealed class WorkTag : MongoIdentifiable
+public sealed class WorkTag : HexStringMongoIdentifiable
 {
     [Attr]
     public string Text { get; set; } = null!;

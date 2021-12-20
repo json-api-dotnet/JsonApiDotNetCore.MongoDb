@@ -1,13 +1,12 @@
-using JsonApiDotNetCore.Resources;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace JsonApiDotNetCore.MongoDb.Resources;
 
 /// <summary>
-/// A convenient basic implementation of <see cref="IIdentifiable" /> for use with MongoDB models.
+/// Basic implementation of a JSON:API resource whose Id is stored as a 12-byte hexadecimal ObjectId in MongoDB.
 /// </summary>
-public abstract class MongoIdentifiable : IIdentifiable<string?>
+public abstract class HexStringMongoIdentifiable : IMongoIdentifiable
 {
     /// <inheritdoc />
     [BsonId]

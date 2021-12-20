@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite")]
-public sealed class UserAccount : MongoIdentifiable
+public sealed class UserAccount : HexStringMongoIdentifiable
 {
     [Attr]
     public string FirstName { get; set; } = null!;

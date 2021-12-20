@@ -5,6 +5,7 @@ using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
+using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
 using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
@@ -52,9 +53,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         _constraintProviders = constraintProviders;
         _resourceDefinitionAccessor = resourceDefinitionAccessor;
 
-        if (typeof(TId) != typeof(string))
+        if (!typeof(TResource).IsAssignableTo(typeof(IMongoIdentifiable)))
         {
-            throw new InvalidConfigurationException("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
+            throw new InvalidConfigurationException("MongoDB can only be used with resources that implement 'IMongoIdentifiable'.");
         }
     }
 

@@ -7,7 +7,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering")]
-public sealed class FilterableResource : MongoIdentifiable
+public sealed class FilterableResource : HexStringMongoIdentifiable
 {
     [Attr]
     public string SomeString { get; set; } = string.Empty;

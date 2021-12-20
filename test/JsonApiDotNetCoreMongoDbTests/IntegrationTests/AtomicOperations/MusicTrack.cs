@@ -8,7 +8,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations")]
-public sealed class MusicTrack : MongoIdentifiable
+public sealed class MusicTrack : HexStringMongoIdentifiable
 {
     [RegularExpression(@"^[a-fA-F\d]{24}$")]
     public override string? Id { get; set; }

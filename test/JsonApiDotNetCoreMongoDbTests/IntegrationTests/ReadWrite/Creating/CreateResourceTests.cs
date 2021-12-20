@@ -98,7 +98,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         error.Title.Should().Be("An unhandled error occurred while processing this request.");
-        error.Detail.Should().Be("MongoDB can only be used for resources with an 'Id' property of type 'string'.");
+        error.Detail.Should().Be("MongoDB can only be used with resources that implement 'IMongoIdentifiable'.");
     }
 
     [Fact]

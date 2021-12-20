@@ -18,7 +18,7 @@ public abstract class MongoDbContextShim
     }
 
     protected MongoDbSetShim<TEntity> Set<TEntity>()
-        where TEntity : MongoIdentifiable
+        where TEntity : IMongoIdentifiable
     {
         IMongoCollection<TEntity> collection = _database.GetCollection<TEntity>(typeof(TEntity).Name);
         var dbSetShim = new MongoDbSetShim<TEntity>(collection);
@@ -28,7 +28,7 @@ public abstract class MongoDbContextShim
     }
 
     public async Task ClearTableAsync<TEntity>()
-        where TEntity : MongoIdentifiable
+        where TEntity : IMongoIdentifiable
     {
         await _database.DropCollectionAsync(typeof(TEntity).Name);
     }

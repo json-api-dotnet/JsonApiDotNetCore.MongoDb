@@ -6,7 +6,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ResourceDefinitions.Rea
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 [Resource(ControllerNamespace = "JsonApiDotNetCoreMongoDbTests.IntegrationTests.ResourceDefinitions.Reading")]
-public sealed class Star : MongoIdentifiable
+public sealed class Star : HexStringMongoIdentifiable
 {
     [Attr]
     public string Name { get; set; } = null!;
