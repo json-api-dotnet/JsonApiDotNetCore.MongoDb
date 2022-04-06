@@ -21,7 +21,7 @@ internal sealed partial class ContainerTypeToHideFromAutoDiscovery
             throw new NotImplementedException();
         }
 
-        public Task<Performer> GetForCreateAsync(string? id, CancellationToken cancellationToken)
+        public Task<Performer> GetForCreateAsync(Type resourceClrType, string? id, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -41,7 +41,7 @@ internal sealed partial class ContainerTypeToHideFromAutoDiscovery
             throw new NotImplementedException();
         }
 
-        public Task DeleteAsync(string? id, CancellationToken cancellationToken)
+        public Task DeleteAsync(Performer? resourceFromDatabase, string? id, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -51,7 +51,8 @@ internal sealed partial class ContainerTypeToHideFromAutoDiscovery
             throw new NotImplementedException();
         }
 
-        public Task AddToToManyRelationshipAsync(string? leftId, ISet<IIdentifiable> rightResourceIds, CancellationToken cancellationToken)
+        public Task AddToToManyRelationshipAsync(Performer? leftResource, string? leftId, ISet<IIdentifiable> rightResourceIds,
+            CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

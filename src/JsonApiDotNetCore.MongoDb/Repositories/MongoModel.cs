@@ -13,7 +13,7 @@ internal sealed class MongoModel : RuntimeModel
 
         foreach (ResourceType resourceType in resourceGraph.GetResourceTypes())
         {
-            RuntimeEntityType entityType = AddEntityType(resourceType.ClrType.Name, resourceType.ClrType);
+            RuntimeEntityType entityType = AddEntityType(resourceType.ClrType.FullName!, resourceType.ClrType);
             SetEntityProperties(entityType, resourceType);
         }
     }

@@ -82,7 +82,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         return query.CountAsync(cancellationToken);
     }
 
+#pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
     protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
+#pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
         ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
 
@@ -120,7 +122,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
     }
 
+#pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
     protected virtual IQueryable<TResource> GetAll()
+#pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
         return _mongoDataAccess.ActiveSession != null ? Collection.AsQueryable(_mongoDataAccess.ActiveSession) : Collection.AsQueryable();
     }
@@ -150,9 +154,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual Task<TResource> GetForCreateAsync(TId id, CancellationToken cancellationToken)
+    public virtual Task<TResource> GetForCreateAsync(Type resourceClrType, TId id, CancellationToken cancellationToken)
     {
-        var resource = _resourceFactory.CreateInstance<TResource>();
+        var resource = (TResource)_resourceFactory.CreateInstance(resourceClrType);
         resource.Id = id;
 
         return Task.FromResult(resource);
@@ -228,9 +232,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
+    public virtual async Task DeleteAsync(TResource? resourceFromDatabase, TId id, CancellationToken cancellationToken)
     {
-        var placeholderResource = _resourceFactory.CreateInstance<TResource>();
+        TResource placeholderResource = resourceFromDatabase ?? _resourceFactory.CreateInstance<TResource>();
         placeholderResource.Id = id;
 
         await _resourceDefinitionAccessor.OnWritingAsync(placeholderResource, WriteOperationKind.DeleteResource, cancellationToken);
@@ -263,7 +267,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual Task AddToToManyRelationshipAsync(TId leftId, ISet<IIdentifiable> rightResourceIds, CancellationToken cancellationToken)
+    public virtual Task AddToToManyRelationshipAsync(TResource? leftResource, TId leftId, ISet<IIdentifiable> rightResourceIds,
+        CancellationToken cancellationToken)
     {
         throw new UnsupportedRelationshipException();
     }
