@@ -1,3 +1,4 @@
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
@@ -12,9 +13,8 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
         ArgumentGuard.NotNull(layer, nameof(layer));
 
         bool hasIncludes = layer.Include?.Elements.Any() == true;
-        bool hasSparseRelationshipSets = layer.Projection?.Any(pair => pair.Key is RelationshipAttribute) == true;
 
-        if (hasIncludes || hasSparseRelationshipSets)
+        if (hasIncludes || HasSparseRelationshipSets(layer.Selection))
         {
             throw new UnsupportedRelationshipException();
         }
@@ -22,6 +22,24 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
         ValidateExpression(layer.Filter);
         ValidateExpression(layer.Sort);
         ValidateExpression(layer.Pagination);
+    }
+
+    private static bool HasSparseRelationshipSets(FieldSelection? selection)
+    {
+        if (selection is { IsEmpty: false })
+        {
+            foreach (ResourceType resourceType in selection.GetResourceTypes())
+            {
+                FieldSelectors selectors = selection.GetOrCreateSelectors(resourceType);
+
+                if (selectors.Any(pair => pair.Key is RelationshipAttribute))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void ValidateExpression(QueryExpression? expression)

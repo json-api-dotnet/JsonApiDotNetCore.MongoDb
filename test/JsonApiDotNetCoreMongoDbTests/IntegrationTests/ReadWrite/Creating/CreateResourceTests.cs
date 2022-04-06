@@ -50,7 +50,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
@@ -91,7 +91,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.InternalServerError);
 
         responseDocument.Errors.ShouldHaveCount(1);
 
@@ -125,7 +125,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.Created);
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
@@ -167,7 +167,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecutePostAsync<Document>(route, requestBody);
 
         // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.Forbidden);
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.Forbidden);
 
         responseDocument.Errors.ShouldHaveCount(1);
 

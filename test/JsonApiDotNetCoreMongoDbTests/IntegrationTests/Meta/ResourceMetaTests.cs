@@ -50,7 +50,7 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
 
         // Assert
-        httpResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
         responseDocument.Data.ManyValue.ShouldHaveCount(3);
         responseDocument.Data.ManyValue[0].Meta.ShouldContainKey("hasHighPriority");
