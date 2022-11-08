@@ -8,8 +8,7 @@ function CheckLastExitCode {
 
 function RunInspectCode {
     $outputPath = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), 'jetbrains-inspectcode-results.xml')
-    # passing --build instead of --no-build as workaround for https://youtrack.jetbrains.com/issue/RSRP-487054
-    dotnet jb inspectcode JsonApiDotNetCore.MongoDb.sln --build --output="$outputPath" --profile=WarningSeverities.DotSettings --properties:Configuration=Release --severity=WARNING --verbosity=WARN -dsl=GlobalAll -dsl=GlobalPerProduct -dsl=SolutionPersonal -dsl=ProjectPersonal
+    dotnet jb inspectcode JsonApiDotNetCore.MongoDb.sln --no-build --output="$outputPath" --profile=WarningSeverities.DotSettings --properties:Configuration=Release --severity=WARNING --verbosity=WARN -dsl=GlobalAll -dsl=GlobalPerProduct -dsl=SolutionPersonal -dsl=ProjectPersonal
     CheckLastExitCode
 
     [xml]$xml = Get-Content "$outputPath"
@@ -40,16 +39,21 @@ function RunCleanupCode {
     # When running in cibuild for a pull request, this reformats only the files changed in the PR and fails if the reformat produces changes.
 
     if ($env:APPVEYOR_PULL_REQUEST_HEAD_COMMIT) {
-        Write-Output "Running code cleanup on changed files in pull request"
-
         # In the past, we used $env:APPVEYOR_PULL_REQUEST_HEAD_COMMIT for the merge commit hash. That is the pinned hash at the time the build is enqueued.
         # When a force-push happens after that, while the build hasn't yet started, this hash becomes invalid during the build, resulting in a lookup error.
-        # To prevent failing the build for unobvious reasons we use HEAD, which is always the latest version.
-        $mergeCommitHash = git rev-parse "HEAD"
-        $targetCommitHash = git rev-parse "$env:APPVEYOR_REPO_BRANCH"
+        # To prevent failing the build for unobvious reasons we use HEAD, which is always a detached head (the PR merge result).
 
-        dotnet regitlint -s JsonApiDotNetCore.MongoDb.sln --print-command --disable-jb-path-hack --jb --profile='\"JADNC Full Cleanup\"' --jb --properties:Configuration=Release --jb --verbosity=WARN -f commits -a $mergeCommitHash -b $targetCommitHash --fail-on-diff --print-diff
+        $headCommitHash = git rev-parse HEAD
         CheckLastExitCode
+
+        $baseCommitHash = git rev-parse "$env:APPVEYOR_REPO_BRANCH"
+        CheckLastExitCode
+
+        if ($baseCommitHash -ne $headCommitHash) {
+            Write-Output "Running code cleanup on commit range $baseCommitHash..$headCommitHash in pull request."
+            dotnet regitlint -s JsonApiDotNetCore.MongoDb.sln --print-command --skip-tool-check --jb-profile="JADNC Full Cleanup" --jb --properties:Configuration=Release --jb --verbosity=WARN -f commits -a $headCommitHash -b $baseCommitHash --fail-on-diff --print-diff
+            CheckLastExitCode
+        }
     }
 }
 
@@ -100,8 +104,11 @@ CheckLastExitCode
 dotnet build -c Release
 CheckLastExitCode
 
-RunInspectCode
-RunCleanupCode
+# https://youtrack.jetbrains.com/issue/RSRP-488628/Breaking-InspectCode-fails-with-Roslyn-Worker-process-exited-unexpectedly-after-update
+if ($IsWindows) {
+    RunInspectCode
+    RunCleanupCode
+}
 
 dotnet test -c Release --no-build --collect:"XPlat Code Coverage"
 CheckLastExitCode

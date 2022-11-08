@@ -10,7 +10,7 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
 {
     public void Validate(QueryLayer layer)
     {
-        ArgumentGuard.NotNull(layer, nameof(layer));
+        ArgumentGuard.NotNull(layer);
 
         bool hasIncludes = layer.Include?.Elements.Any() == true;
 

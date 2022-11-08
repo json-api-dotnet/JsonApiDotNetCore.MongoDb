@@ -19,6 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonApiDotNetCoreMongoDbTes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestBuildingBlocks", "test\TestBuildingBlocks\TestBuildingBlocks.csproj", "{6A0AC606-F11E-4090-B12A-C547BD17EE56}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0D224872-1BD0-4ACA-8788-2407B0FD04F0}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		CodingGuidelines.ruleset = CodingGuidelines.ruleset
+		CSharpGuidelinesAnalyzer.config = CSharpGuidelinesAnalyzer.config
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

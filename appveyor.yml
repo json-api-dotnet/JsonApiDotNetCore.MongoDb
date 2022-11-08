@@ -45,7 +45,10 @@ for:
       appveyor_repo_tag: true
 
 build_script:
-- pwsh: dotnet --version
-- pwsh: .\Build.ps1
+- pwsh: |
+    Write-Output ".NET version:"
+    dotnet --version
+
+    .\Build.ps1
 
 test: off

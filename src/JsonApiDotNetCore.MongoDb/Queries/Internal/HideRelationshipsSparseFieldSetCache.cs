@@ -16,8 +16,8 @@ public sealed class HideRelationshipsSparseFieldSetCache : ISparseFieldSetCache
     public HideRelationshipsSparseFieldSetCache(IEnumerable<IQueryConstraintProvider> constraintProviders,
         IResourceDefinitionAccessor resourceDefinitionAccessor)
     {
-        ArgumentGuard.NotNull(constraintProviders, nameof(constraintProviders));
-        ArgumentGuard.NotNull(resourceDefinitionAccessor, nameof(resourceDefinitionAccessor));
+        ArgumentGuard.NotNull(constraintProviders);
+        ArgumentGuard.NotNull(resourceDefinitionAccessor);
 
         _innerCache = new SparseFieldSetCache(constraintProviders, resourceDefinitionAccessor);
     }

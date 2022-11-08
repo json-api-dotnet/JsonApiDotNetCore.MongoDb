@@ -9,7 +9,7 @@ internal sealed class MongoModel : RuntimeModel
 {
     public MongoModel(IResourceGraph resourceGraph)
     {
-        ArgumentGuard.NotNull(resourceGraph, nameof(resourceGraph));
+        ArgumentGuard.NotNull(resourceGraph);
 
         foreach (ResourceType resourceType in resourceGraph.GetResourceTypes())
         {

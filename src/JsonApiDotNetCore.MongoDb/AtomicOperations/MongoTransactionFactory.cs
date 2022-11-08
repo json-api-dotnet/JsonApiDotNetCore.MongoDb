@@ -12,7 +12,7 @@ public sealed class MongoTransactionFactory : IOperationsTransactionFactory
 
     public MongoTransactionFactory(IMongoDataAccess mongoDataAccess)
     {
-        ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
+        ArgumentGuard.NotNull(mongoDataAccess);
 
         _mongoDataAccess = mongoDataAccess;
     }
