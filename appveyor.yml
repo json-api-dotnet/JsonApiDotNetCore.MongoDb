@@ -49,6 +49,9 @@ build_script:
     Write-Output ".NET version:"
     dotnet --version
 
+    mongod --version
+    mongo --version
+
     .\Build.ps1
 
 test: off
