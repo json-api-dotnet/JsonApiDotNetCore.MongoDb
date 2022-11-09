@@ -31,7 +31,7 @@ public sealed class BlogPost : HexStringMongoIdentifiable
     [BsonIgnore]
     public ISet<Comment> Comments { get; set; } = new HashSet<Comment>();
 
-    [HasOne(CanInclude = false)]
+    [HasOne(Capabilities = HasOneCapabilities.All & ~HasOneCapabilities.AllowInclude)]
     [BsonIgnore]
     public Blog? Parent { get; set; }
 }

@@ -16,7 +16,7 @@ public sealed class MongoDataAccess : IMongoDataAccess
 
     public MongoDataAccess(IMongoDatabase mongoDatabase)
     {
-        ArgumentGuard.NotNull(mongoDatabase, nameof(mongoDatabase));
+        ArgumentGuard.NotNull(mongoDatabase);
 
         MongoDatabase = mongoDatabase;
     }

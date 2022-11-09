@@ -39,12 +39,12 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
         IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor)
     {
-        ArgumentGuard.NotNull(mongoDataAccess, nameof(mongoDataAccess));
-        ArgumentGuard.NotNull(targetedFields, nameof(targetedFields));
-        ArgumentGuard.NotNull(resourceGraph, nameof(resourceGraph));
-        ArgumentGuard.NotNull(resourceFactory, nameof(resourceFactory));
-        ArgumentGuard.NotNull(constraintProviders, nameof(constraintProviders));
-        ArgumentGuard.NotNull(resourceDefinitionAccessor, nameof(resourceDefinitionAccessor));
+        ArgumentGuard.NotNull(mongoDataAccess);
+        ArgumentGuard.NotNull(targetedFields);
+        ArgumentGuard.NotNull(resourceGraph);
+        ArgumentGuard.NotNull(resourceFactory);
+        ArgumentGuard.NotNull(constraintProviders);
+        ArgumentGuard.NotNull(resourceDefinitionAccessor);
 
         _mongoDataAccess = mongoDataAccess;
         _targetedFields = targetedFields;
@@ -62,7 +62,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
+        ArgumentGuard.NotNull(queryLayer);
 
         IMongoQueryable<TResource> query = ApplyQueryLayer(queryLayer);
         return await query.ToListAsync(cancellationToken);
@@ -86,7 +86,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
 #pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
-        ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
+        ArgumentGuard.NotNull(queryLayer);
 
         var queryExpressionValidator = new MongoQueryExpressionValidator();
         queryExpressionValidator.Validate(queryLayer);
@@ -165,8 +165,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(resourceFromRequest, nameof(resourceFromRequest));
-        ArgumentGuard.NotNull(resourceForDatabase, nameof(resourceForDatabase));
+        ArgumentGuard.NotNull(resourceFromRequest);
+        ArgumentGuard.NotNull(resourceForDatabase);
 
         AssertNoRelationshipsAreTargeted();
 
@@ -198,7 +198,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task<TResource?> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(queryLayer, nameof(queryLayer));
+        ArgumentGuard.NotNull(queryLayer);
 
         IReadOnlyCollection<TResource> resources = await GetAsync(queryLayer, cancellationToken);
         return resources.FirstOrDefault();
@@ -207,8 +207,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task UpdateAsync(TResource resourceFromRequest, TResource resourceFromDatabase, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(resourceFromRequest, nameof(resourceFromRequest));
-        ArgumentGuard.NotNull(resourceFromDatabase, nameof(resourceFromDatabase));
+        ArgumentGuard.NotNull(resourceFromRequest);
+        ArgumentGuard.NotNull(resourceFromDatabase);
 
         AssertNoRelationshipsAreTargeted();
 
