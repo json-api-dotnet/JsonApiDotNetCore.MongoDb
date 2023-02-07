@@ -16,9 +16,7 @@
     <File Path="README.md" />
     <File Path="tests.runsettings" />
   </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/JsonApiDotNetCore.MongoDb/JsonApiDotNetCore.MongoDb.csproj" />
-  </Folder>
+  <Folder Name="/src/" />
   <Folder Name="/src/Examples/">
     <Project Path="src/Examples/JsonApiDotNetCoreMongoDbExample/JsonApiDotNetCoreMongoDbExample.csproj" />
   </Folder>
