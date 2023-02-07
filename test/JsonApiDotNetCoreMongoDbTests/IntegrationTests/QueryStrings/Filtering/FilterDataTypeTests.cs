@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Reflection;
 using System.Web;
@@ -49,7 +50,9 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         });
 
         string attributeName = propertyName.Camelize();
-        string route = $"/filterableResources?filter=equals({attributeName},'{propertyValue}')";
+        string? attributeValue = Convert.ToString(propertyValue, CultureInfo.InvariantCulture);
+
+        string route = $"/filterableResources?filter=equals({attributeName},'{attributeValue}')";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -77,7 +80,7 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
             await dbContext.SaveChangesAsync();
         });
 
-        string route = $"/filterableResources?filter=equals(someDecimal,'{resource.SomeDecimal}')";
+        string route = $"/filterableResources?filter=equals(someDecimal,'{resource.SomeDecimal.ToString(CultureInfo.InvariantCulture)}')";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -115,6 +118,36 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
 
         responseDocument.Data.ManyValue.ShouldHaveCount(1);
         responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someGuid").With(value => value.Should().Be(resource.SomeGuid));
+    }
+
+    [Fact]
+    public async Task Can_filter_equality_on_type_DateTime_in_local_time_zone()
+    {
+        // Arrange
+        var resource = new FilterableResource
+        {
+            SomeDateTimeInLocalZone = 27.January(2003).At(11, 22, 33, 44)
+        };
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, new FilterableResource());
+            await dbContext.SaveChangesAsync();
+        });
+
+        string route = $"/filterableResources?filter=equals(someDateTimeInLocalZone,'{resource.SomeDateTimeInLocalZone:O}')";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
+
+        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+
+        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeInLocalZone")
+            .With(value => value.Should().Be(resource.SomeDateTimeInLocalZone));
     }
 
     [Fact]
@@ -191,7 +224,7 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
             await dbContext.SaveChangesAsync();
         });
 
-        string route = $"/filterableResources?filter=equals(someTimeSpan,'{resource.SomeTimeSpan}')";
+        string route = $"/filterableResources?filter=equals(someTimeSpan,'{resource.SomeTimeSpan:c}')";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
