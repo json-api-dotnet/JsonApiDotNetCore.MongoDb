@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TestBuildingBlocks\TestBuildingBlocks.csproj" />
-    <ProjectReference Include="..\..\src\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj" />
   </ItemGroup>
 
   <ItemGroup>
