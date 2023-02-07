@@ -2,6 +2,7 @@
   <PropertyGroup>
     <!-- Published dependencies (only update on major version change) -->
     <JsonApiDotNetCoreFrozenVersion>5.10.0</JsonApiDotNetCoreFrozenVersion>
+    <JsonApiDotNetCoreMongoDbFrozenVersion>5.7.1</JsonApiDotNetCoreMongoDbFrozenVersion>
     <MongoDBDriverFrozenVersion>3.3.0</MongoDBDriverFrozenVersion>
 
     <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
