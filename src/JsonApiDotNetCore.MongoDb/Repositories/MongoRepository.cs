@@ -4,7 +4,6 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Errors;
 using JsonApiDotNetCore.Middleware;
 using JsonApiDotNetCore.MongoDb.Errors;
-using JsonApiDotNetCore.MongoDb.Queries.Internal.QueryableBuilding;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
@@ -115,16 +114,14 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
         var nameFactory = new LambdaParameterNameFactory();
 
-        var builder = new MongoQueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
+        var builder = new QueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
             new MongoModel(_resourceGraph));
 
         Expression expression = builder.ApplyQuery(queryLayer);
         return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
     }
 
-#pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
     protected virtual IQueryable<TResource> GetAll()
-#pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
         return _mongoDataAccess.ActiveSession != null ? Collection.AsQueryable(_mongoDataAccess.ActiveSession) : Collection.AsQueryable();
     }

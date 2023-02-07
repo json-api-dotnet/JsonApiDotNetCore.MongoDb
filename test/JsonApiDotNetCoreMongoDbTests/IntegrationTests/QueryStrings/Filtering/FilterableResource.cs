@@ -58,6 +58,10 @@ public sealed class FilterableResource : HexStringMongoIdentifiable
     public Guid? SomeNullableGuid { get; set; }
 
     [Attr]
+    [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+    public DateTime SomeDateTimeInLocalZone { get; set; }
+
+    [Attr]
     public DateTime SomeDateTimeInUtcZone { get; set; }
 
     [Attr]
