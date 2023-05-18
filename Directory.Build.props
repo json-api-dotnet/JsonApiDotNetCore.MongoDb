@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworkName>net6.0</TargetFrameworkName>
     <AspNetVersion>6.0.*</AspNetVersion>
-    <JsonApiDotNetCoreVersion>5.1.2</JsonApiDotNetCoreVersion>
+    <JsonApiDotNetCoreVersion>5.2.0</JsonApiDotNetCoreVersion>
     <MongoDBDriverVersion>2.15.0</MongoDBDriverVersion>
     <JsonApiDotNetCoreMongoDbVersionPrefix>5.1.3</JsonApiDotNetCoreMongoDbVersionPrefix>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" PrivateAssets="All" />
-    <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.8.2" PrivateAssets="All" />
+    <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.8.3" PrivateAssets="All" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)CSharpGuidelinesAnalyzer.config" Visible="False" />
   </ItemGroup>
 
@@ -32,7 +32,6 @@
   <!-- Test Project Dependencies -->
   <PropertyGroup>
     <CoverletVersion>3.2.*</CoverletVersion>
-    <MoqVersion>4.18.*</MoqVersion>
-    <TestSdkVersion>17.4.*</TestSdkVersion>
+    <TestSdkVersion>17.6.*</TestSdkVersion>
   </PropertyGroup>
 </Project>

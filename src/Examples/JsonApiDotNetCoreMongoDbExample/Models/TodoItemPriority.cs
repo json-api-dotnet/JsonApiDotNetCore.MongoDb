@@ -5,7 +5,7 @@ namespace JsonApiDotNetCoreMongoDbExample.Models;
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
 public enum TodoItemPriority
 {
-    Low,
-    Medium,
-    High
+    High = 1,
+    Medium = 2,
+    Low = 3
 }

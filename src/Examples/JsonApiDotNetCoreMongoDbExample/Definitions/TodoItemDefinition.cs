@@ -29,7 +29,7 @@ public sealed class TodoItemDefinition : JsonApiResourceDefinition<TodoItem, str
     {
         return CreateSortExpressionFromLambda(new PropertySortOrder
         {
-            (todoItem => todoItem.Priority, ListSortDirection.Descending),
+            (todoItem => todoItem.Priority, ListSortDirection.Ascending),
             (todoItem => todoItem.LastModifiedAt, ListSortDirection.Descending)
         });
     }

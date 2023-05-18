@@ -11,16 +11,16 @@
   "profiles": {
     "IIS Express": {
       "commandName": "IISExpress",
-      "launchBrowser": false,
-      "launchUrl": "api/v1/todoItems",
+      "launchBrowser": true,
+      "launchUrl": "api/todoItems",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "Kestrel": {
       "commandName": "Project",
-      "launchBrowser": false,
-      "launchUrl": "api/v1/todoItems",
+      "launchBrowser": true,
+      "launchUrl": "api/todoItems",
       "applicationUrl": "https://localhost:44340;http://localhost:24140",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

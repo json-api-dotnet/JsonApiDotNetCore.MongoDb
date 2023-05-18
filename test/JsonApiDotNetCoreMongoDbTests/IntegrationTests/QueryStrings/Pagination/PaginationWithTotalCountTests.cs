@@ -94,7 +94,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
     }
 
     [Fact]
-    public async Task Returns_all_resources_when_paging_is_disabled()
+    public async Task Returns_all_resources_when_pagination_is_disabled()
     {
         // Arrange
         var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
