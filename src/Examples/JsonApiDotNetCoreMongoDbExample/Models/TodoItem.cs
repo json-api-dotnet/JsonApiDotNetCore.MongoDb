@@ -16,6 +16,9 @@ public sealed class TodoItem : HexStringMongoIdentifiable
     [Required]
     public TodoItemPriority? Priority { get; set; }
 
+    [Attr]
+    public long? DurationInHours { get; set; }
+
     [Attr(Capabilities = AttrCapabilities.AllowFilter | AttrCapabilities.AllowSort | AttrCapabilities.AllowView)]
     public DateTimeOffset CreatedAt { get; set; }
 

@@ -62,7 +62,7 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
 
     public override QueryExpression? VisitComparison(ComparisonExpression expression, object? argument)
     {
-        if (expression.Left is ResourceFieldChainExpression && expression.Right is ResourceFieldChainExpression)
+        if (expression is { Left: ResourceFieldChainExpression, Right: ResourceFieldChainExpression })
         {
             throw new AttributeComparisonInFilterNotSupportedException();
         }

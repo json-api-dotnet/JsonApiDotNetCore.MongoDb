@@ -1,4 +1,6 @@
+using System.Text.Json;
 using FluentAssertions;
+using FluentAssertions.Collections;
 using FluentAssertions.Numeric;
 using JetBrains.Annotations;
 
@@ -18,5 +20,14 @@ public static class ObjectAssertionsExtensions
         string because = "", params object[] becauseArgs)
     {
         return parent.BeApproximately(expectedValue, NumericPrecision, because, becauseArgs);
+    }
+
+    /// <summary>
+    /// Asserts that a "meta" dictionary contains a single element named "total" with the specified value.
+    /// </summary>
+    [CustomAssertion]
+    public static void ContainTotal(this GenericDictionaryAssertions<IDictionary<string, object?>, string, object?> source, int expectedTotal)
+    {
+        source.ContainKey("total").WhoseValue.Should().BeOfType<JsonElement>().Subject.GetInt32().Should().Be(expectedTotal);
     }
 }

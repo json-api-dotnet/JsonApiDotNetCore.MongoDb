@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
@@ -5,6 +6,8 @@ using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using MongoDB.Driver;
+
+[assembly: ExcludeFromCodeCoverage]
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -37,13 +40,13 @@ app.Run();
 
 static void ConfigureJsonApiOptions(JsonApiOptions options)
 {
-    options.Namespace = "api/v1";
+    options.Namespace = "api";
     options.UseRelativeLinks = true;
     options.IncludeTotalResourceCount = true;
-    options.SerializerOptions.WriteIndented = true;
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 #if DEBUG
     options.IncludeExceptionStackTraceInErrors = true;
     options.IncludeRequestBodyInErrors = true;
+    options.SerializerOptions.WriteIndented = true;
 #endif
 }

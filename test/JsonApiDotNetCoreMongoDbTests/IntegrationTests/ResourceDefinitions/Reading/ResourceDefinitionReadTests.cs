@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
@@ -70,11 +69,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         responseDocument.Data.ManyValue[0].Id.Should().Be(planets[1].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(planets[3].StringId);
 
-        responseDocument.Meta.ShouldContainKey("total").With(value =>
-        {
-            JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
-            element.GetInt32().Should().Be(2);
-        });
+        responseDocument.Meta.Should().ContainTotal(2);
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
@@ -129,11 +124,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         responseDocument.Data.ManyValue.ShouldHaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(planets[3].StringId);
 
-        responseDocument.Meta.ShouldContainKey("total").With(value =>
-        {
-            JsonElement element = value.Should().BeOfType<JsonElement>().Subject;
-            element.GetInt32().Should().Be(1);
-        });
+        responseDocument.Meta.Should().ContainTotal(1);
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
