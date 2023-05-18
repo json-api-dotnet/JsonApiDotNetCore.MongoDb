@@ -28,7 +28,7 @@ namespace TestBuildingBlocks;
 /// <see cref="MongoDbContextShim" />.
 /// </typeparam>
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public class IntegrationTestContext<TStartup, TMongoDbContextShim> : IntegrationTest, IDisposable
+public class IntegrationTestContext<TStartup, TMongoDbContextShim> : IntegrationTest
     where TStartup : class
     where TMongoDbContextShim : MongoDbContextShim
 {
@@ -125,19 +125,6 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         options.SerializerOptions.WriteIndented = true;
     }
 
-    public void Dispose()
-    {
-        if (_lazyFactory.IsValueCreated)
-        {
-            _lazyFactory.Value.Dispose();
-        }
-
-        if (_runner.IsValueCreated)
-        {
-            _runner.Value.Dispose();
-        }
-    }
-
     public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration)
     {
         _afterServicesConfiguration = servicesConfiguration;
@@ -149,6 +136,26 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         var mongoDbContextShim = scope.ServiceProvider.GetRequiredService<TMongoDbContextShim>();
 
         await asyncAction(mongoDbContextShim);
+    }
+
+    public override async Task DisposeAsync()
+    {
+        try
+        {
+            if (_lazyFactory.IsValueCreated)
+            {
+                await _lazyFactory.Value.DisposeAsync();
+            }
+
+            if (_runner.IsValueCreated)
+            {
+                _runner.Value.Dispose();
+            }
+        }
+        finally
+        {
+            await base.DisposeAsync();
+        }
     }
 
     private sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<TStartup>

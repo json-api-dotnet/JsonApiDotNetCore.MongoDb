@@ -2,15 +2,25 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using JsonApiDotNetCore.Middleware;
+using Xunit;
 
 namespace TestBuildingBlocks;
 
 /// <summary>
-/// A base class for tests that conveniently enables to execute HTTP requests against JSON:API endpoints.
+/// A base class for tests that conveniently enables to execute HTTP requests against JSON:API endpoints. It throttles tests that are running in parallel
+/// to avoid exceeding the maximum active database connections.
 /// </summary>
-public abstract class IntegrationTest
+public abstract class IntegrationTest : IAsyncLifetime
 {
+    private static readonly SemaphoreSlim ThrottleSemaphore;
+
     protected abstract JsonSerializerOptions SerializerOptions { get; }
+
+    static IntegrationTest()
+    {
+        int maxConcurrentTestRuns = Environment.GetEnvironmentVariable("APPVEYOR") != null ? 32 : 64;
+        ThrottleSemaphore = new SemaphoreSlim(maxConcurrentTestRuns);
+    }
 
     public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecuteGetAsync<TResponseDocument>(string requestUrl,
         Action<HttpRequestHeaders>? setRequestHeaders = null)
@@ -98,5 +108,16 @@ public abstract class IntegrationTest
         {
             throw new FormatException($"Failed to deserialize response body to JSON:\n{responseText}", exception);
         }
+    }
+
+    public async Task InitializeAsync()
+    {
+        await ThrottleSemaphore.WaitAsync();
+    }
+
+    public virtual Task DisposeAsync()
+    {
+        _ = ThrottleSemaphore.Release();
+        return Task.CompletedTask;
     }
 }
