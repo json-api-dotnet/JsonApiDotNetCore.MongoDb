@@ -7,7 +7,7 @@ using JsonApiDotNetCore.MongoDb.Errors;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Queries.Expressions;
-using JsonApiDotNetCore.Queries.Internal.QueryableBuilding;
+using JsonApiDotNetCore.Queries.QueryableBuilding;
 using JsonApiDotNetCore.Repositories;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
@@ -29,6 +29,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     private readonly IResourceFactory _resourceFactory;
     private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
     private readonly IResourceDefinitionAccessor _resourceDefinitionAccessor;
+    private readonly IQueryableBuilder _queryableBuilder;
 
     protected virtual IMongoCollection<TResource> Collection => _mongoDataAccess.MongoDatabase.GetCollection<TResource>(typeof(TResource).Name);
 
@@ -36,7 +37,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     public virtual string? TransactionId => _mongoDataAccess.TransactionId;
 
     public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
-        IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor)
+        IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder)
     {
         ArgumentGuard.NotNull(mongoDataAccess);
         ArgumentGuard.NotNull(targetedFields);
@@ -44,6 +45,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         ArgumentGuard.NotNull(resourceFactory);
         ArgumentGuard.NotNull(constraintProviders);
         ArgumentGuard.NotNull(resourceDefinitionAccessor);
+        ArgumentGuard.NotNull(queryableBuilder);
 
         _mongoDataAccess = mongoDataAccess;
         _targetedFields = targetedFields;
@@ -51,6 +53,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         _resourceFactory = resourceFactory;
         _constraintProviders = constraintProviders;
         _resourceDefinitionAccessor = resourceDefinitionAccessor;
+        _queryableBuilder = queryableBuilder;
 
         if (!typeof(TResource).IsAssignableTo(typeof(IMongoIdentifiable)))
         {
@@ -112,12 +115,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             source = queryableHandler.Apply(source);
         }
 
-        var nameFactory = new LambdaParameterNameFactory();
+        var context = QueryableBuilderContext.CreateRoot(source, typeof(Queryable), new MongoModel(_resourceGraph), null);
+        Expression expression = _queryableBuilder.ApplyQuery(queryLayer, context);
 
-        var builder = new QueryableBuilder(source.Expression, source.ElementType, typeof(Queryable), nameFactory, _resourceFactory,
-            new MongoModel(_resourceGraph));
-
-        Expression expression = builder.ApplyQuery(queryLayer);
         return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
     }
 

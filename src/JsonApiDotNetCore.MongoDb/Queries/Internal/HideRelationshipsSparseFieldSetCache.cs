@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Resources;
 using JsonApiDotNetCore.Queries;
-using JsonApiDotNetCore.Queries.Internal;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 
