@@ -4,6 +4,7 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.AtomicOperations;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
+using JsonApiDotNetCore.Queries.QueryableBuilding;
 using JsonApiDotNetCore.Resources;
 
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Transactions;
@@ -19,8 +20,9 @@ internal sealed partial class ContainerTypeToHideFromAutoDiscovery
         public override string TransactionId => _transaction.TransactionId;
 
         public LyricRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
-            IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor)
-            : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor)
+            IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor,
+            IQueryableBuilder queryableBuilder)
+            : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor, queryableBuilder)
         {
             IMongoDataAccess otherDataAccess = new MongoDataAccess(mongoDataAccess.MongoDatabase);
 

@@ -3,7 +3,7 @@ using JsonApiDotNetCore.AtomicOperations;
 using JsonApiDotNetCore.MongoDb.AtomicOperations;
 using JsonApiDotNetCore.MongoDb.Queries.Internal;
 using JsonApiDotNetCore.MongoDb.Repositories;
-using JsonApiDotNetCore.Queries.Internal;
+using JsonApiDotNetCore.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace JsonApiDotNetCore.MongoDb.Configuration;
