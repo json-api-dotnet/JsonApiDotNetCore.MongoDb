@@ -21,10 +21,6 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(APPVEYOR)' != ''">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Include="..\..\logo.png" Visible="false" Pack="True" PackagePath="" />
     <None Include="..\..\PackageReadme.md" Visible="false" Pack="True" PackagePath="" />
@@ -35,9 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreVersion)" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-    <PackageReference Include="MongoDB.Driver" Version="$(MongoDBDriverVersion)" />
-    <PackageReference Include="SauceControl.InheritDoc" Version="1.3.0" PrivateAssets="All" />
+    <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreFrozenVersion)" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(SourceLinkVersion)" PrivateAssets="All" />
+    <PackageReference Include="MongoDB.Driver" Version="$(MongoDBDriverFrozenVersion)" />
+    <PackageReference Include="SauceControl.InheritDoc" Version="$(InheritDocVersion)" PrivateAssets="All" />
   </ItemGroup>
 </Project>

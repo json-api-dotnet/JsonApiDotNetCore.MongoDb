@@ -50,7 +50,7 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
         }
     }
 
-    public override QueryExpression? VisitResourceFieldChain(ResourceFieldChainExpression expression, object? argument)
+    public override QueryExpression VisitResourceFieldChain(ResourceFieldChainExpression expression, object? argument)
     {
         if (expression.Fields.Count > 1 || expression.Fields.First() is RelationshipAttribute)
         {

@@ -9,17 +9,18 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Creating;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class AtomicCreateResourceWithClientGeneratedIdTests
+public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtomicOperationsTestsThatChangeOptions
 {
     private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
     private readonly OperationsFakers _fakers = new();
 
     public AtomicCreateResourceWithClientGeneratedIdTests(AtomicOperationsFixture fixture)
+        : base(fixture)
     {
         _testContext = fixture.TestContext;
 
         var options = (JsonApiOptions)fixture.TestContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.AllowClientGeneratedIds = true;
+        options.ClientIdGeneration = ClientIdGenerationMode.Required;
     }
 
     [Fact]

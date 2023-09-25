@@ -2,7 +2,7 @@
 
 Plug-n-play implementation of `IResourceRepository<TResource, TId>` allowing you to use [MongoDB](https://www.mongodb.com/) with your [JsonApiDotNetCore](https://github.com/json-api-dotnet/JsonApiDotNetCore) APIs.
 
-[![Build](https://ci.appveyor.com/api/projects/status/dadm2kr2y0353mji/branch/master?svg=true)](https://ci.appveyor.com/project/json-api-dotnet/jsonapidotnetcore-mongodb/branch/master)
+[![Build](https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb/actions/workflows/build.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/json-api-dotnet/JsonApiDotNetCore.MongoDb/branch/master/graph/badge.svg?token=QPVf8rii7l)](https://codecov.io/gh/json-api-dotnet/JsonApiDotNetCore.MongoDb)
 [![NuGet](https://img.shields.io/nuget/v/JsonApiDotNetCore.MongoDb.svg)](https://www.nuget.org/packages/JsonApiDotNetCore.MongoDb/)
 
@@ -93,15 +93,24 @@ Have a question, found a bug or want to submit code changes? See our [contributi
 
 ## Trying out the latest build
 
-After each commit to the master branch, a new prerelease NuGet package is automatically published to AppVeyor at https://ci.appveyor.com/nuget/jsonapidotnetcore-mongodb. To try it out, follow the next steps:
+After each commit to the master branch, a new pre-release NuGet package is automatically published to [GitHub Packages](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry).
+To try it out, follow the steps below:
 
-* In Visual Studio: **Tools**, **NuGet Package Manager**, **Package Manager Settings**, **Package Sources**
-    * Click **+**
-    * Name: **AppVeyor JADNC MongoDb**, Source: **https://ci.appveyor.com/nuget/jsonapidotnetcore-mongodb**
-    * Click **Update**, **Ok**
-* Open the NuGet package manager console (**Tools**, **NuGet Package Manager**, **Package Manager Console**)
-    * Select **AppVeyor JADNC MongoDb** as package source
-    * Run command: `Install-Package JonApiDotNetCore -pre`
+1. [Create a Personal Access Token (classic)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) with at least `read:packages` scope.
+1. Add our package source to your local user-specific `nuget.config` file by running:
+   ```bash
+   dotnet nuget add source https://nuget.pkg.github.com/json-api-dotnet/index.json --name github-json-api --username YOUR-GITHUB-USERNAME --password YOUR-PAT-CLASSIC
+   ```
+   In the command above:
+   - Replace YOUR-GITHUB-USERNAME with the username you use to login your GitHub account.
+   - Replace YOUR-PAT-CLASSIC with the token your created above.
+   
+   :warning: If the above command doesn't give you access in the next step, remove the package source by running:
+   ```bash
+   dotnet nuget remove source github-json-api
+   ```
+   and retry with the `--store-password-in-clear-text` switch added.
+1. Restart your IDE, open your project, and browse the list of packages from the github-json-api feed (make sure pre-release packages are included).
 
 ## Development
 
@@ -129,7 +138,7 @@ And then to run the API:
 dotnet run --project src/Examples/GettingStarted
 ```
 
-Alternatively, to build and validate the code, run all tests, generate code coverage and produce the NuGet package:
+Alternatively, to build, run all tests, generate code coverage and NuGet packages:
 
 ```bash
 pwsh Build.ps1

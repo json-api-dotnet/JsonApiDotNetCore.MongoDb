@@ -2,7 +2,7 @@ using MongoDB.Driver;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories;
 
-/// <inheritdoc />
+/// <inheritdoc cref="IMongoDataAccess" />
 public sealed class MongoDataAccess : IMongoDataAccess
 {
     /// <inheritdoc />

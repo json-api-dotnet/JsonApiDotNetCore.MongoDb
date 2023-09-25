@@ -98,7 +98,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         IQueryable<TResource> source = GetAll();
 
         // @formatter:wrap_chained_method_calls chop_always
-        // @formatter:keep_existing_linebreaks true
+        // @formatter:wrap_before_first_method_call true
 
         QueryableHandlerExpression[] queryableHandlers = _constraintProviders
             .SelectMany(provider => provider.GetConstraints())
@@ -107,7 +107,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             .OfType<QueryableHandlerExpression>()
             .ToArray();
 
-        // @formatter:keep_existing_linebreaks restore
+        // @formatter:wrap_before_first_method_call restore
         // @formatter:wrap_chained_method_calls restore
 
         foreach (QueryableHandlerExpression queryableHandler in queryableHandlers)
@@ -131,17 +131,16 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         ResourceType resourceType = _resourceGraph.GetResourceType<TResource>();
 
         // @formatter:wrap_chained_method_calls chop_always
-        // @formatter:keep_existing_linebreaks true
+        // @formatter:wrap_before_first_method_call true
 
         bool hasRelationshipSelectors = _constraintProviders
             .SelectMany(provider => provider.GetConstraints())
             .Select(expressionInScope => expressionInScope.Expression)
             .OfType<SparseFieldTableExpression>()
-            .Any(fieldTable =>
-                fieldTable.Table.Keys.Any(targetResourceType => !resourceType.Equals(targetResourceType)) ||
+            .Any(fieldTable => fieldTable.Table.Keys.Any(targetResourceType => !resourceType.Equals(targetResourceType)) ||
                 fieldTable.Table.Values.Any(fieldSet => fieldSet.Fields.Any(field => field is RelationshipAttribute)));
 
-        // @formatter:keep_existing_linebreaks restore
+        // @formatter:wrap_before_first_method_call restore
         // @formatter:wrap_chained_method_calls restore
 
         if (hasRelationshipSelectors)

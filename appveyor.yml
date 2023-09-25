@@ -1,54 +1,12 @@
-image:
-  - Ubuntu2004
-  - Visual Studio 2022
+image: Visual Studio 2022
 
 version: '{build}'
 
 branches:
   only:
   - master
-  - develop
-  - unstable
   - /release\/.+/
 
-pull_requests:
-  do_not_increment_build_number: true
-
-nuget:
-  disable_publish_on_pr: true
-
-matrix:
-  fast_finish: true
-
-for:
--
-  matrix:
-    only:
-    - image: Visual Studio 2022
-  artifacts:
-  - path: .\**\artifacts\**\*.nupkg
-    name: NuGet
-  deploy:
-  - provider: NuGet
-    skip_symbols: false
-    api_key:
-      secure: hlP/zkfkHzmutSXPYAiINmPdv+QEj3TpAjKewHEkCtQnHnA2tSo+Xey0g6FVM6S5
-    on:
-      branch: master
-      appveyor_repo_tag: true
-  - provider: NuGet
-    skip_symbols: false
-    api_key:
-      secure: hlP/zkfkHzmutSXPYAiINmPdv+QEj3TpAjKewHEkCtQnHnA2tSo+Xey0g6FVM6S5
-    on:
-      branch: /release\/.+/
-      appveyor_repo_tag: true
-
-build_script:
-- pwsh: |
-    Write-Output ".NET version:"
-    dotnet --version
-
-    .\Build.ps1
-
+build: off
 test: off
+deploy: off
