@@ -31,6 +31,7 @@
     <GitHubActionsTestLoggerVersion>2.3.*</GitHubActionsTestLoggerVersion>
     <InheritDocVersion>1.3.*</InheritDocVersion>
     <JetBrainsAnnotationsVersion>2023.2.*</JetBrainsAnnotationsVersion>
+    <MongoDBDriverVersion>2.21.*</MongoDBDriverVersion>
     <SourceLinkVersion>1.1.*</SourceLinkVersion>
     <TestSdkVersion>17.7.*</TestSdkVersion>
     <XunitVersion>2.5.*</XunitVersion>
