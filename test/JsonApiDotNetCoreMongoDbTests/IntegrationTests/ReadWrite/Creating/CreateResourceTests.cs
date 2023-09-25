@@ -1,8 +1,6 @@
 using System.Net;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using Microsoft.Extensions.DependencyInjection;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -20,9 +18,6 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         testContext.UseController<WorkItemsController>();
         testContext.UseController<RgbColorsController>();
         testContext.UseController<ModelWithIntIdsController>();
-
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.AllowClientGeneratedIds = false;
     }
 
     [Fact]

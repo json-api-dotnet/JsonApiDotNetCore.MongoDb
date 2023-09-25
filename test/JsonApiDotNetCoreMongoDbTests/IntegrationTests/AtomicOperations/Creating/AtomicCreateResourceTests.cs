@@ -1,8 +1,6 @@
 using System.Net;
 using FluentAssertions;
-using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using TestBuildingBlocks;
 using Xunit;
@@ -18,9 +16,6 @@ public sealed class AtomicCreateResourceTests
     public AtomicCreateResourceTests(AtomicOperationsFixture fixture)
     {
         _testContext = fixture.TestContext;
-
-        var options = (JsonApiOptions)fixture.TestContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.AllowClientGeneratedIds = false;
     }
 
     [Fact]

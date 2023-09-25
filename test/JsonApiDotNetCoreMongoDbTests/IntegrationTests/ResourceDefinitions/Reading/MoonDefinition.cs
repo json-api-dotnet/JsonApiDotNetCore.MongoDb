@@ -29,6 +29,8 @@ public sealed class MoonDefinition : HitCountingResourceDefinition<Moon, string?
 
     private static IQueryable<Moon> FilterByRadius(IQueryable<Moon> source, StringValues parameterValue)
     {
+        // Workaround for https://youtrack.jetbrains.com/issue/RSRP-493256/Incorrect-possible-null-assignment
+        // ReSharper disable once AssignNullToNotNullAttribute
         bool isFilterOnLargerThan = bool.Parse(parameterValue.ToString());
         return isFilterOnLargerThan ? source.Where(moon => moon.SolarRadius > 1m) : source.Where(moon => moon.SolarRadius <= 1m);
     }

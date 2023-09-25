@@ -4,7 +4,7 @@ using JsonApiDotNetCore.MongoDb.Repositories;
 
 namespace JsonApiDotNetCore.MongoDb.AtomicOperations;
 
-/// <inheritdoc />
+/// <inheritdoc cref="IOperationsTransaction" />
 [PublicAPI]
 public sealed class MongoTransaction : IOperationsTransaction
 {

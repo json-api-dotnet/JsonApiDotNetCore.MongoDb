@@ -26,7 +26,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
         });
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
-        options.AllowClientGeneratedIds = true;
+        options.ClientIdGeneration = ClientIdGenerationMode.Required;
     }
 
     [Fact]

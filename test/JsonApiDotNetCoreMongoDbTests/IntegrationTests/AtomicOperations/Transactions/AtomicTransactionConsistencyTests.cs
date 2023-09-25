@@ -19,8 +19,6 @@ public sealed class AtomicTransactionConsistencyTests : IClassFixture<Integratio
 
         testContext.UseController<OperationsController>();
 
-        testContext.StartMongoDbInSingleNodeReplicaSetMode = true;
-
         testContext.ConfigureServicesAfterStartup(services =>
         {
             services.AddSingleton<ResourceDefinitionHitCounter>();

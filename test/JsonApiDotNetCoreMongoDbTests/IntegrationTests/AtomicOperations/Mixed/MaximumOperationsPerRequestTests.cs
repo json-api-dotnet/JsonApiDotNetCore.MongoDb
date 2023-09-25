@@ -8,11 +8,12 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Mixed;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class MaximumOperationsPerRequestTests
+public sealed class MaximumOperationsPerRequestTests : BaseForAtomicOperationsTestsThatChangeOptions
 {
     private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
 
     public MaximumOperationsPerRequestTests(AtomicOperationsFixture fixture)
+        : base(fixture)
     {
         _testContext = fixture.TestContext;
     }

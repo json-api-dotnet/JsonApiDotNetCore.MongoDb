@@ -7,7 +7,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 
 namespace JsonApiDotNetCore.MongoDb.Queries.Internal;
 
-/// <inheritdoc />
+/// <inheritdoc cref="ISparseFieldSetCache" />
 public sealed class HideRelationshipsSparseFieldSetCache : ISparseFieldSetCache
 {
     private readonly SparseFieldSetCache _innerCache;

@@ -1,5 +1,5 @@
-using System.Runtime.InteropServices;
 using System.Text.Json;
+using EphemeralMongo;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mongo2Go;
 using MongoDB.Driver;
 
 namespace TestBuildingBlocks;
@@ -32,7 +31,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
     where TStartup : class
     where TMongoDbContextShim : MongoDbContextShim
 {
-    private readonly Lazy<MongoDbRunner> _runner;
+    private readonly Lazy<IMongoRunner> _runner;
     private readonly Lazy<WebApplicationFactory<TStartup>> _lazyFactory;
     private readonly TestControllerProvider _testControllerProvider = new();
 
@@ -49,31 +48,15 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 
     public WebApplicationFactory<TStartup> Factory => _lazyFactory.Value;
 
-    /// <summary>
-    /// Set this to <c>true</c> to enable transactions support in MongoDB.
-    /// </summary>
-    public bool StartMongoDbInSingleNodeReplicaSetMode { get; set; }
-
     public IntegrationTestContext()
     {
-        _runner = new Lazy<MongoDbRunner>(StartMongoDb);
+        _runner = new Lazy<IMongoRunner>(StartMongoDb);
         _lazyFactory = new Lazy<WebApplicationFactory<TStartup>>(CreateFactory);
     }
 
-    private MongoDbRunner StartMongoDb()
+    private IMongoRunner StartMongoDb()
     {
-        // Increasing maxTransactionLockRequestTimeoutMillis (default=5) as workaround for occasional
-        // "Unable to acquire lock" error when running tests locally.
-        string arguments = "--quiet --setParameter maxTransactionLockRequestTimeoutMillis=40";
-
-        if (!StartMongoDbInSingleNodeReplicaSetMode)
-        {
-            // MongoDbRunner watches console output to detect when the replica set has stabilized. So we can only fully
-            // suppress console output if not running in this mode.
-            arguments += RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? " --logappend --logpath NUL" : " --logpath /dev/null";
-        }
-
-        return MongoDbRunner.Start(singleNodeReplSet: StartMongoDbInSingleNodeReplicaSetMode, additionalMongodArguments: arguments);
+        return MongoRunnerProvider.Instance.Get();
     }
 
     public void UseController<TController>()
@@ -176,9 +159,10 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         protected override IHostBuilder CreateHostBuilder()
         {
             // @formatter:wrap_chained_method_calls chop_always
-            // @formatter:keep_existing_linebreaks true
+            // @formatter:wrap_before_first_method_call true
 
-            return Host.CreateDefaultBuilder(null)
+            return Host
+                .CreateDefaultBuilder(null)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureServices(services =>
@@ -195,7 +179,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
                 });
 
             // @formatter:keep_existing_linebreaks restore
-            // @formatter:wrap_chained_method_calls restore
+            // @formatter:wrap_before_first_method_call restore
         }
     }
 }
