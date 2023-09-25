@@ -8,15 +8,10 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
 public sealed class AtomicOperationsFixture : IAsyncLifetime
 {
-    internal IntegrationTestContext<TestableStartup, OperationsDbContext> TestContext { get; }
+    internal IntegrationTestContext<TestableStartup, OperationsDbContext> TestContext { get; } = new();
 
     public AtomicOperationsFixture()
     {
-        TestContext = new IntegrationTestContext<TestableStartup, OperationsDbContext>
-        {
-            StartMongoDbInSingleNodeReplicaSetMode = true
-        };
-
         TestContext.UseController<OperationsController>();
 
         TestContext.ConfigureServicesAfterStartup(services => services.AddSingleton<ResourceDefinitionHitCounter>());
