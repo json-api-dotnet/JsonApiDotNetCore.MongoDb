@@ -17,7 +17,7 @@
     <!-- Published dependencies (only update on major version change) -->
     <TargetFrameworkName>net6.0</TargetFrameworkName>
     <JsonApiDotNetCoreFrozenVersion>5.4.0</JsonApiDotNetCoreFrozenVersion>
-    <MongoDBDriverFrozenVersion>2.20.0</MongoDBDriverFrozenVersion>
+    <MongoDBDriverFrozenVersion>2.21.0</MongoDBDriverFrozenVersion>
 
     <CodeAnalysisFrozenVersion>4.1.0</CodeAnalysisFrozenVersion>
 
