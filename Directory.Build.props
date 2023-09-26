@@ -49,6 +49,6 @@
     <IsPackable>false</IsPackable>
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
-    <JsonApiDotNetCoreMongoDbVersionPrefix>5.4.0</JsonApiDotNetCoreMongoDbVersionPrefix>
+    <JsonApiDotNetCoreMongoDbVersionPrefix>5.4.1</JsonApiDotNetCoreMongoDbVersionPrefix>
   </PropertyGroup>
 </Project>
