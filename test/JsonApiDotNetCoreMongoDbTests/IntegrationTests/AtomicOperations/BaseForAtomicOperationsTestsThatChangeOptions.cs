@@ -1,3 +1,4 @@
+using System.Reflection;
 using JsonApiDotNetCore.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,66 +21,38 @@ public abstract class BaseForAtomicOperationsTestsThatChangeOptions : IDisposabl
 
     private sealed class JsonApiOptionsScope : IDisposable
     {
+        private static readonly List<PropertyInfo> PropertyCache = typeof(JsonApiOptions).GetProperties().Where(IsAccessibleProperty).ToList();
+
         private readonly JsonApiOptions _options;
         private readonly JsonApiOptions _backupValues;
 
-        public JsonApiOptionsScope(IJsonApiOptions options)
+        public JsonApiOptionsScope(JsonApiOptions options)
         {
-            _options = (JsonApiOptions)options;
+            _options = options;
+            _backupValues = new JsonApiOptions();
 
-            _backupValues = new JsonApiOptions
-            {
-                Namespace = options.Namespace,
-                DefaultAttrCapabilities = options.DefaultAttrCapabilities,
-                DefaultHasOneCapabilities = options.DefaultHasOneCapabilities,
-                DefaultHasManyCapabilities = options.DefaultHasManyCapabilities,
-                IncludeJsonApiVersion = options.IncludeJsonApiVersion,
-                IncludeExceptionStackTraceInErrors = options.IncludeExceptionStackTraceInErrors,
-                IncludeRequestBodyInErrors = options.IncludeRequestBodyInErrors,
-                UseRelativeLinks = options.UseRelativeLinks,
-                TopLevelLinks = options.TopLevelLinks,
-                ResourceLinks = options.ResourceLinks,
-                RelationshipLinks = options.RelationshipLinks,
-                IncludeTotalResourceCount = options.IncludeTotalResourceCount,
-                DefaultPageSize = options.DefaultPageSize,
-                MaximumPageSize = options.MaximumPageSize,
-                MaximumPageNumber = options.MaximumPageNumber,
-                ValidateModelState = options.ValidateModelState,
-                ClientIdGeneration = options.ClientIdGeneration,
-                AllowUnknownQueryStringParameters = options.AllowUnknownQueryStringParameters,
-                AllowUnknownFieldsInRequestBody = options.AllowUnknownFieldsInRequestBody,
-                EnableLegacyFilterNotation = options.EnableLegacyFilterNotation,
-                MaximumIncludeDepth = options.MaximumIncludeDepth,
-                MaximumOperationsPerRequest = options.MaximumOperationsPerRequest,
-                TransactionIsolationLevel = options.TransactionIsolationLevel
-            };
+            CopyPropertyValues(_options, _backupValues);
+        }
+
+        private static bool IsAccessibleProperty(PropertyInfo property)
+        {
+            return property.GetMethod != null && property.SetMethod != null && property.GetCustomAttribute<ObsoleteAttribute>() == null;
         }
 
         public void Dispose()
         {
-            _options.Namespace = _backupValues.Namespace;
-            _options.DefaultAttrCapabilities = _backupValues.DefaultAttrCapabilities;
-            _options.DefaultHasOneCapabilities = _backupValues.DefaultHasOneCapabilities;
-            _options.DefaultHasManyCapabilities = _backupValues.DefaultHasManyCapabilities;
-            _options.IncludeJsonApiVersion = _backupValues.IncludeJsonApiVersion;
-            _options.IncludeExceptionStackTraceInErrors = _backupValues.IncludeExceptionStackTraceInErrors;
-            _options.IncludeRequestBodyInErrors = _backupValues.IncludeRequestBodyInErrors;
-            _options.UseRelativeLinks = _backupValues.UseRelativeLinks;
-            _options.TopLevelLinks = _backupValues.TopLevelLinks;
-            _options.ResourceLinks = _backupValues.ResourceLinks;
-            _options.RelationshipLinks = _backupValues.RelationshipLinks;
-            _options.IncludeTotalResourceCount = _backupValues.IncludeTotalResourceCount;
-            _options.DefaultPageSize = _backupValues.DefaultPageSize;
-            _options.MaximumPageSize = _backupValues.MaximumPageSize;
-            _options.MaximumPageNumber = _backupValues.MaximumPageNumber;
-            _options.ValidateModelState = _backupValues.ValidateModelState;
-            _options.ClientIdGeneration = _backupValues.ClientIdGeneration;
-            _options.AllowUnknownQueryStringParameters = _backupValues.AllowUnknownQueryStringParameters;
-            _options.AllowUnknownFieldsInRequestBody = _backupValues.AllowUnknownFieldsInRequestBody;
-            _options.EnableLegacyFilterNotation = _backupValues.EnableLegacyFilterNotation;
-            _options.MaximumIncludeDepth = _backupValues.MaximumIncludeDepth;
-            _options.MaximumOperationsPerRequest = _backupValues.MaximumOperationsPerRequest;
-            _options.TransactionIsolationLevel = _backupValues.TransactionIsolationLevel;
+            CopyPropertyValues(_backupValues, _options);
+        }
+
+        private static void CopyPropertyValues(JsonApiOptions source, JsonApiOptions destination)
+        {
+            foreach (PropertyInfo property in PropertyCache)
+            {
+                property.SetMethod!.Invoke(destination, new[]
+                {
+                    property.GetMethod!.Invoke(source, null)
+                });
+            }
         }
     }
 }
