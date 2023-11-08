@@ -30,7 +30,7 @@
     <FluentAssertionsVersion>6.12.*</FluentAssertionsVersion>
     <GitHubActionsTestLoggerVersion>2.3.*</GitHubActionsTestLoggerVersion>
     <InheritDocVersion>1.3.*</InheritDocVersion>
-    <JetBrainsAnnotationsVersion>2023.2.*</JetBrainsAnnotationsVersion>
+    <JetBrainsAnnotationsVersion>2023.3.*</JetBrainsAnnotationsVersion>
     <MongoDBDriverVersion>2.21.*</MongoDBDriverVersion>
     <SourceLinkVersion>1.1.*</SourceLinkVersion>
     <TestSdkVersion>17.7.*</TestSdkVersion>
