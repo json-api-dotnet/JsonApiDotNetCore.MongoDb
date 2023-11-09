@@ -33,7 +33,7 @@
     <JetBrainsAnnotationsVersion>2023.3.*</JetBrainsAnnotationsVersion>
     <MongoDBDriverVersion>2.21.*</MongoDBDriverVersion>
     <SourceLinkVersion>1.1.*</SourceLinkVersion>
-    <TestSdkVersion>17.7.*</TestSdkVersion>
+    <TestSdkVersion>17.8.*</TestSdkVersion>
     <XunitVersion>2.5.*</XunitVersion>
   </PropertyGroup>
 
