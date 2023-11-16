@@ -32,7 +32,7 @@
     <InheritDocVersion>1.3.*</InheritDocVersion>
     <JetBrainsAnnotationsVersion>2023.3.*</JetBrainsAnnotationsVersion>
     <MongoDBDriverVersion>2.21.*</MongoDBDriverVersion>
-    <SourceLinkVersion>1.1.*</SourceLinkVersion>
+    <SourceLinkVersion>8.0.*</SourceLinkVersion>
     <TestSdkVersion>17.8.*</TestSdkVersion>
     <XunitVersion>2.5.*</XunitVersion>
   </PropertyGroup>
