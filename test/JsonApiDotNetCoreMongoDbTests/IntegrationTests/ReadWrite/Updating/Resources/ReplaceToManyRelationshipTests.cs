@@ -15,6 +15,8 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
     }
 

@@ -39,6 +39,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(FilterableResource).Namespace);
+
         testContext.UseController<FilterableResourcesController>();
     }
 

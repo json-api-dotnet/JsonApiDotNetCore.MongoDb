@@ -15,6 +15,8 @@ public sealed class AddToToManyRelationshipTests : IClassFixture<IntegrationTest
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
     }
 

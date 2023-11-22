@@ -18,11 +18,12 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(SupportTicket).Namespace);
+
         testContext.UseController<SupportTicketsController>();
 
         testContext.ConfigureServicesAfterStartup(services =>
         {
-            services.AddSingleton<ResourceDefinitionHitCounter>();
             services.AddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>));
         });
 

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using EphemeralMongo;
 using JetBrains.Annotations;
@@ -33,6 +34,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 {
     private readonly Lazy<IMongoRunner> _runner;
     private readonly Lazy<WebApplicationFactory<TStartup>> _lazyFactory;
+    private readonly HashSet<Type> _resourceClrTypes = new();
     private readonly TestControllerProvider _testControllerProvider = new();
 
     private Action<IServiceCollection>? _afterServicesConfiguration;
@@ -57,6 +59,16 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
     private IMongoRunner StartMongoDb()
     {
         return MongoRunnerProvider.Instance.Get();
+    }
+
+    public void UseResourceTypesInNamespace(string? codeNamespace)
+    {
+        Assembly assembly = typeof(TStartup).Assembly;
+
+        foreach (Type resourceClrType in ResourceTypeFinder.GetResourceClrTypesInNamespace(assembly, codeNamespace))
+        {
+            _resourceClrTypes.Add(resourceClrType);
+        }
     }
 
     public void UseController<TController>()
@@ -84,7 +96,14 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
                 return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{new Random().Next()}_Test");
             });
 
-            services.AddJsonApi(ConfigureJsonApiOptions, facade => facade.AddAssembly(typeof(TStartup).Assembly));
+            services.AddJsonApi(ConfigureJsonApiOptions, resources: builder =>
+            {
+                foreach (Type resourceClrType in _resourceClrTypes)
+                {
+                    builder.Add(resourceClrType);
+                }
+            });
+
             services.AddJsonApiMongoDb();
 
             services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));

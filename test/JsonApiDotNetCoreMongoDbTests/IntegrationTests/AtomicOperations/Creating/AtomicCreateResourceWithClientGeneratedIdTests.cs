@@ -58,7 +58,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string isoCode = $"{newLanguage.IsoCode}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition.Suffix}";
+        string isoCode = $"{newLanguage.IsoCode}{ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
         responseDocument.Results.ShouldHaveCount(1);
 

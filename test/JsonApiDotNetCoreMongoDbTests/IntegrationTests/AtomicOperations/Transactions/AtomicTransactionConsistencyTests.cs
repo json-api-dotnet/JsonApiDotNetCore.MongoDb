@@ -17,15 +17,17 @@ public sealed class AtomicTransactionConsistencyTests : IClassFixture<Integratio
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(MusicTrack).Namespace);
+
         testContext.UseController<OperationsController>();
 
         testContext.ConfigureServicesAfterStartup(services =>
         {
             services.AddSingleton<ResourceDefinitionHitCounter>();
 
-            services.AddResourceRepository<ContainerTypeToHideFromAutoDiscovery.PerformerRepository>();
-            services.AddResourceRepository<ContainerTypeToHideFromAutoDiscovery.MusicTrackRepository>();
-            services.AddResourceRepository<ContainerTypeToHideFromAutoDiscovery.LyricRepository>();
+            services.AddResourceRepository<PerformerRepository>();
+            services.AddResourceRepository<MusicTrackRepository>();
+            services.AddResourceRepository<LyricRepository>();
         });
     }
 

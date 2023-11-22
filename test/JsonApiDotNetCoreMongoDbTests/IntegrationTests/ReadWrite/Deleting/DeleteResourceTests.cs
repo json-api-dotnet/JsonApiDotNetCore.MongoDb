@@ -15,6 +15,8 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
     }
 

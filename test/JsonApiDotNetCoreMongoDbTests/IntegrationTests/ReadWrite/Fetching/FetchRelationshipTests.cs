@@ -15,6 +15,8 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<UserAccountsController>();
     }

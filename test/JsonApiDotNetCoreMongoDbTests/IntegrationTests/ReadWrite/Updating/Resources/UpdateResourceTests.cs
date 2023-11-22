@@ -16,6 +16,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<WorkItemGroupsController>();
         testContext.UseController<UserAccountsController>();
@@ -23,8 +25,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         testContext.ConfigureServicesAfterStartup(services =>
         {
-            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition>();
-            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition>();
+            services.AddResourceDefinition<ImplicitlyChangingWorkItemDefinition>();
+            services.AddResourceDefinition<ImplicitlyChangingWorkItemGroupDefinition>();
         });
     }
 
@@ -108,7 +110,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string groupName = $"{newName}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
+        string groupName = $"{newName}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
@@ -251,7 +253,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string itemDescription = $"{newDescription}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition.Suffix}";
+        string itemDescription = $"{newDescription}{ImplicitlyChangingWorkItemDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
@@ -307,7 +309,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string itemDescription = $"{newDescription}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition.Suffix}";
+        string itemDescription = $"{newDescription}{ImplicitlyChangingWorkItemDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");

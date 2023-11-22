@@ -15,6 +15,8 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<UserAccountsController>();
     }

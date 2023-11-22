@@ -15,6 +15,8 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogPostsController>();
         testContext.UseController<BlogsController>();
         testContext.UseController<WebAccountsController>();

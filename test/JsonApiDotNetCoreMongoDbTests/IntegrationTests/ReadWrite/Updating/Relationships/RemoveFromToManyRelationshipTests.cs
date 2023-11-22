@@ -15,6 +15,8 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
     }
 

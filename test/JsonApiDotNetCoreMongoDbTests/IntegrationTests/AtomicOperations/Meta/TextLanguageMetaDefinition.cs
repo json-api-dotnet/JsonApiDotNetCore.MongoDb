@@ -5,7 +5,7 @@ using JsonApiDotNetCore.MongoDb.Repositories;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Meta;
 
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class TextLanguageMetaDefinition : ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition
+public sealed class TextLanguageMetaDefinition : ImplicitlyChangingTextLanguageDefinition
 {
     internal const string NoticeText = "See https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes for ISO 639-1 language codes.";
 

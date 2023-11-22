@@ -19,6 +19,8 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogPostsController>();
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();

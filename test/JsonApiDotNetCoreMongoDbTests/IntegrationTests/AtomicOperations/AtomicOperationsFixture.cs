@@ -1,4 +1,6 @@
 using JetBrains.Annotations;
+using JsonApiDotNetCore.Configuration;
+using JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Meta;
 using Microsoft.Extensions.DependencyInjection;
 using TestBuildingBlocks;
 using Xunit;
@@ -12,9 +14,17 @@ public sealed class AtomicOperationsFixture : IAsyncLifetime
 
     public AtomicOperationsFixture()
     {
+        TestContext.UseResourceTypesInNamespace(typeof(MusicTrack).Namespace);
+
         TestContext.UseController<OperationsController>();
 
-        TestContext.ConfigureServicesAfterStartup(services => services.AddSingleton<ResourceDefinitionHitCounter>());
+        TestContext.ConfigureServicesAfterStartup(services =>
+        {
+            services.AddSingleton<ResourceDefinitionHitCounter>();
+
+            services.AddResourceDefinition<MusicTrackMetaDefinition>();
+            services.AddResourceDefinition<TextLanguageMetaDefinition>();
+        });
     }
 
     public Task InitializeAsync()

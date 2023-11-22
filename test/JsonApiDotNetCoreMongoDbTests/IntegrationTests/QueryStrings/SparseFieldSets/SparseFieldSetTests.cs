@@ -17,6 +17,8 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogPostsController>();
         testContext.UseController<WebAccountsController>();
         testContext.UseController<BlogsController>();

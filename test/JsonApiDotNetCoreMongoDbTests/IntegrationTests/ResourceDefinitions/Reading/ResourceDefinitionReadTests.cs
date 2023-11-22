@@ -17,6 +17,8 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Star).Namespace);
+
         testContext.UseController<StarsController>();
         testContext.UseController<PlanetsController>();
         testContext.UseController<MoonsController>();
@@ -25,6 +27,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         {
             services.AddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
             services.AddSingleton<ResourceDefinitionHitCounter>();
+
+            services.AddResourceDefinition<MoonDefinition>();
+            services.AddResourceDefinition<PlanetDefinition>();
+            services.AddResourceDefinition<StarDefinition>();
         });
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();

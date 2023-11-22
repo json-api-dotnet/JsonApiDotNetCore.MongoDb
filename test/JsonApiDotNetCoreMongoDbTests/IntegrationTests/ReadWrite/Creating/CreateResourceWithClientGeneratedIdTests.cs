@@ -17,12 +17,14 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemGroupsController>();
         testContext.UseController<RgbColorsController>();
 
         testContext.ConfigureServicesAfterStartup(services =>
         {
-            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition>();
+            services.AddResourceDefinition<ImplicitlyChangingWorkItemGroupDefinition>();
         });
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
@@ -57,7 +59,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
-        string groupName = $"{newGroup.Name}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
+        string groupName = $"{newGroup.Name}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
@@ -101,7 +103,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
-        string groupName = $"{newGroup.Name}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
+        string groupName = $"{newGroup.Name}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");

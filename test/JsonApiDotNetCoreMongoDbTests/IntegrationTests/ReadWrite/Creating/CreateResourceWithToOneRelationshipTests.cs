@@ -15,6 +15,8 @@ public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<Int
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemGroupsController>();
     }
 

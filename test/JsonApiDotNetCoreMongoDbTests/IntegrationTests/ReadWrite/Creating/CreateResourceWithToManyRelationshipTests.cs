@@ -15,6 +15,8 @@ public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<In
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
     }
 

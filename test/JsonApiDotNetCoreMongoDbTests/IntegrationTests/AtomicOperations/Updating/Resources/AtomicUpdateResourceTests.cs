@@ -295,7 +295,7 @@ public sealed class AtomicUpdateResourceTests
 
         responseDocument.Results.ShouldHaveCount(1);
 
-        string isoCode = $"{newIsoCode}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition.Suffix}";
+        string isoCode = $"{newIsoCode}{ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
         responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
         {
