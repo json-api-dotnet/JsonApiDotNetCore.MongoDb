@@ -58,7 +58,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string isoCode = $"{newLanguage.IsoCode}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition.Suffix}";
+        string isoCode = $"{newLanguage.IsoCode}{ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
         responseDocument.Results.ShouldHaveCount(1);
 
@@ -132,10 +132,10 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
 
         string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.TextLanguages.Add(existingLanguage);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

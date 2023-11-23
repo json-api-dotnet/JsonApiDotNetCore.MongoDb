@@ -23,10 +23,10 @@ public sealed class AtomicDeleteResourceTests
         // Arrange
         Performer existingPerformer = _fakers.Performer.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Performers.Add(existingPerformer);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

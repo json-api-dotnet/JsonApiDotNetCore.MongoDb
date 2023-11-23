@@ -15,6 +15,8 @@ public sealed class FilterTests : IClassFixture<IntegrationTestContext<TestableS
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<WebAccountsController>();
     }
 

@@ -4,8 +4,11 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Repositories;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
+#if NET6_0
+using Microsoft.AspNetCore.Authentication;
+#endif
 
 [assembly: ExcludeFromCodeCoverage]
 
@@ -13,20 +16,24 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddSingleton<ISystemClock, SystemClock>();
+#if NET6_0
+builder.Services.TryAddSingleton<ISystemClock, SystemClock>();
+#else
+builder.Services.TryAddSingleton(TimeProvider.System);
+#endif
 
-builder.Services.AddSingleton(_ =>
+builder.Services.TryAddSingleton(_ =>
 {
-    var client = new MongoClient(builder.Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
-    return client.GetDatabase(builder.Configuration.GetSection("DatabaseSettings:Database").Value);
+    var client = new MongoClient(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"));
+    return client.GetDatabase(builder.Configuration.GetValue<string>("DatabaseSettings:Database"));
 });
+
+builder.Services.TryAddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+builder.Services.TryAddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+builder.Services.TryAddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
 
 builder.Services.AddJsonApi(ConfigureJsonApiOptions, facade => facade.AddCurrentAssembly());
 builder.Services.AddJsonApiMongoDb();
-
-builder.Services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
-builder.Services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
-builder.Services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
 
 WebApplication app = builder.Build();
 

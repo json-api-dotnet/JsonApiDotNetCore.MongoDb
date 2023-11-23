@@ -3,6 +3,7 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -17,13 +18,15 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogPostsController>();
         testContext.UseController<WebAccountsController>();
         testContext.UseController<BlogsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddSingleton<ResourceCaptureStore>();
+            services.TryAddSingleton<ResourceCaptureStore>();
 
             services.AddResourceRepository<ResultCapturingRepository<Blog, string?>>();
             services.AddResourceRepository<ResultCapturingRepository<BlogPost, string?>>();
@@ -82,7 +85,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("caption").With(value => value.Should().Be(post.Caption));
         responseDocument.Data.ManyValue[0].Relationships.Should().BeNull();
 
-        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).Which;
         postCaptured.Caption.Should().Be(post.Caption);
         postCaptured.Url.Should().BeNull();
     }
@@ -117,10 +120,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
 
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Posts.Add(post);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[blogPosts]=url";
@@ -137,7 +140,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         responseDocument.Data.SingleValue.Attributes.ShouldContainKey("url").With(value => value.Should().Be(post.Url));
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
-        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).Which;
         postCaptured.Url.Should().Be(post.Url);
         postCaptured.Caption.Should().BeNull();
     }
@@ -148,10 +151,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Posts.Add(post);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[webAccounts]=displayName,emailAddress,preferences";
@@ -177,10 +180,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         WebAccount account = _fakers.WebAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Accounts.Add(account);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/webAccounts/{account.StringId}?fields[blogPosts]=caption,labels";
@@ -206,10 +209,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Posts.Add(post);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[labels]=color";
@@ -259,7 +262,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("caption").With(value => value.Should().Be(post.Caption));
         responseDocument.Data.ManyValue[0].Relationships.Should().BeNull();
 
-        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).Which;
         postCaptured.Id.Should().Be(post.Id);
         postCaptured.Caption.Should().Be(post.Caption);
         postCaptured.Url.Should().BeNull();
@@ -294,7 +297,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         responseDocument.Data.ManyValue[0].Attributes.Should().BeNull();
         responseDocument.Data.ManyValue[0].Relationships.Should().BeNull();
 
-        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).And.Subject.Single();
+        var postCaptured = (BlogPost)store.Resources.Should().ContainSingle(resource => resource is BlogPost).Which;
         postCaptured.Id.Should().Be(post.Id);
         postCaptured.Url.Should().BeNull();
     }
@@ -309,10 +312,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         Blog blog = _fakers.Blog.Generate();
         blog.IsPublished = true;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Blogs.Add(blog);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogs/{blog.StringId}?fields[blogs]=showAdvertisements";
@@ -329,7 +332,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         responseDocument.Data.SingleValue.Attributes.ShouldContainKey("showAdvertisements").With(value => value.Should().Be(blog.ShowAdvertisements));
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
-        var blogCaptured = (Blog)store.Resources.Should().ContainSingle(resource => resource is Blog).And.Subject.Single();
+        var blogCaptured = (Blog)store.Resources.Should().ContainSingle(resource => resource is Blog).Which;
         blogCaptured.ShowAdvertisements.Should().Be(blog.ShowAdvertisements);
         blogCaptured.IsPublished.Should().Be(blog.IsPublished);
         blogCaptured.Title.Should().Be(blog.Title);

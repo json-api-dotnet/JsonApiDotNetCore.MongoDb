@@ -2,7 +2,7 @@ using System.Net;
 using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -17,15 +17,17 @@ public sealed class AtomicTransactionConsistencyTests : IClassFixture<Integratio
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(MusicTrack).Namespace);
+
         testContext.UseController<OperationsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddSingleton<ResourceDefinitionHitCounter>();
+            services.TryAddSingleton<ResourceDefinitionHitCounter>();
 
-            services.AddResourceRepository<ContainerTypeToHideFromAutoDiscovery.PerformerRepository>();
-            services.AddResourceRepository<ContainerTypeToHideFromAutoDiscovery.MusicTrackRepository>();
-            services.AddResourceRepository<ContainerTypeToHideFromAutoDiscovery.LyricRepository>();
+            services.AddResourceRepository<PerformerRepository>();
+            services.AddResourceRepository<MusicTrackRepository>();
+            services.AddResourceRepository<LyricRepository>();
         });
     }
 

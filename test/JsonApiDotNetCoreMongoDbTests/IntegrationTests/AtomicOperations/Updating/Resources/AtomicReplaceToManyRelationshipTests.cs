@@ -24,11 +24,11 @@ public sealed class AtomicReplaceToManyRelationshipTests
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
         Performer existingPerformer = _fakers.Performer.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Performers.Add(existingPerformer);
             dbContext.MusicTracks.Add(existingTrack);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

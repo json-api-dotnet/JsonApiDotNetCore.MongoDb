@@ -5,6 +5,7 @@ using JsonApiDotNetCore.MongoDb.Queries.Internal;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Queries;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace JsonApiDotNetCore.MongoDb.Configuration;
 
@@ -16,7 +17,9 @@ public static class ServiceCollectionExtensions
     [PublicAPI]
     public static IServiceCollection AddJsonApiMongoDb(this IServiceCollection services)
     {
-        services.AddScoped<IMongoDataAccess, MongoDataAccess>();
+        services.TryAddScoped<IMongoDataAccess, MongoDataAccess>();
+
+        // Replace the built-in implementations from JsonApiDotNetCore.
         services.AddScoped<IOperationsTransactionFactory, MongoTransactionFactory>();
         services.AddScoped<ISparseFieldSetCache, HideRelationshipsSparseFieldSetCache>();
 

@@ -16,15 +16,17 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<WorkItemGroupsController>();
         testContext.UseController<UserAccountsController>();
         testContext.UseController<RgbColorsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition>();
-            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition>();
+            services.AddResourceDefinition<ImplicitlyChangingWorkItemDefinition>();
+            services.AddResourceDefinition<ImplicitlyChangingWorkItemGroupDefinition>();
         });
     }
 
@@ -34,10 +36,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         UserAccount existingUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.UserAccounts.Add(existingUserAccount);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -81,10 +83,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
         string newName = _fakers.WorkItemGroup.Generate().Name;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Groups.Add(existingGroup);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -108,7 +110,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string groupName = $"{newName}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
+        string groupName = $"{newName}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
@@ -133,10 +135,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         RgbColor existingColor = _fakers.RgbColor.Generate();
         string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.RgbColors.Add(existingColor);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -177,10 +179,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         UserAccount existingUserAccount = _fakers.UserAccount.Generate();
         UserAccount newUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.UserAccounts.Add(existingUserAccount);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -223,10 +225,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         string newDescription = _fakers.WorkItem.Generate().Description!;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(existingWorkItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -251,7 +253,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string itemDescription = $"{newDescription}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition.Suffix}";
+        string itemDescription = $"{newDescription}{ImplicitlyChangingWorkItemDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
@@ -279,10 +281,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         string newDescription = _fakers.WorkItem.Generate().Description!;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(existingWorkItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -307,7 +309,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        string itemDescription = $"{newDescription}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemDefinition.Suffix}";
+        string itemDescription = $"{newDescription}{ImplicitlyChangingWorkItemDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");

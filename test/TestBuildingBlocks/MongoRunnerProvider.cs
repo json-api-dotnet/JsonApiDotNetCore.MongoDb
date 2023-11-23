@@ -1,7 +1,5 @@
 using EphemeralMongo;
 
-#pragma warning disable AV1553 // Do not use optional parameters with default value null for strings, collections or tasks
-
 namespace TestBuildingBlocks;
 
 // Based on https://gist.github.com/asimmon/612b2d54f1a0d2b4e1115590d456e0be.

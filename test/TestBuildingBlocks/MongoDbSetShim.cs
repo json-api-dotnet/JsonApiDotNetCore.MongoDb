@@ -18,7 +18,7 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
     where TEntity : IMongoIdentifiable
 {
     private readonly IMongoCollection<TEntity> _collection;
-    private readonly List<TEntity> _entitiesToInsert = new();
+    private readonly List<TEntity> _entitiesToInsert = [];
 
     internal MongoDbSetShim(IMongoCollection<TEntity> collection)
     {
@@ -57,9 +57,9 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         }
     }
 
-    public async Task ExecuteAsync(Func<IMongoCollection<TEntity>, Task> action)
+    public Task ExecuteAsync(Func<IMongoCollection<TEntity>, Task> action)
     {
-        await action(_collection);
+        return action(_collection);
     }
 
     public async Task<TEntity> FirstWithIdAsync(string? id, CancellationToken cancellationToken = default)
@@ -79,13 +79,13 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         return await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
     }
 
-    public async Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)
+    public Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)
     {
-        return await _collection.AsQueryable().ToListAsync(cancellationToken);
+        return _collection.AsQueryable().ToListAsync(cancellationToken);
     }
 
-    public async Task<List<TEntity>> ToListWhereAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public Task<List<TEntity>> ToListWhereAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        return await _collection.AsQueryable().Where(predicate).ToListAsync(cancellationToken);
+        return _collection.AsQueryable().Where(predicate).ToListAsync(cancellationToken);
     }
 }

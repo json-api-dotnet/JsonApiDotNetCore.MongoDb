@@ -14,6 +14,8 @@ public sealed class IncludeTests : IClassFixture<IntegrationTestContext<Testable
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogPostsController>();
     }
 

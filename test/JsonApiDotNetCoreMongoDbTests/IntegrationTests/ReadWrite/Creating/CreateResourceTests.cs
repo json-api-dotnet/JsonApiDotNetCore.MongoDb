@@ -15,6 +15,8 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<RgbColorsController>();
         testContext.UseController<ModelWithIntIdsController>();

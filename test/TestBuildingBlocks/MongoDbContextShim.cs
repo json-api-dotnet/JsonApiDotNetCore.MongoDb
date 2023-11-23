@@ -10,7 +10,7 @@ namespace TestBuildingBlocks;
 public abstract class MongoDbContextShim
 {
     private readonly IMongoDatabase _database;
-    private readonly List<MongoDbSetShim> _dbSetShims = new();
+    private readonly List<MongoDbSetShim> _dbSetShims = [];
 
     protected MongoDbContextShim(IMongoDatabase database)
     {
@@ -27,10 +27,10 @@ public abstract class MongoDbContextShim
         return dbSetShim;
     }
 
-    public async Task ClearTableAsync<TEntity>()
+    public Task ClearTableAsync<TEntity>()
         where TEntity : IMongoIdentifiable
     {
-        await _database.DropCollectionAsync(typeof(TEntity).Name);
+        return _database.DropCollectionAsync(typeof(TEntity).Name);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellation = default)

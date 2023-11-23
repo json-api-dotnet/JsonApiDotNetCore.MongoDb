@@ -15,6 +15,8 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<UserAccountsController>();
     }
@@ -24,10 +26,10 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
     {
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}/relationships/assignee";
@@ -53,10 +55,10 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
         // Arrange
         UserAccount userAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.UserAccounts.Add(userAccount);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/userAccounts/{userAccount.StringId}/relationships/assignedItems";
@@ -82,10 +84,10 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}/relationships/tags";

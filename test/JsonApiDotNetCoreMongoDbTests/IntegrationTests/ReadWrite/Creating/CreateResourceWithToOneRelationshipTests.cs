@@ -15,6 +15,8 @@ public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<Int
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemGroupsController>();
     }
 
@@ -27,11 +29,11 @@ public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<Int
 
         string newGroupName = _fakers.WorkItemGroup.Generate().Name;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.RgbColors.Add(existingGroup.Color);
             dbContext.Groups.Add(existingGroup);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

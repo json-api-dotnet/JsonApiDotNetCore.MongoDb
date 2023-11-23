@@ -19,6 +19,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(FilterableResource).Namespace);
+
         testContext.UseController<FilterableResourcesController>();
     }
 

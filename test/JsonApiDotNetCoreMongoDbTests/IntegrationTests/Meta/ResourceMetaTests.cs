@@ -1,7 +1,9 @@
 using System.Net;
 using FluentAssertions;
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -16,11 +18,14 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(SupportTicket).Namespace);
+
         testContext.UseController<SupportTicketsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddSingleton<ResourceDefinitionHitCounter>();
+            services.TryAddSingleton<ResourceDefinitionHitCounter>();
+            services.AddResourceDefinition<SupportTicketDefinition>();
         });
 
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();

@@ -4,7 +4,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.SparseFiel
 
 public sealed class ResourceCaptureStore
 {
-    internal List<IIdentifiable> Resources { get; } = new();
+    internal List<IIdentifiable> Resources { get; } = [];
 
     internal void Add(IEnumerable<IIdentifiable> resources)
     {

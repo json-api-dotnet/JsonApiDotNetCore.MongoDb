@@ -3,6 +3,7 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -17,14 +18,20 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Star).Namespace);
+
         testContext.UseController<StarsController>();
         testContext.UseController<PlanetsController>();
         testContext.UseController<MoonsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
-            services.AddSingleton<ResourceDefinitionHitCounter>();
+            services.TryAddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
+            services.TryAddSingleton<ResourceDefinitionHitCounter>();
+
+            services.AddResourceDefinition<MoonDefinition>();
+            services.AddResourceDefinition<PlanetDefinition>();
+            services.AddResourceDefinition<StarDefinition>();
         });
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
@@ -293,10 +300,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}";
@@ -333,10 +340,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}?fields[stars]=name,solarRadius";
@@ -374,10 +381,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}";
@@ -414,10 +421,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}?fields[stars]=name,isVisibleFromEarth";
@@ -551,10 +558,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         Planet planet = _fakers.Planet.Generate();
         planet.Moons = _fakers.Moon.Generate(1).ToHashSet();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Planets.Add(planet);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/planets/{planet.StringId}/moons?isLargerThanTheSun=false";

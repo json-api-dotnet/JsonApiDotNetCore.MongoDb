@@ -15,6 +15,8 @@ public sealed class RangeValidationTests : IClassFixture<IntegrationTestContext<
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogsController>();
     }
 

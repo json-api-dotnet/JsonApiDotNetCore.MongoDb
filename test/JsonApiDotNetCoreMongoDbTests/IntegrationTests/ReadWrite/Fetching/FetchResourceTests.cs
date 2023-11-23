@@ -15,6 +15,8 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemsController>();
         testContext.UseController<UserAccountsController>();
     }
@@ -63,10 +65,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}";
@@ -114,10 +116,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}/assignee";
@@ -143,10 +145,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         UserAccount userAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.UserAccounts.Add(userAccount);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/userAccounts/{userAccount.StringId}/assignedItems";
@@ -172,10 +174,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}/tags";

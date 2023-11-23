@@ -4,6 +4,7 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -18,13 +19,11 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(SupportTicket).Namespace);
+
         testContext.UseController<SupportTicketsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
-        {
-            services.AddSingleton<ResourceDefinitionHitCounter>();
-            services.AddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>));
-        });
+        testContext.ConfigureServices(services => services.TryAddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>)));
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.IncludeTotalResourceCount = true;
@@ -60,10 +59,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     public async Task Renders_resource_count_for_empty_collection()
     {
         // Arrange
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
-        {
-            await dbContext.ClearTableAsync<SupportTicket>();
-        });
+        await _testContext.RunOnDatabaseAsync(dbContext => dbContext.ClearTableAsync<SupportTicket>());
 
         const string route = "/supportTickets";
 
@@ -115,10 +111,10 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
 
         string newDescription = _fakers.SupportTicket.Generate().Description;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.SupportTickets.Add(existingTicket);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

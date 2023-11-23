@@ -17,13 +17,12 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(WorkItem).Namespace);
+
         testContext.UseController<WorkItemGroupsController>();
         testContext.UseController<RgbColorsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
-        {
-            services.AddResourceDefinition<ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition>();
-        });
+        testContext.ConfigureServices(services => services.AddResourceDefinition<ImplicitlyChangingWorkItemGroupDefinition>());
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.ClientIdGeneration = ClientIdGenerationMode.Required;
@@ -57,7 +56,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
-        string groupName = $"{newGroup.Name}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
+        string groupName = $"{newGroup.Name}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
@@ -101,7 +100,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
-        string groupName = $"{newGroup.Name}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
+        string groupName = $"{newGroup.Name}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
         responseDocument.Data.SingleValue.ShouldNotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
@@ -203,10 +202,10 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
 
         string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.RgbColors.Add(existingColor);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

@@ -15,6 +15,8 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
     {
         _testContext = testContext;
 
+        testContext.UseResourceTypesInNamespace(typeof(Blog).Namespace);
+
         testContext.UseController<BlogsController>();
         testContext.UseController<BlogPostsController>();
     }

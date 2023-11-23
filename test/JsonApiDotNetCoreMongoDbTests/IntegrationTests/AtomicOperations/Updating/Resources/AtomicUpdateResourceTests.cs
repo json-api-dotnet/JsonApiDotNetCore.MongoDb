@@ -89,10 +89,10 @@ public sealed class AtomicUpdateResourceTests
         // Arrange
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.MusicTracks.Add(existingTrack);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -144,10 +144,10 @@ public sealed class AtomicUpdateResourceTests
 
         string newGenre = _fakers.MusicTrack.Generate().Genre!;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.MusicTracks.Add(existingTrack);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -202,10 +202,10 @@ public sealed class AtomicUpdateResourceTests
         string newGenre = _fakers.MusicTrack.Generate().Genre!;
         DateTimeOffset newReleasedAt = _fakers.MusicTrack.Generate().ReleasedAt;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.MusicTracks.Add(existingTrack);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -259,10 +259,10 @@ public sealed class AtomicUpdateResourceTests
         TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
         string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.TextLanguages.Add(existingLanguage);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -295,7 +295,7 @@ public sealed class AtomicUpdateResourceTests
 
         responseDocument.Results.ShouldHaveCount(1);
 
-        string isoCode = $"{newIsoCode}{ContainerTypeToHideFromAutoDiscovery.ImplicitlyChangingTextLanguageDefinition.Suffix}";
+        string isoCode = $"{newIsoCode}{ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
         responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
         {
