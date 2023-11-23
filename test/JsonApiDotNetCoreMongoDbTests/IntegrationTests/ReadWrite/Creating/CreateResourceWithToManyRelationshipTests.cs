@@ -26,10 +26,10 @@ public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<In
         // Arrange
         UserAccount? existingUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.UserAccounts.Add(existingUserAccount);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

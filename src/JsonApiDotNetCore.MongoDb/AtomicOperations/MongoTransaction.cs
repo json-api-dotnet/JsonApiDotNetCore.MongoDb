@@ -35,20 +35,24 @@ public sealed class MongoTransaction : IOperationsTransaction
     }
 
     /// <inheritdoc />
-    public async Task CommitAsync(CancellationToken cancellationToken)
+    public Task CommitAsync(CancellationToken cancellationToken)
     {
         if (_ownsTransaction && _mongoDataAccess.ActiveSession != null)
         {
-            await _mongoDataAccess.ActiveSession.CommitTransactionAsync(cancellationToken);
+            return _mongoDataAccess.ActiveSession.CommitTransactionAsync(cancellationToken);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         if (_ownsTransaction)
         {
-            await _mongoDataAccess.DisposeAsync();
+            return _mongoDataAccess.DisposeAsync();
         }
+
+        return ValueTask.CompletedTask;
     }
 }

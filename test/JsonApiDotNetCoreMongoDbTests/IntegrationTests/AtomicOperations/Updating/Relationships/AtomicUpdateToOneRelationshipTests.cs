@@ -24,11 +24,11 @@ public sealed class AtomicUpdateToOneRelationshipTests
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
         RecordCompany existingCompany = _fakers.RecordCompany.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.RecordCompanies.Add(existingCompany);
             dbContext.MusicTracks.Add(existingTrack);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

@@ -27,10 +27,10 @@ public abstract class MongoDbContextShim
         return dbSetShim;
     }
 
-    public async Task ClearTableAsync<TEntity>()
+    public Task ClearTableAsync<TEntity>()
         where TEntity : IMongoIdentifiable
     {
-        await _database.DropCollectionAsync(typeof(TEntity).Name);
+        return _database.DropCollectionAsync(typeof(TEntity).Name);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellation = default)

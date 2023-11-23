@@ -112,10 +112,10 @@ public sealed class AtomicResourceMetaTests
 
         TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.TextLanguages.Add(existingLanguage);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

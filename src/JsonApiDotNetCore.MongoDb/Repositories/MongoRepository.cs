@@ -173,11 +173,11 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
         await _resourceDefinitionAccessor.OnWritingAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
 
-        await SaveChangesAsync(async () =>
+        await SaveChangesAsync(() =>
         {
-            await (_mongoDataAccess.ActiveSession != null
+            return _mongoDataAccess.ActiveSession != null
                 ? Collection.InsertOneAsync(_mongoDataAccess.ActiveSession, resourceForDatabase, cancellationToken: cancellationToken)
-                : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken));
+                : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken);
         }, cancellationToken);
 
         await _resourceDefinitionAccessor.OnWriteSucceededAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);

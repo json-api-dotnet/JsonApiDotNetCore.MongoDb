@@ -26,10 +26,10 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.WorkItems.Add(existingWorkItem);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{existingWorkItem.StringId}";

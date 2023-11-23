@@ -300,10 +300,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}";
@@ -340,10 +340,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}?fields[stars]=name,solarRadius";
@@ -381,10 +381,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}";
@@ -421,10 +421,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         Star star = _fakers.Star.Generate();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Stars.Add(star);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/stars/{star.StringId}?fields[stars]=name,isVisibleFromEarth";
@@ -558,10 +558,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         Planet planet = _fakers.Planet.Generate();
         planet.Moons = _fakers.Moon.Generate(1).ToHashSet();
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.Planets.Add(planet);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         string route = $"/planets/{planet.StringId}/moons?isLargerThanTheSun=false";

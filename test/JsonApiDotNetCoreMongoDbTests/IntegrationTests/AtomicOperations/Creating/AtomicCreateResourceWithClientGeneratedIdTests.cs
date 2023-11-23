@@ -132,10 +132,10 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
 
         string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
 
-        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        await _testContext.RunOnDatabaseAsync(dbContext =>
         {
             dbContext.TextLanguages.Add(existingLanguage);
-            await dbContext.SaveChangesAsync();
+            return dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

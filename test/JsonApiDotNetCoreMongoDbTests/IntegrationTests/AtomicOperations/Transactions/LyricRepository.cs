@@ -26,8 +26,8 @@ public sealed class LyricRepository : MongoRepository<Lyric, string?>, IAsyncDis
         _transaction = factory.BeginTransactionAsync(CancellationToken.None).Result;
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        await _transaction.DisposeAsync();
+        return _transaction.DisposeAsync();
     }
 }

@@ -22,11 +22,11 @@ public sealed class ImplicitlyChangingWorkItemDefinition : JsonApiResourceDefini
         _dbContext = dbContext;
     }
 
-    public override async Task OnWriteSucceededAsync(WorkItem resource, WriteOperationKind writeOperation, CancellationToken cancellationToken)
+    public override Task OnWriteSucceededAsync(WorkItem resource, WriteOperationKind writeOperation, CancellationToken cancellationToken)
     {
         if (writeOperation is not WriteOperationKind.DeleteResource)
         {
-            await _dbContext.WorkItems.ExecuteAsync(async collection =>
+            return _dbContext.WorkItems.ExecuteAsync(async collection =>
             {
                 resource.Description += Suffix;
 
@@ -34,5 +34,7 @@ public sealed class ImplicitlyChangingWorkItemDefinition : JsonApiResourceDefini
                 await collection.ReplaceOneAsync(filter, resource, cancellationToken: cancellationToken);
             });
         }
+
+        return Task.CompletedTask;
     }
 }
