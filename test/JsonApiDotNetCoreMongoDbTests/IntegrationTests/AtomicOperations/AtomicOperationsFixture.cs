@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Meta;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -18,9 +18,9 @@ public sealed class AtomicOperationsFixture : IAsyncLifetime
 
         TestContext.UseController<OperationsController>();
 
-        TestContext.ConfigureServicesAfterStartup(services =>
+        TestContext.ConfigureServices(services =>
         {
-            services.AddSingleton<ResourceDefinitionHitCounter>();
+            services.TryAddSingleton<ResourceDefinitionHitCounter>();
 
             services.AddResourceDefinition<MusicTrackMetaDefinition>();
             services.AddResourceDefinition<TextLanguageMetaDefinition>();

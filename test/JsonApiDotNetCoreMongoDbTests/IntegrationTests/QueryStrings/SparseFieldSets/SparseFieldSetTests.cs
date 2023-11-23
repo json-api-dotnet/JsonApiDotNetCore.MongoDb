@@ -3,6 +3,7 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -23,9 +24,9 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         testContext.UseController<WebAccountsController>();
         testContext.UseController<BlogsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddSingleton<ResourceCaptureStore>();
+            services.TryAddSingleton<ResourceCaptureStore>();
 
             services.AddResourceRepository<ResultCapturingRepository<Blog, string?>>();
             services.AddResourceRepository<ResultCapturingRepository<BlogPost, string?>>();

@@ -2,13 +2,14 @@ using GettingStarted.Models;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddSingleton(_ =>
+builder.Services.TryAddSingleton(_ =>
 {
     var client = new MongoClient(builder.Configuration.GetSection("DatabaseSettings:ConnectionString").Value);
     return client.GetDatabase(builder.Configuration.GetSection("DatabaseSettings:Database").Value);

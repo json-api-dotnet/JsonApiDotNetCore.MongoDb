@@ -3,6 +3,7 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -23,10 +24,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         testContext.UseController<PlanetsController>();
         testContext.UseController<MoonsController>();
 
-        testContext.ConfigureServicesAfterStartup(services =>
+        testContext.ConfigureServices(services =>
         {
-            services.AddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
-            services.AddSingleton<ResourceDefinitionHitCounter>();
+            services.TryAddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
+            services.TryAddSingleton<ResourceDefinitionHitCounter>();
 
             services.AddResourceDefinition<MoonDefinition>();
             services.AddResourceDefinition<PlanetDefinition>();

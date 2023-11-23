@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 
@@ -36,8 +37,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
     private readonly Lazy<WebApplicationFactory<TStartup>> _lazyFactory;
     private readonly HashSet<Type> _resourceClrTypes = new();
     private readonly TestControllerProvider _testControllerProvider = new();
-
-    private Action<IServiceCollection>? _afterServicesConfiguration;
+    private Action<IServiceCollection>? _configureServices;
 
     protected override JsonSerializerOptions SerializerOptions
     {
@@ -86,15 +86,23 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
     {
         var factory = new IntegrationTestWebApplicationFactory();
 
-        factory.ConfigureServicesBeforeStartup(services =>
+        factory.ConfigureServices(services =>
         {
+            _configureServices?.Invoke(services);
+
             services.ReplaceControllers(_testControllerProvider);
 
-            services.AddSingleton(_ =>
+            services.TryAddSingleton(_ =>
             {
                 var client = new MongoClient(_runner.Value.ConnectionString);
-                return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{new Random().Next()}_Test");
+                return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{Random.Shared.Next()}_Test");
             });
+
+            services.TryAddScoped<TMongoDbContextShim>();
+
+            services.TryAddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+            services.TryAddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+            services.TryAddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
 
             services.AddJsonApi(ConfigureJsonApiOptions, resources: builder =>
             {
@@ -105,15 +113,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
             });
 
             services.AddJsonApiMongoDb();
-
-            services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
-            services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
-            services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
-
-            services.AddScoped<TMongoDbContextShim>();
         });
-
-        factory.ConfigureServicesAfterStartup(_afterServicesConfiguration);
 
         // We have placed an appsettings.json in the TestBuildingBlock project folder and set the content root to there. Note that controllers
         // are not discovered in the content root but are registered manually using IntegrationTestContext.UseController.
@@ -127,9 +127,9 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         options.SerializerOptions.WriteIndented = true;
     }
 
-    public void ConfigureServicesAfterStartup(Action<IServiceCollection> servicesConfiguration)
+    public void ConfigureServices(Action<IServiceCollection> configureServices)
     {
-        _afterServicesConfiguration = servicesConfiguration;
+        _configureServices = configureServices;
     }
 
     public async Task RunOnDatabaseAsync(Func<TMongoDbContextShim, Task> asyncAction)
@@ -162,17 +162,11 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 
     private sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<TStartup>
     {
-        private Action<IServiceCollection>? _beforeServicesConfiguration;
-        private Action<IServiceCollection>? _afterServicesConfiguration;
+        private Action<IServiceCollection>? _configureServices;
 
-        public void ConfigureServicesBeforeStartup(Action<IServiceCollection>? servicesConfiguration)
+        public void ConfigureServices(Action<IServiceCollection>? configureServices)
         {
-            _beforeServicesConfiguration = servicesConfiguration;
-        }
-
-        public void ConfigureServicesAfterStartup(Action<IServiceCollection>? servicesConfiguration)
-        {
-            _afterServicesConfiguration = servicesConfiguration;
+            _configureServices = configureServices;
         }
 
         protected override IHostBuilder CreateHostBuilder()
@@ -184,21 +178,12 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
                 .CreateDefaultBuilder(null)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureServices(services =>
-                    {
-                        _beforeServicesConfiguration?.Invoke(services);
-                    });
-
+                    webBuilder.ConfigureServices(services => _configureServices?.Invoke(services));
                     webBuilder.UseStartup<TStartup>();
-
-                    webBuilder.ConfigureServices(services =>
-                    {
-                        _afterServicesConfiguration?.Invoke(services);
-                    });
                 });
 
-            // @formatter:keep_existing_linebreaks restore
             // @formatter:wrap_before_first_method_call restore
+            // @formatter:wrap_chained_method_calls restore
         }
     }
 }
