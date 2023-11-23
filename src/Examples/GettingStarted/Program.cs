@@ -15,11 +15,7 @@ builder.Services.TryAddSingleton(_ =>
     return client.GetDatabase(builder.Configuration.GetSection("DatabaseSettings:Database").Value);
 });
 
-builder.Services.AddJsonApi(ConfigureJsonApiOptions, resources: resourceGraphBuilder =>
-{
-    resourceGraphBuilder.Add<Book, string?>();
-});
-
+builder.Services.AddJsonApi(ConfigureJsonApiOptions, resources: resourceGraphBuilder => resourceGraphBuilder.Add<Book, string?>());
 builder.Services.AddJsonApiMongoDb();
 
 builder.Services.AddResourceRepository<MongoRepository<Book, string?>>();

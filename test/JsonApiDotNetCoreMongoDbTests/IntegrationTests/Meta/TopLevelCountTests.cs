@@ -23,10 +23,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
 
         testContext.UseController<SupportTicketsController>();
 
-        testContext.ConfigureServices(services =>
-        {
-            services.TryAddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>));
-        });
+        testContext.ConfigureServices(services => services.TryAddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>)));
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.IncludeTotalResourceCount = true;
@@ -62,10 +59,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     public async Task Renders_resource_count_for_empty_collection()
     {
         // Arrange
-        await _testContext.RunOnDatabaseAsync(dbContext =>
-        {
-            return dbContext.ClearTableAsync<SupportTicket>();
-        });
+        await _testContext.RunOnDatabaseAsync(dbContext => dbContext.ClearTableAsync<SupportTicket>());
 
         const string route = "/supportTickets";
 

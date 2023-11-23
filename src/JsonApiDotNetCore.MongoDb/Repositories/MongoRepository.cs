@@ -173,12 +173,10 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
         await _resourceDefinitionAccessor.OnWritingAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
 
-        await SaveChangesAsync(() =>
-        {
-            return _mongoDataAccess.ActiveSession != null
+        await SaveChangesAsync(
+            () => _mongoDataAccess.ActiveSession != null
                 ? Collection.InsertOneAsync(_mongoDataAccess.ActiveSession, resourceForDatabase, cancellationToken: cancellationToken)
-                : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken);
-        }, cancellationToken);
+                : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken), cancellationToken);
 
         await _resourceDefinitionAccessor.OnWriteSucceededAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
     }
@@ -217,12 +215,10 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
         FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, resourceFromDatabase.Id);
 
-        await SaveChangesAsync(async () =>
-        {
-            await (_mongoDataAccess.ActiveSession != null
+        await SaveChangesAsync(
+            () => _mongoDataAccess.ActiveSession != null
                 ? Collection.ReplaceOneAsync(_mongoDataAccess.ActiveSession, filter, resourceFromDatabase, cancellationToken: cancellationToken)
-                : Collection.ReplaceOneAsync(filter, resourceFromDatabase, cancellationToken: cancellationToken));
-        }, cancellationToken);
+                : Collection.ReplaceOneAsync(filter, resourceFromDatabase, cancellationToken: cancellationToken), cancellationToken);
 
         await _resourceDefinitionAccessor.OnWriteSucceededAsync(resourceFromDatabase, WriteOperationKind.UpdateResource, cancellationToken);
     }
@@ -238,9 +234,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         FilterDefinition<TResource> filter = Builders<TResource>.Filter.Eq(resource => resource.Id, id);
 
         DeleteResult result = await SaveChangesAsync(
-            async () => _mongoDataAccess.ActiveSession != null
-                ? await Collection.DeleteOneAsync(_mongoDataAccess.ActiveSession, filter, cancellationToken: cancellationToken)
-                : await Collection.DeleteOneAsync(filter, cancellationToken), cancellationToken);
+            () => _mongoDataAccess.ActiveSession != null
+                ? Collection.DeleteOneAsync(_mongoDataAccess.ActiveSession, filter, cancellationToken: cancellationToken)
+                : Collection.DeleteOneAsync(filter, cancellationToken), cancellationToken);
 
         if (!result.IsAcknowledged)
         {
