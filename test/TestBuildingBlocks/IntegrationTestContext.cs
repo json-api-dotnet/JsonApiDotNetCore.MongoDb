@@ -35,7 +35,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 {
     private readonly Lazy<IMongoRunner> _runner;
     private readonly Lazy<WebApplicationFactory<TStartup>> _lazyFactory;
-    private readonly HashSet<Type> _resourceClrTypes = new();
+    private readonly HashSet<Type> _resourceClrTypes = [];
     private readonly TestControllerProvider _testControllerProvider = new();
     private Action<IServiceCollection>? _configureServices;
 

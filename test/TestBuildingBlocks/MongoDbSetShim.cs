@@ -18,7 +18,7 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
     where TEntity : IMongoIdentifiable
 {
     private readonly IMongoCollection<TEntity> _collection;
-    private readonly List<TEntity> _entitiesToInsert = new();
+    private readonly List<TEntity> _entitiesToInsert = [];
 
     internal MongoDbSetShim(IMongoCollection<TEntity> collection)
     {

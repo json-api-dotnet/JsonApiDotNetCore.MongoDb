@@ -10,7 +10,7 @@ namespace TestBuildingBlocks;
 public abstract class MongoDbContextShim
 {
     private readonly IMongoDatabase _database;
-    private readonly List<MongoDbSetShim> _dbSetShims = new();
+    private readonly List<MongoDbSetShim> _dbSetShims = [];
 
     protected MongoDbContextShim(IMongoDatabase database)
     {
