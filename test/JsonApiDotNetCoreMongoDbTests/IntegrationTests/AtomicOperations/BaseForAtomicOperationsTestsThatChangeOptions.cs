@@ -48,10 +48,7 @@ public abstract class BaseForAtomicOperationsTestsThatChangeOptions : IDisposabl
         {
             foreach (PropertyInfo property in PropertyCache)
             {
-                property.SetMethod!.Invoke(destination, new[]
-                {
-                    property.GetMethod!.Invoke(source, null)
-                });
+                property.SetMethod!.Invoke(destination, [property.GetMethod!.Invoke(source, null)]);
             }
         }
     }
