@@ -9,13 +9,7 @@ namespace JsonApiDotNetCore.MongoDb.Errors;
 /// The error that is thrown when the user attempts to fetch, create or update a relationship.
 /// </summary>
 [PublicAPI]
-public sealed class UnsupportedRelationshipException : JsonApiException
+public sealed class UnsupportedRelationshipException() : JsonApiException(new ErrorObject(HttpStatusCode.BadRequest)
 {
-    public UnsupportedRelationshipException()
-        : base(new ErrorObject(HttpStatusCode.BadRequest)
-        {
-            Title = "Relationships are not supported when using MongoDB."
-        })
-    {
-    }
-}
+    Title = "Relationships are not supported when using MongoDB."
+});

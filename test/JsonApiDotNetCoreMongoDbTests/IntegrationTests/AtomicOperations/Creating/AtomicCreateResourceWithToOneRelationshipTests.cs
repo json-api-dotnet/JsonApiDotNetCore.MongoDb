@@ -7,15 +7,10 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Creating;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class AtomicCreateResourceWithToOneRelationshipTests
+public sealed class AtomicCreateResourceWithToOneRelationshipTests(AtomicOperationsFixture fixture)
 {
-    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext = fixture.TestContext;
     private readonly OperationsFakers _fakers = new();
-
-    public AtomicCreateResourceWithToOneRelationshipTests(AtomicOperationsFixture fixture)
-    {
-        _testContext = fixture.TestContext;
-    }
 
     [Fact]
     public async Task Cannot_create_ToOne_relationship()

@@ -7,15 +7,10 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Updating.Relationships;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class AtomicRemoveFromToManyRelationshipTests
+public sealed class AtomicRemoveFromToManyRelationshipTests(AtomicOperationsFixture fixture)
 {
-    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext = fixture.TestContext;
     private readonly OperationsFakers _fakers = new();
-
-    public AtomicRemoveFromToManyRelationshipTests(AtomicOperationsFixture fixture)
-    {
-        _testContext = fixture.TestContext;
-    }
 
     [Fact]
     public async Task Cannot_remove_from_OneToMany_relationship()

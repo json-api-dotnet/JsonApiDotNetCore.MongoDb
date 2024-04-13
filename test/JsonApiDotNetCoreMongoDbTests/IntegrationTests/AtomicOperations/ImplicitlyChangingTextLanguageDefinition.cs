@@ -10,17 +10,13 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 /// Used to simulate side effects that occur in the database while saving, typically caused by database triggers.
 /// </summary>
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public abstract class ImplicitlyChangingTextLanguageDefinition : HitCountingResourceDefinition<TextLanguage, string?>
+public abstract class ImplicitlyChangingTextLanguageDefinition(
+    IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter, IMongoDataAccess mongoDataAccess)
+    : HitCountingResourceDefinition<TextLanguage, string?>(resourceGraph, hitCounter)
 {
     internal const string Suffix = " (changed)";
 
-    private readonly IMongoDataAccess _mongoDataAccess;
-
-    protected ImplicitlyChangingTextLanguageDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter, IMongoDataAccess mongoDataAccess)
-        : base(resourceGraph, hitCounter)
-    {
-        _mongoDataAccess = mongoDataAccess;
-    }
+    private readonly IMongoDataAccess _mongoDataAccess = mongoDataAccess;
 
     public override async Task OnWriteSucceededAsync(TextLanguage resource, WriteOperationKind writeOperation, CancellationToken cancellationToken)
     {

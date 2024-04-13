@@ -8,15 +8,9 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Mixed;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class MaximumOperationsPerRequestTests : BaseForAtomicOperationsTestsThatChangeOptions
+public sealed class MaximumOperationsPerRequestTests(AtomicOperationsFixture fixture) : BaseForAtomicOperationsTestsThatChangeOptions(fixture)
 {
-    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
-
-    public MaximumOperationsPerRequestTests(AtomicOperationsFixture fixture)
-        : base(fixture)
-    {
-        _testContext = fixture.TestContext;
-    }
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext = fixture.TestContext;
 
     [Fact]
     public async Task Can_process_high_number_of_operations_when_unconstrained()

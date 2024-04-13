@@ -7,15 +7,10 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.LocalIds;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class AtomicLocalIdTests
+public sealed class AtomicLocalIdTests(AtomicOperationsFixture fixture)
 {
-    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext = fixture.TestContext;
     private readonly OperationsFakers _fakers = new();
-
-    public AtomicLocalIdTests(AtomicOperationsFixture fixture)
-    {
-        _testContext = fixture.TestContext;
-    }
 
     [Fact]
     public async Task Can_update_resource_using_local_ID()

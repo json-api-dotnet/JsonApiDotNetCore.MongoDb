@@ -7,15 +7,10 @@ namespace TestBuildingBlocks;
 /// Provides an Entity Framework Core DbContext-like abstraction that translates to MongoDB calls. This makes it easier to keep tests in sync with the
 /// main repository.
 /// </summary>
-public abstract class MongoDbContextShim
+public abstract class MongoDbContextShim(IMongoDatabase database)
 {
-    private readonly IMongoDatabase _database;
+    private readonly IMongoDatabase _database = database;
     private readonly List<MongoDbSetShim> _dbSetShims = [];
-
-    protected MongoDbContextShim(IMongoDatabase database)
-    {
-        _database = database;
-    }
 
     protected MongoDbSetShim<TEntity> Set<TEntity>()
         where TEntity : IMongoIdentifiable

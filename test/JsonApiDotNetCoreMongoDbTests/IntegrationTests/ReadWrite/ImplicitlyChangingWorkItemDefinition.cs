@@ -10,17 +10,12 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 /// Used to simulate side effects that occur in the database while saving, typically caused by database triggers.
 /// </summary>
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class ImplicitlyChangingWorkItemDefinition : JsonApiResourceDefinition<WorkItem, string?>
+public sealed class ImplicitlyChangingWorkItemDefinition(IResourceGraph resourceGraph, ReadWriteDbContext dbContext)
+    : JsonApiResourceDefinition<WorkItem, string?>(resourceGraph)
 {
     internal const string Suffix = " (changed)";
 
-    private readonly ReadWriteDbContext _dbContext;
-
-    public ImplicitlyChangingWorkItemDefinition(IResourceGraph resourceGraph, ReadWriteDbContext dbContext)
-        : base(resourceGraph)
-    {
-        _dbContext = dbContext;
-    }
+    private readonly ReadWriteDbContext _dbContext = dbContext;
 
     public override Task OnWriteSucceededAsync(WorkItem resource, WriteOperationKind writeOperation, CancellationToken cancellationToken)
     {
