@@ -8,14 +8,11 @@ using JsonApiDotNetCore.Resources;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Transactions;
 
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class MusicTrackRepository : MongoRepository<MusicTrack, string?>
+public sealed class MusicTrackRepository(
+    IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
+    IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder)
+    : MongoRepository<MusicTrack, string?>(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor,
+        queryableBuilder)
 {
     public override string? TransactionId => null;
-
-    public MusicTrackRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph,
-        IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor,
-        IQueryableBuilder queryableBuilder)
-        : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor, queryableBuilder)
-    {
-    }
 }

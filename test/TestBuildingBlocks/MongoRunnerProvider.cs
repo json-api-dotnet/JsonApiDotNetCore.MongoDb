@@ -54,18 +54,12 @@ internal sealed class MongoRunnerProvider
         }
     }
 
-    private sealed class MongoRunnerWrapper : IMongoRunner
+    private sealed class MongoRunnerWrapper(MongoRunnerProvider owner, IMongoRunner underlyingMongoRunner) : IMongoRunner
     {
-        private readonly MongoRunnerProvider _owner;
-        private IMongoRunner? _underlyingMongoRunner;
+        private readonly MongoRunnerProvider _owner = owner;
+        private IMongoRunner? _underlyingMongoRunner = underlyingMongoRunner;
 
         public string ConnectionString => _underlyingMongoRunner?.ConnectionString ?? throw new ObjectDisposedException(nameof(IMongoRunner));
-
-        public MongoRunnerWrapper(MongoRunnerProvider owner, IMongoRunner underlyingMongoRunner)
-        {
-            _owner = owner;
-            _underlyingMongoRunner = underlyingMongoRunner;
-        }
 
         public void Import(string database, string collection, string inputFilePath, string? additionalArguments = null, bool drop = false)
         {

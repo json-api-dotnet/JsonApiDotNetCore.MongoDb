@@ -5,12 +5,7 @@ using TestBuildingBlocks;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-public sealed class FilterDbContext : MongoDbContextShim
+public sealed class FilterDbContext(IMongoDatabase database) : MongoDbContextShim(database)
 {
     public MongoDbSetShim<FilterableResource> FilterableResources => Set<FilterableResource>();
-
-    public FilterDbContext(IMongoDatabase database)
-        : base(database)
-    {
-    }
 }

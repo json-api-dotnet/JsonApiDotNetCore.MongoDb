@@ -6,16 +6,10 @@ using Microsoft.Extensions.Primitives;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ResourceDefinitions.Reading;
 
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class MoonDefinition : HitCountingResourceDefinition<Moon, string?>
+public sealed class MoonDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
+    : HitCountingResourceDefinition<Moon, string?>(resourceGraph, hitCounter)
 {
     protected override ResourceDefinitionExtensibilityPoints ExtensibilityPointsToTrack => ResourceDefinitionExtensibilityPoints.Reading;
-
-    public MoonDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
-        : base(resourceGraph, hitCounter)
-    {
-        // This constructor will be resolved from the container, which means
-        // you can take on any dependency that is also defined in the container.
-    }
 
     public override QueryStringParameterHandlers<Moon> OnRegisterQueryableHandlersForQueryStringParameters()
     {

@@ -7,15 +7,10 @@ using Xunit;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Updating.Relationships;
 
 [Collection("AtomicOperationsFixture")]
-public sealed class AtomicAddToToManyRelationshipTests
+public sealed class AtomicAddToToManyRelationshipTests(AtomicOperationsFixture fixture)
 {
-    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext;
+    private readonly IntegrationTestContext<TestableStartup, OperationsDbContext> _testContext = fixture.TestContext;
     private readonly OperationsFakers _fakers = new();
-
-    public AtomicAddToToManyRelationshipTests(AtomicOperationsFixture fixture)
-    {
-        _testContext = fixture.TestContext;
-    }
 
     [Fact]
     public async Task Cannot_add_to_OneToMany_relationship()

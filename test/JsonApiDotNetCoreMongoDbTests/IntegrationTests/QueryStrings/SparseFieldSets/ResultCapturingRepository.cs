@@ -11,18 +11,14 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.SparseFiel
 /// Enables sparse fieldset tests to verify which fields were (not) retrieved from the database.
 /// </summary>
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class ResultCapturingRepository<TResource, TId> : MongoRepository<TResource, TId>
+public sealed class ResultCapturingRepository<TResource, TId>(
+    IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
+    IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder,
+    ResourceCaptureStore captureStore) : MongoRepository<TResource, TId>(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders,
+    resourceDefinitionAccessor, queryableBuilder)
     where TResource : class, IIdentifiable<TId>
 {
-    private readonly ResourceCaptureStore _captureStore;
-
-    public ResultCapturingRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph,
-        IResourceFactory resourceFactory, IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor,
-        IQueryableBuilder queryableBuilder, ResourceCaptureStore captureStore)
-        : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor, queryableBuilder)
-    {
-        _captureStore = captureStore;
-    }
+    private readonly ResourceCaptureStore _captureStore = captureStore;
 
     public override async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {

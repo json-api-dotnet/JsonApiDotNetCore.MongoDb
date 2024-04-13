@@ -4,14 +4,10 @@ using JsonApiDotNetCore.Configuration;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Meta;
 
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public sealed class MusicTrackMetaDefinition : HitCountingResourceDefinition<MusicTrack, string?>
+public sealed class MusicTrackMetaDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
+    : HitCountingResourceDefinition<MusicTrack, string?>(resourceGraph, hitCounter)
 {
     protected override ResourceDefinitionExtensibilityPoints ExtensibilityPointsToTrack => ResourceDefinitionExtensibilityPoints.GetMeta;
-
-    public MusicTrackMetaDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
-        : base(resourceGraph, hitCounter)
-    {
-    }
 
     public override IDictionary<string, object?> GetMeta(MusicTrack resource)
     {
