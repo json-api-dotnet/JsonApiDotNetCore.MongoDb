@@ -5,8 +5,7 @@ using JsonApiDotNetCore.Resources.Annotations;
 namespace GettingStarted.Models;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-[Resource]
-public sealed class Book : HexStringMongoIdentifiable
+public sealed class Book : MongoIdentifiable
 {
     [Attr]
     public string Title { get; set; } = null!;

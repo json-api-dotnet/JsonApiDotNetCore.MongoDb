@@ -5,6 +5,7 @@ using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -40,7 +41,7 @@ static void ConfigureJsonApiOptions(JsonApiOptions options)
     options.Namespace = "api";
     options.UseRelativeLinks = true;
     options.IncludeTotalResourceCount = true;
-    options.SerializerOptions.WriteIndented = true;
+    options.SerializerSettings.Formatting = Formatting.Indented;
 }
 
 static async Task CreateSampleDataAsync(IMongoDatabase database)
