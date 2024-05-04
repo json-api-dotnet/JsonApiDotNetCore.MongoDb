@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/books",
+      "launchUrl": "api/books?fields[books]=title,refs1,refs2",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -19,7 +19,7 @@
     "Kestrel": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/books",
+      "launchUrl": "api/books?fields[books]=title,refs1,refs2",
       "applicationUrl": "http://localhost:24141",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

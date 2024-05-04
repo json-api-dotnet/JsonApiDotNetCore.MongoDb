@@ -16,4 +16,13 @@ public sealed class Book : HexStringMongoIdentifiable
 
     [Attr]
     public int PublishYear { get; set; }
+
+    [Attr]
+    public List<string>? Refs1 { get; set; }
+
+    [Attr]
+    public List<string>? Refs2 { get; set; }
+
+    [Attr]
+    public List<string>? Refs3 { get; set; }
 }

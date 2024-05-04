@@ -1,3 +1,4 @@
+using GettingStarted.Definitions;
 using GettingStarted.Models;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
@@ -19,6 +20,7 @@ builder.Services.AddJsonApi(ConfigureJsonApiOptions, resources: resourceGraphBui
 builder.Services.AddJsonApiMongoDb();
 
 builder.Services.AddResourceRepository<MongoRepository<Book, string?>>();
+builder.Services.AddResourceDefinition<BooksDefinition>();
 
 WebApplication app = builder.Build();
 
