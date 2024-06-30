@@ -59,7 +59,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     public async Task Renders_resource_count_for_empty_collection()
     {
         // Arrange
-        await _testContext.RunOnDatabaseAsync(dbContext => dbContext.ClearTableAsync<SupportTicket>());
+        await _testContext.RunOnDatabaseAsync(async dbContext => await dbContext.ClearTableAsync<SupportTicket>());
 
         const string route = "/supportTickets";
 
@@ -111,10 +111,10 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
 
         string newDescription = _fakers.SupportTicket.Generate().Description;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.SupportTickets.Add(existingTicket);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

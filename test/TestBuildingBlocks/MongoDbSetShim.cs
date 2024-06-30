@@ -57,9 +57,9 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         }
     }
 
-    public Task ExecuteAsync(Func<IMongoCollection<TEntity>, Task> action)
+    public async Task ExecuteAsync(Func<IMongoCollection<TEntity>, Task> action)
     {
-        return action(_collection);
+        await action(_collection);
     }
 
     public async Task<TEntity> FirstWithIdAsync(string? id, CancellationToken cancellationToken = default)
@@ -79,13 +79,13 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         return await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
     }
 
-    public Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)
+    public async Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)
     {
-        return _collection.AsQueryable().ToListAsync(cancellationToken);
+        return await _collection.AsQueryable().ToListAsync(cancellationToken);
     }
 
-    public Task<List<TEntity>> ToListWhereAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<List<TEntity>> ToListWhereAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        return _collection.AsQueryable().Where(predicate).ToListAsync(cancellationToken);
+        return await _collection.AsQueryable().Where(predicate).ToListAsync(cancellationToken);
     }
 }

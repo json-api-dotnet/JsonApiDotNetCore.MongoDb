@@ -32,8 +32,8 @@ public sealed class AtomicOperationsFixture : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        return TestContext.DisposeAsync();
+        await TestContext.DisposeAsync();
     }
 }

@@ -17,11 +17,11 @@ public sealed class ImplicitlyChangingWorkItemGroupDefinition(IResourceGraph res
 
     private readonly ReadWriteDbContext _dbContext = dbContext;
 
-    public override Task OnWriteSucceededAsync(WorkItemGroup resource, WriteOperationKind writeOperation, CancellationToken cancellationToken)
+    public override async Task OnWriteSucceededAsync(WorkItemGroup resource, WriteOperationKind writeOperation, CancellationToken cancellationToken)
     {
         if (writeOperation is not WriteOperationKind.DeleteResource)
         {
-            return _dbContext.Groups.ExecuteAsync(async collection =>
+            await _dbContext.Groups.ExecuteAsync(async collection =>
             {
                 resource.Name += Suffix;
 
@@ -29,7 +29,5 @@ public sealed class ImplicitlyChangingWorkItemGroupDefinition(IResourceGraph res
                 await collection.ReplaceOneAsync(filter, resource, cancellationToken: cancellationToken);
             });
         }
-
-        return Task.CompletedTask;
     }
 }

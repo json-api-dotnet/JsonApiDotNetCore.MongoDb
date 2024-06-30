@@ -29,11 +29,11 @@ public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<Int
 
         string newGroupName = _fakers.WorkItemGroup.Generate().Name;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.RgbColors.Add(existingGroup.Color);
             dbContext.Groups.Add(existingGroup);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

@@ -20,10 +20,10 @@ public sealed class AtomicCreateResourceWithToManyRelationshipTests(AtomicOperat
 
         string newTitle = _fakers.MusicTrack.Generate().Title;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Performers.Add(existingPerformer);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

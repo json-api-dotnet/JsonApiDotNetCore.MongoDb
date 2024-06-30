@@ -26,7 +26,7 @@ public sealed class AtomicRollbackTests
         string newArtistName = _fakers.Performer.Generate().ArtistName!;
         DateTimeOffset newBornAt = _fakers.Performer.Generate().BornAt;
 
-        await _testContext.RunOnDatabaseAsync(dbContext => dbContext.ClearTableAsync<Performer>());
+        await _testContext.RunOnDatabaseAsync(async dbContext => await dbContext.ClearTableAsync<Performer>());
 
         string unknownPerformerId = Unknown.StringId.For<Performer, string?>();
 
@@ -91,10 +91,10 @@ public sealed class AtomicRollbackTests
 
         string newArtistName = _fakers.Performer.Generate().ArtistName!;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Performers.Add(existingPerformer);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string unknownPerformerId = Unknown.StringId.For<Performer, string?>();

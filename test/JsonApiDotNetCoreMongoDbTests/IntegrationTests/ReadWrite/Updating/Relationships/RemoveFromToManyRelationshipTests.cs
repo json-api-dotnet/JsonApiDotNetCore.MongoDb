@@ -27,11 +27,11 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         existingWorkItem.Subscribers = _fakers.UserAccount.Generate(1).ToHashSet();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.UserAccounts.Add(existingWorkItem.Subscribers.ElementAt(0));
             dbContext.WorkItems.Add(existingWorkItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -70,11 +70,11 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         existingWorkItem.Tags = _fakers.WorkTag.Generate(1).ToHashSet();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkTags.Add(existingWorkItem.Tags.ElementAt(0));
             dbContext.WorkItems.Add(existingWorkItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

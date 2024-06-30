@@ -19,11 +19,11 @@ public sealed class AtomicUpdateToOneRelationshipTests(AtomicOperationsFixture f
         Lyric existingLyric = _fakers.Lyric.Generate();
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.MusicTracks.Add(existingTrack);
             dbContext.Lyrics.Add(existingLyric);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
