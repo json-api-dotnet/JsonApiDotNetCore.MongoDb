@@ -20,7 +20,7 @@ public sealed class LyricRepository : MongoRepository<Lyric, string?>, IAsyncDis
         IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder)
         : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor, queryableBuilder)
     {
-        IMongoDataAccess otherDataAccess = new MongoDataAccess(mongoDataAccess.MongoDatabase);
+        IMongoDataAccess otherDataAccess = new MongoDataAccess(mongoDataAccess.EntityModel, mongoDataAccess.MongoDatabase);
 
         var factory = new MongoTransactionFactory(otherDataAccess);
         _transaction = factory.BeginTransactionAsync(CancellationToken.None).Result;

@@ -27,6 +27,6 @@
     <WarnOnPackingNonPackableProject>false</WarnOnPackingNonPackableProject>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
     <RunSettingsFilePath>$(MSBuildThisFileDirectory)tests.runsettings</RunSettingsFilePath>
-    <JsonApiDotNetCoreMongoDbVersionPrefix>5.5.1</JsonApiDotNetCoreMongoDbVersionPrefix>
+    <JsonApiDotNetCoreMongoDbVersionPrefix>5.6.0</JsonApiDotNetCoreMongoDbVersionPrefix>
   </PropertyGroup>
 </Project>

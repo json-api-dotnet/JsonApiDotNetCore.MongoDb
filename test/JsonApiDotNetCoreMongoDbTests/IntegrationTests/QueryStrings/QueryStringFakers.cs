@@ -6,20 +6,20 @@ using TestBuildingBlocks;
 
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings;
 
-internal sealed class QueryStringFakers : FakerContainer
+internal sealed class QueryStringFakers
 {
     private readonly Lazy<Faker<Blog>> _lazyBlogFaker = new(() => new Faker<Blog>()
-        .UseSeed(GetFakerSeed())
+        .MakeDeterministic()
         .RuleFor(blog => blog.Title, faker => faker.Lorem.Word())
         .RuleFor(blog => blog.PlatformName, faker => faker.Company.CompanyName()));
 
     private readonly Lazy<Faker<BlogPost>> _lazyBlogPostFaker = new(() => new Faker<BlogPost>()
-        .UseSeed(GetFakerSeed())
+        .MakeDeterministic()
         .RuleFor(blogPost => blogPost.Caption, faker => faker.Lorem.Sentence())
         .RuleFor(blogPost => blogPost.Url, faker => faker.Internet.Url()));
 
     private readonly Lazy<Faker<WebAccount>> _lazyWebAccountFaker = new(() => new Faker<WebAccount>()
-        .UseSeed(GetFakerSeed())
+        .MakeDeterministic()
         .RuleFor(webAccount => webAccount.UserName, faker => faker.Person.UserName)
         .RuleFor(webAccount => webAccount.Password, faker => faker.Internet.Password())
         .RuleFor(webAccount => webAccount.DisplayName, faker => faker.Person.FullName)

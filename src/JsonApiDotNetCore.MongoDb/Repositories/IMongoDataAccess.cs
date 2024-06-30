@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Metadata;
 using MongoDB.Driver;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories;
@@ -7,6 +8,11 @@ namespace JsonApiDotNetCore.MongoDb.Repositories;
 /// </summary>
 public interface IMongoDataAccess : IAsyncDisposable
 {
+    /// <summary>
+    /// Provides access to the entity model, which is built at startup.
+    /// </summary>
+    IReadOnlyModel EntityModel { get; }
+
     /// <summary>
     /// Provides access to the underlying MongoDB database, which data changes can be applied on.
     /// </summary>

@@ -12,11 +12,11 @@
     <PackageTags>jsonapi;json:api;dotnet;asp.net;rest;web-api;MongoDB</PackageTags>
     <Description>Persistence layer implementation for use of MongoDB in APIs using JsonApiDotNetCore.</Description>
     <Authors>json-api-dotnet</Authors>
-    <PackageProjectUrl>https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb</PackageProjectUrl>
+    <PackageProjectUrl>https://www.jsonapi.net/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>See https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb/releases.</PackageReleaseNotes>
-    <PackageIcon>logo.png</PackageIcon>
+    <PackageIcon>package-icon.png</PackageIcon>
     <PackageReadmeFile>PackageReadme.md</PackageReadmeFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\logo.png" Visible="false" Pack="True" PackagePath="" />
+    <None Include="..\..\package-icon.png" Visible="false" Pack="True" PackagePath="" />
     <None Include="..\..\PackageReadme.md" Visible="false" Pack="True" PackagePath="" />
   </ItemGroup>
 
