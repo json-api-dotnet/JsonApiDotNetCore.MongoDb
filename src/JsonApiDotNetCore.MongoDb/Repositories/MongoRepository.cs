@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using JsonApiDotNetCore.Configuration;
@@ -19,6 +20,12 @@ namespace JsonApiDotNetCore.MongoDb.Repositories;
 /// <summary>
 /// Implements the foundational Repository layer in the JsonApiDotNetCore architecture that uses MongoDB.
 /// </summary>
+/// <typeparam name="TResource">
+/// The resource type.
+/// </typeparam>
+/// <typeparam name="TId">
+/// The resource identifier type.
+/// </typeparam>
 [PublicAPI]
 public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TId>, IRepositorySupportsTransaction
     where TResource : class, IIdentifiable<TId>
@@ -115,7 +122,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             source = queryableHandler.Apply(source);
         }
 
-        var context = QueryableBuilderContext.CreateRoot(source, typeof(Queryable), new MongoModel(_resourceGraph), null);
+        var context = QueryableBuilderContext.CreateRoot(source, typeof(Queryable), _mongoDataAccess.EntityModel, null);
         Expression expression = _queryableBuilder.ApplyQuery(queryLayer, context);
 
         return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
@@ -150,7 +157,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual Task<TResource> GetForCreateAsync(Type resourceClrType, TId id, CancellationToken cancellationToken)
+    public virtual Task<TResource> GetForCreateAsync(Type resourceClrType, [DisallowNull] TId id, CancellationToken cancellationToken)
     {
         var resource = (TResource)_resourceFactory.CreateInstance(resourceClrType);
         resource.Id = id;
@@ -174,9 +181,9 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         await _resourceDefinitionAccessor.OnWritingAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
 
         await SaveChangesAsync(
-            () => _mongoDataAccess.ActiveSession != null
+            async () => await (_mongoDataAccess.ActiveSession != null
                 ? Collection.InsertOneAsync(_mongoDataAccess.ActiveSession, resourceForDatabase, cancellationToken: cancellationToken)
-                : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken), cancellationToken);
+                : Collection.InsertOneAsync(resourceForDatabase, cancellationToken: cancellationToken)), cancellationToken);
 
         await _resourceDefinitionAccessor.OnWriteSucceededAsync(resourceForDatabase, WriteOperationKind.CreateResource, cancellationToken);
     }
@@ -224,7 +231,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual async Task DeleteAsync(TResource? resourceFromDatabase, TId id, CancellationToken cancellationToken)
+    public virtual async Task DeleteAsync(TResource? resourceFromDatabase, [DisallowNull] TId id, CancellationToken cancellationToken)
     {
         TResource placeholderResource = resourceFromDatabase ?? _resourceFactory.CreateInstance<TResource>();
         placeholderResource.Id = id;
@@ -259,7 +266,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual Task AddToToManyRelationshipAsync(TResource? leftResource, TId leftId, ISet<IIdentifiable> rightResourceIds,
+    public virtual Task AddToToManyRelationshipAsync(TResource? leftResource, [DisallowNull] TId leftId, ISet<IIdentifiable> rightResourceIds,
         CancellationToken cancellationToken)
     {
         throw new UnsupportedRelationshipException();

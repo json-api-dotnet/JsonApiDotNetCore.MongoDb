@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Metadata;
 using MongoDB.Driver;
 
 namespace JsonApiDotNetCore.MongoDb.Repositories;
@@ -5,6 +6,9 @@ namespace JsonApiDotNetCore.MongoDb.Repositories;
 /// <inheritdoc cref="IMongoDataAccess" />
 public sealed class MongoDataAccess : IMongoDataAccess
 {
+    /// <inheritdoc />
+    public IReadOnlyModel EntityModel { get; }
+
     /// <inheritdoc />
     public IMongoDatabase MongoDatabase { get; }
 
@@ -14,10 +18,12 @@ public sealed class MongoDataAccess : IMongoDataAccess
     /// <inheritdoc />
     public string? TransactionId => ActiveSession is { IsInTransaction: true } ? ActiveSession.GetHashCode().ToString() : null;
 
-    public MongoDataAccess(IMongoDatabase mongoDatabase)
+    public MongoDataAccess(IReadOnlyModel entityModel, IMongoDatabase mongoDatabase)
     {
+        ArgumentGuard.NotNull(entityModel);
         ArgumentGuard.NotNull(mongoDatabase);
 
+        EntityModel = entityModel;
         MongoDatabase = mongoDatabase;
     }
 

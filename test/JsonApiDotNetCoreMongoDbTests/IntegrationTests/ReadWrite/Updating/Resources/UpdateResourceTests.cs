@@ -36,10 +36,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         UserAccount existingUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.UserAccounts.Add(existingUserAccount);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -83,10 +83,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
         string newName = _fakers.WorkItemGroup.Generate().Name;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Groups.Add(existingGroup);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -135,10 +135,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         RgbColor existingColor = _fakers.RgbColor.Generate();
         string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.RgbColors.Add(existingColor);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -179,10 +179,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         UserAccount existingUserAccount = _fakers.UserAccount.Generate();
         UserAccount newUserAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.UserAccounts.Add(existingUserAccount);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -225,10 +225,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         string newDescription = _fakers.WorkItem.Generate().Description!;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkItems.Add(existingWorkItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -281,10 +281,10 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         string newDescription = _fakers.WorkItem.Generate().Description!;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkItems.Add(existingWorkItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

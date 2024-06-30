@@ -65,10 +65,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}";
@@ -116,10 +116,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}/assignee";
@@ -145,10 +145,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         UserAccount userAccount = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.UserAccounts.Add(userAccount);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/userAccounts/{userAccount.StringId}/assignedItems";
@@ -174,10 +174,10 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Arrange
         WorkItem workItem = _fakers.WorkItem.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkItems.Add(workItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/workItems/{workItem.StringId}/tags";

@@ -19,11 +19,11 @@ public sealed class AtomicRemoveFromToManyRelationshipTests(AtomicOperationsFixt
         MusicTrack existingTrack = _fakers.MusicTrack.Generate();
         existingTrack.Performers = _fakers.Performer.Generate(1);
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Performers.Add(existingTrack.Performers[0]);
             dbContext.MusicTracks.Add(existingTrack);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -76,11 +76,11 @@ public sealed class AtomicRemoveFromToManyRelationshipTests(AtomicOperationsFixt
         Playlist existingPlaylist = _fakers.Playlist.Generate();
         existingPlaylist.Tracks = _fakers.MusicTrack.Generate(1);
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.MusicTracks.Add(existingPlaylist.Tracks[0]);
             dbContext.Playlists.Add(existingPlaylist);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

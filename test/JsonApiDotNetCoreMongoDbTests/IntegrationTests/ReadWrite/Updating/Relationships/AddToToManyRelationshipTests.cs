@@ -27,11 +27,11 @@ public sealed class AddToToManyRelationshipTests : IClassFixture<IntegrationTest
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         UserAccount existingSubscriber = _fakers.UserAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.UserAccounts.Add(existingSubscriber);
             dbContext.WorkItems.Add(existingWorkItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new
@@ -70,11 +70,11 @@ public sealed class AddToToManyRelationshipTests : IClassFixture<IntegrationTest
         WorkItem existingWorkItem = _fakers.WorkItem.Generate();
         WorkTag existingTag = _fakers.WorkTag.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.WorkTags.Add(existingTag);
             dbContext.WorkItems.Add(existingWorkItem);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

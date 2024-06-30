@@ -6,10 +6,10 @@ using TestBuildingBlocks;
 
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.Meta;
 
-internal sealed class MetaFakers : FakerContainer
+internal sealed class MetaFakers
 {
     private readonly Lazy<Faker<SupportTicket>> _lazySupportTicketFaker = new(() => new Faker<SupportTicket>()
-        .UseSeed(GetFakerSeed())
+        .MakeDeterministic()
         .RuleFor(supportTicket => supportTicket.Description, faker => faker.Lorem.Paragraph()));
 
     public Faker<SupportTicket> SupportTicket => _lazySupportTicketFaker.Value;

@@ -27,11 +27,11 @@ public sealed class UpdateToOneRelationshipTests : IClassFixture<IntegrationTest
         WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
         RgbColor existingColor = _fakers.RgbColor.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.RgbColors.Add(existingColor);
             dbContext.Groups.Add(existingGroup);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

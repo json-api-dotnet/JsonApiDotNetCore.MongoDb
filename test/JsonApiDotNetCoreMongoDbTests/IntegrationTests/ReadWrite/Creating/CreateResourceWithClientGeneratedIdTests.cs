@@ -202,10 +202,10 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
 
         string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.RgbColors.Add(existingColor);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         var requestBody = new

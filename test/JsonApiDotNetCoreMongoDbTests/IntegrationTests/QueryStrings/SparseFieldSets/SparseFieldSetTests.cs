@@ -120,10 +120,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
 
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Posts.Add(post);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[blogPosts]=url";
@@ -151,10 +151,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Posts.Add(post);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[webAccounts]=displayName,emailAddress,preferences";
@@ -180,10 +180,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         WebAccount account = _fakers.WebAccount.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Accounts.Add(account);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/webAccounts/{account.StringId}?fields[blogPosts]=caption,labels";
@@ -209,10 +209,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         // Arrange
         BlogPost post = _fakers.BlogPost.Generate();
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Posts.Add(post);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogPosts/{post.StringId}?fields[labels]=color";
@@ -312,10 +312,10 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
         Blog blog = _fakers.Blog.Generate();
         blog.IsPublished = true;
 
-        await _testContext.RunOnDatabaseAsync(dbContext =>
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             dbContext.Blogs.Add(blog);
-            return dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         });
 
         string route = $"/blogs/{blog.StringId}?fields[blogs]=showAdvertisements";

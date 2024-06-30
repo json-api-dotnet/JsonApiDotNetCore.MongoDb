@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using JsonApiDotNetCore.AtomicOperations;
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.AtomicOperations;
 using JsonApiDotNetCore.MongoDb.Queries.Internal;
 using JsonApiDotNetCore.MongoDb.Repositories;
@@ -17,6 +18,12 @@ public static class ServiceCollectionExtensions
     [PublicAPI]
     public static IServiceCollection AddJsonApiMongoDb(this IServiceCollection services)
     {
+        services.TryAddSingleton(serviceProvider =>
+        {
+            var resourceGraph = serviceProvider.GetRequiredService<IResourceGraph>();
+            return resourceGraph.ToEntityModel();
+        });
+
         services.TryAddScoped<IMongoDataAccess, MongoDataAccess>();
 
         // Replace the built-in implementations from JsonApiDotNetCore.
