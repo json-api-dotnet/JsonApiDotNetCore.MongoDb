@@ -85,7 +85,7 @@ with both base classes, but `FreeStringMongoIdentifiable` probably makes the mos
 
 ## Limitations
 
-- JSON:API relationships are currently not supported. You can use complex object graphs though, which are stored in a single document.
+- JSON:API relationships are [currently not supported](https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb/issues/73). You can use complex object graphs though, which are stored in a single document.
 
 ## Contributing
 
