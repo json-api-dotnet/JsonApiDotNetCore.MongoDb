@@ -2,18 +2,18 @@
   <PropertyGroup>
     <!-- Published dependencies (only update on major version change) -->
     <JsonApiDotNetCoreFrozenVersion>5.6.0</JsonApiDotNetCoreFrozenVersion>
-    <MongoDBDriverFrozenVersion>2.20.0</MongoDBDriverFrozenVersion>
+    <MongoDBDriverFrozenVersion>2.28.0</MongoDBDriverFrozenVersion>
 
     <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
     <BogusVersion>35.5.*</BogusVersion>
     <CoverletVersion>6.0.*</CoverletVersion>
-    <EphemeralMongoVersion>1.1.*</EphemeralMongoVersion>
+    <EphemeralMongoVersion>2.0.*</EphemeralMongoVersion>
     <FluentAssertionsVersion>6.12.*</FluentAssertionsVersion>
     <GitHubActionsTestLoggerVersion>2.3.*</GitHubActionsTestLoggerVersion>
     <InheritDocVersion>2.0.*</InheritDocVersion>
-    <MongoDBDriverVersion>2.27.*</MongoDBDriverVersion>
+    <MongoDBDriverVersion>2.28.*</MongoDBDriverVersion>
     <SourceLinkVersion>8.0.*</SourceLinkVersion>
-    <TestSdkVersion>17.10.*</TestSdkVersion>
+    <TestSdkVersion>17.13.*</TestSdkVersion>
     <XunitVersion>2.8.*</XunitVersion>
   </PropertyGroup>
 

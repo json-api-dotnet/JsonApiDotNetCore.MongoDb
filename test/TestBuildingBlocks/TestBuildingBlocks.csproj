@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
   </PropertyGroup>
@@ -13,9 +13,9 @@
     <PackageReference Include="Bogus" Version="$(BogusVersion)" />
     <PackageReference Include="coverlet.collector" Version="$(CoverletVersion)" PrivateAssets="All" />
     <PackageReference Include="EphemeralMongo.Core" Version="$(EphemeralMongoVersion)" />
-    <PackageReference Include="EphemeralMongo6.runtime.linux-x64" Version="$(EphemeralMongoVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <PackageReference Include="EphemeralMongo6.runtime.osx-x64" Version="$(EphemeralMongoVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
-    <PackageReference Include="EphemeralMongo6.runtime.win-x64" Version="$(EphemeralMongoVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+    <PackageReference Include="EphemeralMongo8.runtime.linux-x64" Version="$(EphemeralMongoVersion)" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <PackageReference Include="EphemeralMongo8.runtime.osx-arm64" Version="$(EphemeralMongoVersion)" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+    <PackageReference Include="EphemeralMongo8.runtime.win-x64" Version="$(EphemeralMongoVersion)" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     <PackageReference Include="GitHubActionsTestLogger" Version="$(GitHubActionsTestLoggerVersion)" PrivateAssets="All" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionsVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(AspNetCoreVersion)" />

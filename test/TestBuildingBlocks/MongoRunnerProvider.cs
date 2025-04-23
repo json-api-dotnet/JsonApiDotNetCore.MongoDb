@@ -25,7 +25,6 @@ internal sealed class MongoRunnerProvider
                 {
                     // Single-node replica set mode is required for transaction support in MongoDB.
                     UseSingleNodeReplicaSet = true,
-                    KillMongoProcessesWhenCurrentProcessExits = true,
                     AdditionalArguments = "--quiet"
                 };
 
