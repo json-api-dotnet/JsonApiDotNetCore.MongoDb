@@ -6,9 +6,6 @@ using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Repositories;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MongoDB.Driver;
-#if NET6_0
-using Microsoft.AspNetCore.Authentication;
-#endif
 
 [assembly: ExcludeFromCodeCoverage]
 
@@ -16,11 +13,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-#if NET6_0
-builder.Services.TryAddSingleton<ISystemClock, SystemClock>();
-#else
 builder.Services.TryAddSingleton(TimeProvider.System);
-#endif
 
 builder.Services.TryAddSingleton(_ =>
 {
@@ -43,7 +36,7 @@ app.UseRouting();
 app.UseJsonApi();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
 
 static void ConfigureJsonApiOptions(JsonApiOptions options)
 {

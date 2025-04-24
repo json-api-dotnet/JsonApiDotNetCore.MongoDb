@@ -1,1 +1,1 @@
-Persistence layer implementation for use of [MongoDB](https://www.mongodb.com/) in APIs using [JsonApiDotNetCore](https://www.jsonapi.net/).
+[MongoDB](https://www.mongodb.com/) persistence for [JsonApiDotNetCore](https://www.jsonapi.net/), which is a framework for building JSON:API compliant REST APIs using ASP.NET Core.

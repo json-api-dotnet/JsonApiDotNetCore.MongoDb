@@ -16,8 +16,8 @@ public sealed class AtomicLocalIdTests(AtomicOperationsFixture fixture)
     public async Task Can_update_resource_using_local_ID()
     {
         // Arrange
-        string newTrackTitle = _fakers.MusicTrack.Generate().Title;
-        string newTrackGenre = _fakers.MusicTrack.Generate().Genre!;
+        string newTrackTitle = _fakers.MusicTrack.GenerateOne().Title;
+        string newTrackGenre = _fakers.MusicTrack.GenerateOne().Genre!;
 
         const string trackLocalId = "track-1";
 
@@ -62,19 +62,19 @@ public sealed class AtomicLocalIdTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.ShouldHaveCount(2);
+        responseDocument.Results.Should().HaveCount(2);
 
-        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        responseDocument.Results[0].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
         {
             resource.Type.Should().Be("musicTracks");
             resource.Lid.Should().BeNull();
-            resource.Attributes.ShouldContainKey("title").With(value => value.Should().Be(newTrackTitle));
-            resource.Attributes.ShouldContainKey("genre").With(value => value.Should().BeNull());
+            resource.Attributes.Should().ContainKey("title").WhoseValue.Should().Be(newTrackTitle);
+            resource.Attributes.Should().ContainKey("genre").WhoseValue.Should().BeNull();
         });
 
         responseDocument.Results[1].Data.Value.Should().BeNull();
 
-        string newTrackId = responseDocument.Results[0].Data.SingleValue!.Id.ShouldNotBeNull();
+        string newTrackId = responseDocument.Results[0].Data.SingleValue!.Id.Should().NotBeNull().And.Subject;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -89,7 +89,7 @@ public sealed class AtomicLocalIdTests(AtomicOperationsFixture fixture)
     public async Task Can_delete_resource_using_local_ID()
     {
         // Arrange
-        string newTrackTitle = _fakers.MusicTrack.Generate().Title;
+        string newTrackTitle = _fakers.MusicTrack.GenerateOne().Title;
 
         const string trackLocalId = "track-1";
 
@@ -130,18 +130,18 @@ public sealed class AtomicLocalIdTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.ShouldHaveCount(2);
+        responseDocument.Results.Should().HaveCount(2);
 
-        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        responseDocument.Results[0].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
         {
             resource.Type.Should().Be("musicTracks");
             resource.Lid.Should().BeNull();
-            resource.Attributes.ShouldContainKey("title").With(value => value.Should().Be(newTrackTitle));
+            resource.Attributes.Should().ContainKey("title").WhoseValue.Should().Be(newTrackTitle);
         });
 
         responseDocument.Results[1].Data.Value.Should().BeNull();
 
-        string newTrackId = responseDocument.Results[0].Data.SingleValue!.Id.ShouldNotBeNull();
+        string newTrackId = responseDocument.Results[0].Data.SingleValue!.Id.Should().NotBeNull().And.Subject;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {

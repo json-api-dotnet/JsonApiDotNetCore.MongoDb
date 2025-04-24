@@ -16,8 +16,8 @@ public sealed class AtomicAddToToManyRelationshipTests(AtomicOperationsFixture f
     public async Task Cannot_add_to_OneToMany_relationship()
     {
         // Arrange
-        MusicTrack existingTrack = _fakers.MusicTrack.Generate();
-        Performer existingPerformer = _fakers.Performer.Generate();
+        MusicTrack existingTrack = _fakers.MusicTrack.GenerateOne();
+        Performer existingPerformer = _fakers.Performer.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -59,13 +59,13 @@ public sealed class AtomicAddToToManyRelationshipTests(AtomicOperationsFixture f
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
     }
 
@@ -73,8 +73,8 @@ public sealed class AtomicAddToToManyRelationshipTests(AtomicOperationsFixture f
     public async Task Cannot_add_to_ManyToMany_relationship()
     {
         // Arrange
-        Playlist existingPlaylist = _fakers.Playlist.Generate();
-        MusicTrack existingTrack = _fakers.MusicTrack.Generate();
+        Playlist existingPlaylist = _fakers.Playlist.GenerateOne();
+        MusicTrack existingTrack = _fakers.MusicTrack.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -116,13 +116,13 @@ public sealed class AtomicAddToToManyRelationshipTests(AtomicOperationsFixture f
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
     }
 }

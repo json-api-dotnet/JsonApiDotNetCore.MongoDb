@@ -26,7 +26,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_create_resource_with_string_ID()
     {
         // Arrange
-        WorkItem newWorkItem = _fakers.WorkItem.Generate();
+        WorkItem newWorkItem = _fakers.WorkItem.GenerateOne();
         newWorkItem.DueAt = null;
 
         var requestBody = new
@@ -49,13 +49,13 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(newWorkItem.Description));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().Be(newWorkItem.DueAt));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("description").WhoseValue.Should().Be(newWorkItem.Description);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("dueAt").WhoseValue.Should().Be(newWorkItem.DueAt);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
-        string newWorkItemId = responseDocument.Data.SingleValue.Id.ShouldNotBeNull();
+        string newWorkItemId = responseDocument.Data.SingleValue.Id.Should().NotBeNull().And.Subject;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -90,7 +90,7 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.InternalServerError);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
@@ -124,13 +124,13 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Created);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().BeNull());
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().BeNull());
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("description").WhoseValue.Should().BeNull();
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("dueAt").WhoseValue.Should().BeNull();
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
-        string newWorkItemId = responseDocument.Data.SingleValue.Id.ShouldNotBeNull();
+        string newWorkItemId = responseDocument.Data.SingleValue.Id.Should().NotBeNull().And.Subject;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -166,14 +166,14 @@ public sealed class CreateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Forbidden);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         error.Title.Should().Be("Failed to deserialize request body: The use of client-generated IDs is disabled.");
         error.Detail.Should().BeNull();
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/data/id");
-        error.Meta.ShouldContainKey("requestBody").With(value => value.ShouldNotBeNull().ToString().ShouldNotBeEmpty());
+        error.Meta.Should().HaveRequestBody();
     }
 }

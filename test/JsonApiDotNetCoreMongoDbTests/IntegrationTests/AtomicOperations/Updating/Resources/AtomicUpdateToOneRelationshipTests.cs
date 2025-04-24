@@ -16,8 +16,8 @@ public sealed class AtomicUpdateToOneRelationshipTests(AtomicOperationsFixture f
     public async Task Cannot_create_ToOne_relationship()
     {
         // Arrange
-        Lyric existingLyric = _fakers.Lyric.Generate();
-        MusicTrack existingTrack = _fakers.MusicTrack.Generate();
+        Lyric existingLyric = _fakers.Lyric.GenerateOne();
+        MusicTrack existingTrack = _fakers.MusicTrack.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -61,13 +61,13 @@ public sealed class AtomicUpdateToOneRelationshipTests(AtomicOperationsFixture f
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Relationships are not supported when using MongoDB.");
         error.Detail.Should().BeNull();
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
     }
 }

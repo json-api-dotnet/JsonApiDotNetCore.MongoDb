@@ -10,7 +10,8 @@ namespace JsonApiDotNetCore.MongoDb.Errors;
 /// https://jira.mongodb.org/browse/CSHARP-1592.
 /// </summary>
 [PublicAPI]
-public sealed class AttributeComparisonInFilterNotSupportedException() : JsonApiException(new ErrorObject(HttpStatusCode.BadRequest)
-{
-    Title = "Comparing attributes against each other is not supported when using MongoDB."
-});
+public sealed class AttributeComparisonInFilterNotSupportedException()
+    : JsonApiException(new ErrorObject(HttpStatusCode.BadRequest)
+    {
+        Title = "Comparing attributes against each other is not supported when using MongoDB."
+    });

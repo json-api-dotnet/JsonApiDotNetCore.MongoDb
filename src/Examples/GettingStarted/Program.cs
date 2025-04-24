@@ -15,7 +15,19 @@ builder.Services.TryAddSingleton(_ =>
     return client.GetDatabase(builder.Configuration.GetSection("DatabaseSettings:Database").Value);
 });
 
-builder.Services.AddJsonApi(ConfigureJsonApiOptions, resources: resourceGraphBuilder => resourceGraphBuilder.Add<Book, string?>());
+builder.Services.AddJsonApi(options =>
+{
+    options.Namespace = "api";
+    options.UseRelativeLinks = true;
+    options.IncludeTotalResourceCount = true;
+
+#if DEBUG
+    options.IncludeExceptionStackTraceInErrors = true;
+    options.IncludeRequestBodyInErrors = true;
+    options.SerializerOptions.WriteIndented = true;
+#endif
+}, resources: resourceGraphBuilder => resourceGraphBuilder.Add<Book, string?>());
+
 builder.Services.AddJsonApiMongoDb();
 
 builder.Services.AddResourceRepository<MongoRepository<Book, string?>>();
@@ -31,15 +43,7 @@ app.MapControllers();
 var database = app.Services.GetRequiredService<IMongoDatabase>();
 await CreateSampleDataAsync(database);
 
-app.Run();
-
-static void ConfigureJsonApiOptions(JsonApiOptions options)
-{
-    options.Namespace = "api";
-    options.UseRelativeLinks = true;
-    options.IncludeTotalResourceCount = true;
-    options.SerializerOptions.WriteIndented = true;
-}
+await app.RunAsync();
 
 static async Task CreateSampleDataAsync(IMongoDatabase database)
 {

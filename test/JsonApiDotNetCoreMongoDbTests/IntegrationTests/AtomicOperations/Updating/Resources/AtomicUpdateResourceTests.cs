@@ -18,8 +18,8 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
         // Arrange
         const int elementCount = 5;
 
-        List<MusicTrack> existingTracks = _fakers.MusicTrack.Generate(elementCount);
-        string[] newTrackTitles = _fakers.MusicTrack.Generate(elementCount).Select(musicTrack => musicTrack.Title).ToArray();
+        List<MusicTrack> existingTracks = _fakers.MusicTrack.GenerateList(elementCount);
+        string[] newTrackTitles = _fakers.MusicTrack.GenerateList(elementCount).Select(musicTrack => musicTrack.Title).ToArray();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -66,7 +66,7 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
         {
             List<MusicTrack> tracksInDatabase = await dbContext.MusicTracks.ToListAsync();
 
-            tracksInDatabase.ShouldHaveCount(elementCount);
+            tracksInDatabase.Should().HaveCount(elementCount);
 
             for (int index = 0; index < elementCount; index++)
             {
@@ -82,7 +82,7 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
     public async Task Can_update_resource_without_attributes_or_relationships()
     {
         // Arrange
-        MusicTrack existingTrack = _fakers.MusicTrack.Generate();
+        MusicTrack existingTrack = _fakers.MusicTrack.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -135,9 +135,9 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
     public async Task Can_partially_update_resource_without_side_effects()
     {
         // Arrange
-        MusicTrack existingTrack = _fakers.MusicTrack.Generate();
+        MusicTrack existingTrack = _fakers.MusicTrack.GenerateOne();
 
-        string newGenre = _fakers.MusicTrack.Generate().Genre!;
+        string newGenre = _fakers.MusicTrack.GenerateOne().Genre!;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -190,12 +190,12 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
     public async Task Can_completely_update_resource_without_side_effects()
     {
         // Arrange
-        MusicTrack existingTrack = _fakers.MusicTrack.Generate();
+        MusicTrack existingTrack = _fakers.MusicTrack.GenerateOne();
 
-        string newTitle = _fakers.MusicTrack.Generate().Title;
-        decimal? newLengthInSeconds = _fakers.MusicTrack.Generate().LengthInSeconds;
-        string newGenre = _fakers.MusicTrack.Generate().Genre!;
-        DateTimeOffset newReleasedAt = _fakers.MusicTrack.Generate().ReleasedAt;
+        string newTitle = _fakers.MusicTrack.GenerateOne().Title;
+        decimal? newLengthInSeconds = _fakers.MusicTrack.GenerateOne().LengthInSeconds;
+        string newGenre = _fakers.MusicTrack.GenerateOne().Genre!;
+        DateTimeOffset newReleasedAt = _fakers.MusicTrack.GenerateOne().ReleasedAt;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -251,8 +251,8 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
     public async Task Can_update_resource_with_side_effects()
     {
         // Arrange
-        TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
-        string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
+        TextLanguage existingLanguage = _fakers.TextLanguage.GenerateOne();
+        string newIsoCode = _fakers.TextLanguage.GenerateOne().IsoCode!;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -288,14 +288,14 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.ShouldHaveCount(1);
+        responseDocument.Results.Should().HaveCount(1);
 
         string isoCode = $"{newIsoCode}{ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
-        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        responseDocument.Results[0].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
         {
             resource.Type.Should().Be("textLanguages");
-            resource.Attributes.ShouldContainKey("isoCode").With(value => value.Should().Be(isoCode));
+            resource.Attributes.Should().ContainKey("isoCode").WhoseValue.Should().Be(isoCode);
             resource.Attributes.Should().NotContainKey("isRightToLeft");
             resource.Relationships.Should().BeNull();
         });
@@ -343,13 +343,13 @@ public sealed class AtomicUpdateResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
         error.Detail.Should().Be($"Resource of type 'performers' with ID '{performerId}' does not exist.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
         error.Meta.Should().NotContainKey("requestBody");
     }

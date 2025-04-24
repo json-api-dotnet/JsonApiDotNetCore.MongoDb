@@ -115,9 +115,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
             services.AddJsonApiMongoDb();
         });
 
-        // We have placed an appsettings.json in the TestBuildingBlock project folder and set the content root to there. Note that controllers
-        // are not discovered in the content root but are registered manually using IntegrationTestContext.UseController.
-        return factory.WithWebHostBuilder(builder => builder.UseSolutionRelativeContentRoot($"test/{nameof(TestBuildingBlocks)}"));
+        return factory;
     }
 
     private void ConfigureJsonApiOptions(JsonApiOptions options)
@@ -129,6 +127,11 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 
     public void ConfigureServices(Action<IServiceCollection> configureServices)
     {
+        if (_configureServices != null && _configureServices != configureServices)
+        {
+            throw new InvalidOperationException($"Do not call {nameof(ConfigureServices)} multiple times.");
+        }
+
         _configureServices = configureServices;
     }
 
@@ -167,6 +170,13 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         public void ConfigureServices(Action<IServiceCollection>? configureServices)
         {
             _configureServices = configureServices;
+        }
+
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            // We have placed an appsettings.json in the TestBuildingBlocks project directory and set the content root to there. Note that
+            // controllers are not discovered in the content root, but are registered manually using IntegrationTestContext.UseController.
+            builder.UseSolutionRelativeContentRoot($"test/{nameof(TestBuildingBlocks)}");
         }
 
         protected override IHostBuilder CreateHostBuilder()

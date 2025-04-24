@@ -23,8 +23,8 @@ public sealed class AtomicRollbackTests
     public async Task Can_rollback_created_resource_on_error()
     {
         // Arrange
-        string newArtistName = _fakers.Performer.Generate().ArtistName!;
-        DateTimeOffset newBornAt = _fakers.Performer.Generate().BornAt;
+        string newArtistName = _fakers.Performer.GenerateOne().ArtistName!;
+        DateTimeOffset newBornAt = _fakers.Performer.GenerateOne().BornAt;
 
         await _testContext.RunOnDatabaseAsync(async dbContext => await dbContext.ClearTableAsync<Performer>());
 
@@ -67,13 +67,13 @@ public sealed class AtomicRollbackTests
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
         error.Detail.Should().Be($"Resource of type 'performers' with ID '{unknownPerformerId}' does not exist.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[1]");
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -87,9 +87,9 @@ public sealed class AtomicRollbackTests
     public async Task Can_rollback_updated_resource_on_error()
     {
         // Arrange
-        Performer existingPerformer = _fakers.Performer.Generate();
+        Performer existingPerformer = _fakers.Performer.GenerateOne();
 
-        string newArtistName = _fakers.Performer.Generate().ArtistName!;
+        string newArtistName = _fakers.Performer.GenerateOne().ArtistName!;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -136,13 +136,13 @@ public sealed class AtomicRollbackTests
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
         error.Detail.Should().Be($"Resource of type 'performers' with ID '{unknownPerformerId}' does not exist.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[1]");
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -157,7 +157,7 @@ public sealed class AtomicRollbackTests
     public async Task Can_rollback_deleted_resource_on_error()
     {
         // Arrange
-        Performer existingPerformer = _fakers.Performer.Generate();
+        Performer existingPerformer = _fakers.Performer.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -201,13 +201,13 @@ public sealed class AtomicRollbackTests
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
         error.Detail.Should().Be($"Resource of type 'performers' with ID '{unknownPerformerId}' does not exist.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[1]");
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>

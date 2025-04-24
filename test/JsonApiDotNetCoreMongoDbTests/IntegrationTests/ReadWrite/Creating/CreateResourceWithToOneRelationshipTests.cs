@@ -24,10 +24,10 @@ public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<Int
     public async Task Cannot_create_resource_with_ToOne_relationship()
     {
         // Arrange
-        WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
-        existingGroup.Color = _fakers.RgbColor.Generate();
+        WorkItemGroup existingGroup = _fakers.WorkItemGroup.GenerateOne();
+        existingGroup.Color = _fakers.RgbColor.GenerateOne();
 
-        string newGroupName = _fakers.WorkItemGroup.Generate().Name;
+        string newGroupName = _fakers.WorkItemGroup.GenerateOne().Name;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -67,7 +67,7 @@ public sealed class CreateResourceWithToOneRelationshipTests : IClassFixture<Int
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

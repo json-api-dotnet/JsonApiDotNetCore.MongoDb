@@ -5,7 +5,8 @@ using TestBuildingBlocks;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-public sealed class OperationsDbContext(IMongoDatabase database) : MongoDbContextShim(database)
+public sealed class OperationsDbContext(IMongoDatabase database)
+    : MongoDbContextShim(database)
 {
     public MongoDbSetShim<Playlist> Playlists => Set<Playlist>();
     public MongoDbSetShim<MusicTrack> MusicTracks => Set<MusicTrack>();

@@ -4,7 +4,6 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -23,7 +22,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
 
         testContext.UseController<SupportTicketsController>();
 
-        testContext.ConfigureServices(services => services.TryAddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>)));
+        testContext.ConfigureServices(services => services.AddScoped(typeof(IResourceChangeTracker<>), typeof(NeverSameResourceChangeTracker<>)));
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.IncludeTotalResourceCount = true;
@@ -33,7 +32,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     public async Task Renders_resource_count_for_collection()
     {
         // Arrange
-        SupportTicket ticket = _fakers.SupportTicket.Generate();
+        SupportTicket ticket = _fakers.SupportTicket.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -49,8 +48,6 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
 
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
-
-        responseDocument.Meta.ShouldNotBeNull();
 
         responseDocument.Meta.Should().ContainTotal(1);
     }
@@ -69,8 +66,6 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Meta.ShouldNotBeNull();
-
         responseDocument.Meta.Should().ContainTotal(0);
     }
 
@@ -78,7 +73,7 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     public async Task Hides_resource_count_in_create_resource_response()
     {
         // Arrange
-        string newDescription = _fakers.SupportTicket.Generate().Description;
+        string newDescription = _fakers.SupportTicket.GenerateOne().Description;
 
         var requestBody = new
         {
@@ -107,9 +102,9 @@ public sealed class TopLevelCountTests : IClassFixture<IntegrationTestContext<Te
     public async Task Hides_resource_count_in_update_resource_response()
     {
         // Arrange
-        SupportTicket existingTicket = _fakers.SupportTicket.Generate();
+        SupportTicket existingTicket = _fakers.SupportTicket.GenerateOne();
 
-        string newDescription = _fakers.SupportTicket.Generate().Description;
+        string newDescription = _fakers.SupportTicket.GenerateOne().Description;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {

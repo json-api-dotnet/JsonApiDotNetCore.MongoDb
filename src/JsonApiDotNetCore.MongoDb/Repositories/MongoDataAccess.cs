@@ -20,8 +20,8 @@ public sealed class MongoDataAccess : IMongoDataAccess
 
     public MongoDataAccess(IReadOnlyModel entityModel, IMongoDatabase mongoDatabase)
     {
-        ArgumentGuard.NotNull(entityModel);
-        ArgumentGuard.NotNull(mongoDatabase);
+        ArgumentNullException.ThrowIfNull(entityModel);
+        ArgumentNullException.ThrowIfNull(mongoDatabase);
 
         EntityModel = entityModel;
         MongoDatabase = mongoDatabase;

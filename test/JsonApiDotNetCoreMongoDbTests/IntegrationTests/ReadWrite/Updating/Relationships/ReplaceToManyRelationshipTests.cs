@@ -24,8 +24,8 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
     public async Task Cannot_replace_OneToMany_relationship()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        UserAccount existingSubscriber = _fakers.UserAccount.Generate();
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
+        UserAccount existingSubscriber = _fakers.UserAccount.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -54,7 +54,7 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -67,8 +67,8 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
     public async Task Cannot_replace_ManyToMany_relationship()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        WorkTag existingTag = _fakers.WorkTag.Generate();
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
+        WorkTag existingTag = _fakers.WorkTag.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -97,7 +97,7 @@ public sealed class ReplaceToManyRelationshipTests : IClassFixture<IntegrationTe
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

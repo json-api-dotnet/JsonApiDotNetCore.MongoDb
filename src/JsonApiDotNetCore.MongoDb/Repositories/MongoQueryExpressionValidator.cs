@@ -10,9 +10,9 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
 {
     public void Validate(QueryLayer layer)
     {
-        ArgumentGuard.NotNull(layer);
+        ArgumentNullException.ThrowIfNull(layer);
 
-        bool hasIncludes = layer.Include?.Elements.Any() == true;
+        bool hasIncludes = layer.Include?.Elements.Count > 0;
 
         if (hasIncludes || HasSparseRelationshipSets(layer.Selection))
         {
@@ -52,7 +52,7 @@ internal sealed class MongoQueryExpressionValidator : QueryExpressionRewriter<ob
 
     public override QueryExpression VisitResourceFieldChain(ResourceFieldChainExpression expression, object? argument)
     {
-        if (expression.Fields.Count > 1 || expression.Fields.First() is RelationshipAttribute)
+        if (expression.Fields.Count > 1 || expression.Fields[0] is RelationshipAttribute)
         {
             throw new UnsupportedRelationshipException();
         }

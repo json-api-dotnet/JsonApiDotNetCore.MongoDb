@@ -17,8 +17,8 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
     public async Task Can_create_resource()
     {
         // Arrange
-        string newArtistName = _fakers.Performer.Generate().ArtistName!;
-        DateTimeOffset newBornAt = _fakers.Performer.Generate().BornAt;
+        string newArtistName = _fakers.Performer.GenerateOne().ArtistName!;
+        DateTimeOffset newBornAt = _fakers.Performer.GenerateOne().BornAt;
 
         var requestBody = new
         {
@@ -48,17 +48,17 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.ShouldHaveCount(1);
+        responseDocument.Results.Should().HaveCount(1);
 
-        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        responseDocument.Results[0].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
         {
             resource.Type.Should().Be("performers");
-            resource.Attributes.ShouldContainKey("artistName").With(value => value.Should().Be(newArtistName));
-            resource.Attributes.ShouldContainKey("bornAt").With(value => value.Should().Be(newBornAt));
+            resource.Attributes.Should().ContainKey("artistName").WhoseValue.Should().Be(newArtistName);
+            resource.Attributes.Should().ContainKey("bornAt").WhoseValue.Should().Be(newBornAt);
             resource.Relationships.Should().BeNull();
         });
 
-        string newPerformerId = responseDocument.Results[0].Data.SingleValue!.Id.ShouldNotBeNull();
+        string newPerformerId = responseDocument.Results[0].Data.SingleValue!.Id.Should().NotBeNull().And.Subject;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -75,7 +75,7 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
         // Arrange
         const int elementCount = 5;
 
-        List<MusicTrack> newTracks = _fakers.MusicTrack.Generate(elementCount);
+        List<MusicTrack> newTracks = _fakers.MusicTrack.GenerateList(elementCount);
 
         var operationElements = new List<object>(elementCount);
 
@@ -111,33 +111,30 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.ShouldHaveCount(elementCount);
+        responseDocument.Results.Should().HaveCount(elementCount);
 
         for (int index = 0; index < elementCount; index++)
         {
-            responseDocument.Results[index].Data.SingleValue.ShouldNotBeNull().With(resource =>
+            responseDocument.Results[index].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
             {
-                resource.ShouldNotBeNull();
+                resource.Should().NotBeNull();
                 resource.Type.Should().Be("musicTracks");
-                resource.Attributes.ShouldContainKey("title").With(value => value.Should().Be(newTracks[index].Title));
-
-                resource.Attributes.ShouldContainKey("lengthInSeconds")
-                    .With(value => value.As<decimal?>().Should().BeApproximately(newTracks[index].LengthInSeconds));
-
-                resource.Attributes.ShouldContainKey("genre").With(value => value.Should().Be(newTracks[index].Genre));
-                resource.Attributes.ShouldContainKey("releasedAt").With(value => value.Should().Be(newTracks[index].ReleasedAt));
+                resource.Attributes.Should().ContainKey("title").WhoseValue.Should().Be(newTracks[index].Title);
+                resource.Attributes.Should().ContainKey("lengthInSeconds").WhoseValue.As<decimal?>().Should().BeApproximately(newTracks[index].LengthInSeconds);
+                resource.Attributes.Should().ContainKey("genre").WhoseValue.Should().Be(newTracks[index].Genre);
+                resource.Attributes.Should().ContainKey("releasedAt").WhoseValue.Should().Be(newTracks[index].ReleasedAt);
 
                 resource.Relationships.Should().BeNull();
             });
         }
 
-        string[] newTrackIds = responseDocument.Results.Select(result => result.Data.SingleValue!.Id.ShouldNotBeNull()).ToArray();
+        string[] newTrackIds = responseDocument.Results.Select(result => result.Data.SingleValue!.Id.Should().NotBeNull().And.Subject).ToArray();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
             List<MusicTrack> tracksInDatabase = await dbContext.MusicTracks.ToListWhereAsync(musicTrack => newTrackIds.Contains(musicTrack.Id));
 
-            tracksInDatabase.ShouldHaveCount(elementCount);
+            tracksInDatabase.Should().HaveCount(elementCount);
 
             for (int index = 0; index < elementCount; index++)
             {
@@ -184,17 +181,17 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Results.ShouldHaveCount(1);
+        responseDocument.Results.Should().HaveCount(1);
 
-        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        responseDocument.Results[0].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
         {
             resource.Type.Should().Be("performers");
-            resource.Attributes.ShouldContainKey("artistName").With(value => value.Should().BeNull());
-            resource.Attributes.ShouldContainKey("bornAt").With(value => value.Should().Be(default(DateTimeOffset)));
+            resource.Attributes.Should().ContainKey("artistName").WhoseValue.Should().BeNull();
+            resource.Attributes.Should().ContainKey("bornAt").WhoseValue.Should().Be(default(DateTimeOffset));
             resource.Relationships.Should().BeNull();
         });
 
-        string newPerformerId = responseDocument.Results[0].Data.SingleValue!.Id.ShouldNotBeNull();
+        string newPerformerId = responseDocument.Results[0].Data.SingleValue!.Id.Should().NotBeNull().And.Subject;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -209,7 +206,7 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
     public async Task Cannot_create_resource_with_client_generated_ID()
     {
         // Arrange
-        MusicTrack newTrack = _fakers.MusicTrack.Generate();
+        MusicTrack newTrack = _fakers.MusicTrack.GenerateOne();
         newTrack.Id = ObjectId.GenerateNewId().ToString();
 
         var requestBody = new
@@ -240,14 +237,14 @@ public sealed class AtomicCreateResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Forbidden);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         error.Title.Should().Be("Failed to deserialize request body: The use of client-generated IDs is disabled.");
         error.Detail.Should().BeNull();
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]/data/id");
-        error.Meta.ShouldContainKey("requestBody").With(value => value.ShouldNotBeNull().ToString().ShouldNotBeEmpty());
+        error.Meta.Should().HaveRequestBody();
     }
 }

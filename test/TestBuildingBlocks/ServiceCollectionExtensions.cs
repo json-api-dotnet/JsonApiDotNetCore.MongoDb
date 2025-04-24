@@ -9,6 +9,9 @@ internal static class ServiceCollectionExtensions
 {
     public static void ReplaceControllers(this IServiceCollection services, TestControllerProvider provider)
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(provider);
+
         services.AddMvcCore().ConfigureApplicationPartManager(manager =>
         {
             RemoveExistingControllerFeatureProviders(manager);

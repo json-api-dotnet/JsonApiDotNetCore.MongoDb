@@ -34,7 +34,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_update_resource_without_attributes_or_relationships()
     {
         // Arrange
-        UserAccount existingUserAccount = _fakers.UserAccount.Generate();
+        UserAccount existingUserAccount = _fakers.UserAccount.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -80,8 +80,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_partially_update_resource_with_string_ID()
     {
         // Arrange
-        WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
-        string newName = _fakers.WorkItemGroup.Generate().Name;
+        WorkItemGroup existingGroup = _fakers.WorkItemGroup.GenerateOne();
+        string newName = _fakers.WorkItemGroup.GenerateOne().Name;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -112,11 +112,11 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         string groupName = $"{newName}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
         responseDocument.Data.SingleValue.Id.Should().Be(existingGroup.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(groupName));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("isPublic").With(value => value.Should().Be(existingGroup.IsPublic));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(groupName);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("isPublic").WhoseValue.Should().Be(existingGroup.IsPublic);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -132,8 +132,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_completely_update_resource_with_string_ID()
     {
         // Arrange
-        RgbColor existingColor = _fakers.RgbColor.Generate();
-        string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
+        RgbColor existingColor = _fakers.RgbColor.GenerateOne();
+        string newDisplayName = _fakers.RgbColor.GenerateOne().DisplayName;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -176,8 +176,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_update_resource_without_side_effects()
     {
         // Arrange
-        UserAccount existingUserAccount = _fakers.UserAccount.Generate();
-        UserAccount newUserAccount = _fakers.UserAccount.Generate();
+        UserAccount existingUserAccount = _fakers.UserAccount.GenerateOne();
+        UserAccount newUserAccount = _fakers.UserAccount.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -222,8 +222,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_update_resource_with_side_effects()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        string newDescription = _fakers.WorkItem.Generate().Description!;
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
+        string newDescription = _fakers.WorkItem.GenerateOne().Description!;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -255,13 +255,13 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         string itemDescription = $"{newDescription}{ImplicitlyChangingWorkItemDefinition.Suffix}";
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
         responseDocument.Data.SingleValue.Id.Should().Be(existingWorkItem.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(itemDescription));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().BeNull());
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(existingWorkItem.Priority));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("isImportant").With(value => value.Should().Be(existingWorkItem.IsImportant));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("description").WhoseValue.Should().Be(itemDescription);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("dueAt").WhoseValue.Should().BeNull();
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("priority").WhoseValue.Should().Be(existingWorkItem.Priority);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("isImportant").WhoseValue.Should().Be(existingWorkItem.IsImportant);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -278,8 +278,8 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_update_resource_with_side_effects_with_primary_fieldset()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        string newDescription = _fakers.WorkItem.Generate().Description!;
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
+        string newDescription = _fakers.WorkItem.GenerateOne().Description!;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -311,12 +311,12 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
 
         string itemDescription = $"{newDescription}{ImplicitlyChangingWorkItemDefinition.Suffix}";
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
         responseDocument.Data.SingleValue.Id.Should().Be(existingWorkItem.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(2);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(itemDescription));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(existingWorkItem.Priority));
+        responseDocument.Data.SingleValue.Attributes.Should().HaveCount(2);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("description").WhoseValue.Should().Be(itemDescription);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("priority").WhoseValue.Should().Be(existingWorkItem.Priority);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -352,7 +352,7 @@ public sealed class UpdateResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);

@@ -1,11 +1,14 @@
 using System.Globalization;
 using System.Net;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Web;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using Humanizer;
+using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
+using Microsoft.Extensions.DependencyInjection;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -22,6 +25,13 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         testContext.UseResourceTypesInNamespace(typeof(FilterableResource).Namespace);
 
         testContext.UseController<FilterableResourcesController>();
+
+        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+
+        if (!options.SerializerOptions.Converters.Any(converter => converter is JsonStringEnumConverter))
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        }
     }
 
     [Theory]
@@ -62,8 +72,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey(attributeName).With(value => value.Should().Be(value));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey(attributeName).WhoseValue.Should().Be(propertyValue);
     }
 
     [Fact]
@@ -90,8 +100,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDecimal").With(value => value.Should().Be(resource.SomeDecimal));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDecimal").WhoseValue.Should().Be(resource.SomeDecimal);
     }
 
     [Fact]
@@ -118,8 +128,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someGuid").With(value => value.Should().Be(resource.SomeGuid));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someGuid").WhoseValue.Should().Be(resource.SomeGuid);
     }
 
     [Fact]
@@ -146,10 +156,9 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
 
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeInLocalZone")
-            .With(value => value.Should().Be(resource.SomeDateTimeInLocalZone));
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateTimeInLocalZone").WhoseValue.Should().Be(resource.SomeDateTimeInLocalZone);
     }
 
     [Fact]
@@ -176,10 +185,9 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
 
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeInUtcZone")
-            .With(value => value.Should().Be(resource.SomeDateTimeInUtcZone));
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateTimeInUtcZone").WhoseValue.Should().Be(resource.SomeDateTimeInUtcZone);
     }
 
     [Fact]
@@ -206,8 +214,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeOffset").With(value => value.Should().Be(resource.SomeDateTimeOffset));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateTimeOffset").WhoseValue.Should().Be(resource.SomeDateTimeOffset);
     }
 
     [Fact]
@@ -234,8 +242,64 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someTimeSpan").With(value => value.Should().Be(resource.SomeTimeSpan));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someTimeSpan").WhoseValue.Should().Be(resource.SomeTimeSpan);
+    }
+
+    [Fact]
+    public async Task Can_filter_equality_on_type_DateOnly()
+    {
+        // Arrange
+        var resource = new FilterableResource
+        {
+            SomeDateOnly = DateOnly.FromDateTime(27.January(2003))
+        };
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, new FilterableResource());
+            await dbContext.SaveChangesAsync();
+        });
+
+        string route = $"/filterableResources?filter=equals(someDateOnly,'{resource.SomeDateOnly:O}')";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
+
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateOnly").WhoseValue.Should().Be(resource.SomeDateOnly);
+    }
+
+    [Fact]
+    public async Task Can_filter_equality_on_type_TimeOnly()
+    {
+        // Arrange
+        var resource = new FilterableResource
+        {
+            SomeTimeOnly = new TimeOnly(23, 59, 59, 999)
+        };
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, new FilterableResource());
+            await dbContext.SaveChangesAsync();
+        });
+
+        string route = $"/filterableResources?filter=equals(someTimeOnly,'{resource.SomeTimeOnly:O}')";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
+
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someTimeOnly").WhoseValue.Should().Be(resource.SomeTimeOnly);
     }
 
     [Fact]
@@ -254,7 +318,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
             await dbContext.SaveChangesAsync();
         });
 
-        const string route = "/filterableResources?filter=equals(someInt32,'ABC')";
+        var parameterValue = new MarkedText("equals(someInt32,^'ABC')", '^');
+        string route = $"/filterableResources?filter={parameterValue.Text}";
 
         // Act
         (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
@@ -262,13 +327,13 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("The specified filter is invalid.");
-        error.Detail.Should().StartWith("Failed to convert 'ABC' of type 'String' to type 'Int32'.");
-        error.Source.ShouldNotBeNull();
+        error.Detail.Should().Be($"Failed to convert 'ABC' of type 'String' to type 'Int32'. {parameterValue}");
+        error.Source.Should().NotBeNull();
         error.Source.Parameter.Should().Be("filter");
     }
 
@@ -283,6 +348,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
     [InlineData(nameof(FilterableResource.SomeNullableDateTime))]
     [InlineData(nameof(FilterableResource.SomeNullableDateTimeOffset))]
     [InlineData(nameof(FilterableResource.SomeNullableTimeSpan))]
+    [InlineData(nameof(FilterableResource.SomeNullableDateOnly))]
+    [InlineData(nameof(FilterableResource.SomeNullableTimeOnly))]
     [InlineData(nameof(FilterableResource.SomeNullableEnum))]
     public async Task Can_filter_is_null_on_type(string propertyName)
     {
@@ -303,6 +370,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
             SomeNullableDateTime = 1.January(2001).AsUtc(),
             SomeNullableDateTimeOffset = 1.January(2001).AsUtc(),
             SomeNullableTimeSpan = TimeSpan.FromHours(1),
+            SomeNullableDateOnly = DateOnly.FromDateTime(1.January(2001)),
+            SomeNullableTimeOnly = new TimeOnly(1, 0),
             SomeNullableEnum = DayOfWeek.Friday
         };
 
@@ -322,8 +391,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey(attributeName).With(value => value.Should().BeNull());
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey(attributeName).WhoseValue.Should().BeNull();
     }
 
     [Theory]
@@ -337,6 +406,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
     [InlineData(nameof(FilterableResource.SomeNullableDateTime))]
     [InlineData(nameof(FilterableResource.SomeNullableDateTimeOffset))]
     [InlineData(nameof(FilterableResource.SomeNullableTimeSpan))]
+    [InlineData(nameof(FilterableResource.SomeNullableDateOnly))]
+    [InlineData(nameof(FilterableResource.SomeNullableTimeOnly))]
     [InlineData(nameof(FilterableResource.SomeNullableEnum))]
     public async Task Can_filter_is_not_null_on_type(string propertyName)
     {
@@ -353,6 +424,8 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
             SomeNullableDateTime = 1.January(2001).AsUtc(),
             SomeNullableDateTimeOffset = 1.January(2001).AsUtc(),
             SomeNullableTimeSpan = TimeSpan.FromHours(1),
+            SomeNullableDateOnly = DateOnly.FromDateTime(1.January(2001)),
+            SomeNullableTimeOnly = new TimeOnly(1, 0),
             SomeNullableEnum = DayOfWeek.Friday
         };
 
@@ -372,7 +445,7 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey(attributeName).With(value => value.Should().NotBeNull());
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey(attributeName).WhoseValue.Should().NotBeNull();
     }
 }

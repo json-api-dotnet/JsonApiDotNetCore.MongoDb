@@ -11,13 +11,20 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests;
 /// Tracks invocations on <see cref="IResourceDefinition{TResource,TId}" /> callback methods. This is used solely in our tests, so we can assert which
 /// calls were made, and in which order.
 /// </summary>
-public abstract class HitCountingResourceDefinition<TResource, TId>(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
-    : JsonApiResourceDefinition<TResource, TId>(resourceGraph)
+public abstract class HitCountingResourceDefinition<TResource, TId> : JsonApiResourceDefinition<TResource, TId>
     where TResource : class, IIdentifiable<TId>
 {
-    private readonly ResourceDefinitionHitCounter _hitCounter = hitCounter;
+    private readonly ResourceDefinitionHitCounter _hitCounter;
 
     protected virtual ResourceDefinitionExtensibilityPoints ExtensibilityPointsToTrack => ResourceDefinitionExtensibilityPoints.All;
+
+    protected HitCountingResourceDefinition(IResourceGraph resourceGraph, ResourceDefinitionHitCounter hitCounter)
+        : base(resourceGraph)
+    {
+        ArgumentNullException.ThrowIfNull(hitCounter);
+
+        _hitCounter = hitCounter;
+    }
 
     public override IImmutableSet<IncludeElementExpression> OnApplyIncludes(IImmutableSet<IncludeElementExpression> existingIncludes)
     {

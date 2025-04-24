@@ -3,7 +3,6 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -24,8 +23,9 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
 
         testContext.ConfigureServices(services =>
         {
-            services.TryAddSingleton<ResourceDefinitionHitCounter>();
             services.AddResourceDefinition<SupportTicketDefinition>();
+
+            services.AddSingleton<ResourceDefinitionHitCounter>();
         });
 
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
@@ -38,7 +38,7 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        List<SupportTicket> tickets = _fakers.SupportTicket.Generate(3);
+        List<SupportTicket> tickets = _fakers.SupportTicket.GenerateList(3);
         tickets[0].Description = $"Critical: {tickets[0].Description}";
         tickets[2].Description = $"Critical: {tickets[2].Description}";
 
@@ -57,10 +57,10 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(3);
-        responseDocument.Data.ManyValue[0].Meta.ShouldContainKey("hasHighPriority");
+        responseDocument.Data.ManyValue.Should().HaveCount(3);
+        responseDocument.Data.ManyValue[0].Meta.Should().ContainKey("hasHighPriority");
         responseDocument.Data.ManyValue[1].Meta.Should().BeNull();
-        responseDocument.Data.ManyValue[2].Meta.ShouldContainKey("hasHighPriority");
+        responseDocument.Data.ManyValue[2].Meta.Should().ContainKey("hasHighPriority");
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {

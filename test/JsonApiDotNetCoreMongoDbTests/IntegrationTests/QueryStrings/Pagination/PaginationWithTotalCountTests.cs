@@ -31,7 +31,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
     public async Task Can_paginate_in_primary_resources()
     {
         // Arrange
-        List<BlogPost> posts = _fakers.BlogPost.Generate(2);
+        List<BlogPost> posts = _fakers.BlogPost.GenerateList(2);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -48,10 +48,10 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(posts[1].StringId);
 
-        responseDocument.Links.ShouldNotBeNull();
+        responseDocument.Links.Should().NotBeNull();
         responseDocument.Links.Self.Should().Be($"{HostPrefix}{route}");
         responseDocument.Links.First.Should().Be($"{HostPrefix}/blogPosts?page%5Bsize%5D=1");
         responseDocument.Links.Last.Should().Be($"{HostPrefix}/blogPosts?page%5Bnumber%5D=2&page%5Bsize%5D=1");
@@ -66,7 +66,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.DefaultPageSize = new PageSize(2);
 
-        List<BlogPost> posts = _fakers.BlogPost.Generate(3);
+        List<BlogPost> posts = _fakers.BlogPost.GenerateList(3);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -83,11 +83,11 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(2);
+        responseDocument.Data.ManyValue.Should().HaveCount(2);
         responseDocument.Data.ManyValue[0].Id.Should().Be(posts[0].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(posts[1].StringId);
 
-        responseDocument.Links.ShouldNotBeNull();
+        responseDocument.Links.Should().NotBeNull();
         responseDocument.Links.Self.Should().Be($"{HostPrefix}{route}");
         responseDocument.Links.First.Should().Be(responseDocument.Links.Self);
         responseDocument.Links.Last.Should().Be($"{HostPrefix}{route}?page%5Bnumber%5D=2");
@@ -102,7 +102,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
         options.DefaultPageSize = null;
 
-        List<BlogPost> posts = _fakers.BlogPost.Generate(25);
+        List<BlogPost> posts = _fakers.BlogPost.GenerateList(25);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -119,9 +119,9 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(25);
+        responseDocument.Data.ManyValue.Should().HaveCount(25);
 
-        responseDocument.Links.ShouldNotBeNull();
+        responseDocument.Links.Should().NotBeNull();
         responseDocument.Links.Self.Should().Be($"{HostPrefix}{route}");
         responseDocument.Links.First.Should().BeNull();
         responseDocument.Links.Last.Should().BeNull();

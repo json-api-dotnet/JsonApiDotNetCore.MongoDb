@@ -24,7 +24,7 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_delete_existing_resource()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -44,9 +44,9 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
-            WorkItem? workItemsInDatabase = await dbContext.WorkItems.FirstWithIdOrDefaultAsync(existingWorkItem.Id);
+            WorkItem? workItemInDatabase = await dbContext.WorkItems.FirstWithIdOrDefaultAsync(existingWorkItem.Id);
 
-            workItemsInDatabase.Should().BeNull();
+            workItemInDatabase.Should().BeNull();
         });
     }
 
@@ -64,7 +64,7 @@ public sealed class DeleteResourceTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);

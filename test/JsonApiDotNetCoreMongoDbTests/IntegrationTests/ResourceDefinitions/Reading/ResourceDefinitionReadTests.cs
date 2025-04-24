@@ -3,7 +3,6 @@ using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
 using Xunit;
 
@@ -26,12 +25,12 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         testContext.ConfigureServices(services =>
         {
-            services.TryAddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
-            services.TryAddSingleton<ResourceDefinitionHitCounter>();
-
-            services.AddResourceDefinition<MoonDefinition>();
-            services.AddResourceDefinition<PlanetDefinition>();
             services.AddResourceDefinition<StarDefinition>();
+            services.AddResourceDefinition<PlanetDefinition>();
+            services.AddResourceDefinition<MoonDefinition>();
+
+            services.AddSingleton<IClientSettingsProvider, TestClientSettingsProvider>();
+            services.AddSingleton<ResourceDefinitionHitCounter>();
         });
 
         var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
@@ -53,7 +52,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         var settingsProvider = (TestClientSettingsProvider)_testContext.Factory.Services.GetRequiredService<IClientSettingsProvider>();
         settingsProvider.HidePlanetsWithPrivateName();
 
-        List<Planet> planets = _fakers.Planet.Generate(4);
+        List<Planet> planets = _fakers.Planet.GenerateList(4);
         planets[0].PrivateName = "A";
         planets[2].PrivateName = "B";
 
@@ -72,7 +71,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(2);
+        responseDocument.Data.ManyValue.Should().HaveCount(2);
         responseDocument.Data.ManyValue[0].Id.Should().Be(planets[1].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(planets[3].StringId);
 
@@ -101,7 +100,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         var settingsProvider = (TestClientSettingsProvider)_testContext.Factory.Services.GetRequiredService<IClientSettingsProvider>();
         settingsProvider.HidePlanetsWithPrivateName();
 
-        List<Planet> planets = _fakers.Planet.Generate(4);
+        List<Planet> planets = _fakers.Planet.GenerateList(4);
 
         planets[0].HasRingSystem = true;
         planets[0].PrivateName = "A";
@@ -128,7 +127,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(planets[3].StringId);
 
         responseDocument.Meta.Should().ContainTotal(1);
@@ -152,7 +151,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        List<Star> stars = _fakers.Star.Generate(3);
+        List<Star> stars = _fakers.Star.GenerateList(3);
 
         stars[0].SolarMass = 500m;
         stars[0].SolarRadius = 1m;
@@ -178,7 +177,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue.Should().HaveCount(3);
         responseDocument.Data.ManyValue[0].Id.Should().Be(stars[1].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(stars[0].StringId);
         responseDocument.Data.ManyValue[2].Id.Should().Be(stars[2].StringId);
@@ -204,7 +203,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        List<Star> stars = _fakers.Star.Generate(3);
+        List<Star> stars = _fakers.Star.GenerateList(3);
 
         stars[0].Name = "B";
         stars[0].SolarRadius = 10m;
@@ -230,7 +229,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue.Should().HaveCount(3);
         responseDocument.Data.ManyValue[0].Id.Should().Be(stars[2].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(stars[0].StringId);
         responseDocument.Data.ManyValue[2].Id.Should().Be(stars[1].StringId);
@@ -256,7 +255,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        List<Star> stars = _fakers.Star.Generate(10);
+        List<Star> stars = _fakers.Star.GenerateList(10);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -273,7 +272,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(5);
+        responseDocument.Data.ManyValue.Should().HaveCount(5);
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
@@ -298,7 +297,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        Star star = _fakers.Star.Generate();
+        Star star = _fakers.Star.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -314,10 +313,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Id.Should().Be(star.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(star.Name));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("kind").With(value => value.Should().Be(star.Kind));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(star.Name);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("kind").WhoseValue.Should().Be(star.Kind);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
@@ -338,7 +337,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        Star star = _fakers.Star.Generate();
+        Star star = _fakers.Star.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -354,11 +353,11 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Id.Should().Be(star.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(2);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(star.Name));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("solarRadius").With(value => value.Should().Be(star.SolarRadius));
+        responseDocument.Data.SingleValue.Attributes.Should().HaveCount(2);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(star.Name);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("solarRadius").WhoseValue.Should().Be(star.SolarRadius);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
@@ -379,7 +378,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        Star star = _fakers.Star.Generate();
+        Star star = _fakers.Star.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -395,9 +394,9 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Id.Should().Be(star.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(star.Name));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(star.Name);
         responseDocument.Data.SingleValue.Attributes.Should().NotContainKey("isVisibleFromEarth");
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
@@ -419,7 +418,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        Star star = _fakers.Star.Generate();
+        Star star = _fakers.Star.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -435,10 +434,10 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Id.Should().Be(star.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(1);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(star.Name));
+        responseDocument.Data.SingleValue.Attributes.Should().HaveCount(1);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(star.Name);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
@@ -459,7 +458,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        List<Moon> moons = _fakers.Moon.Generate(2);
+        List<Moon> moons = _fakers.Moon.GenerateList(2);
         moons[0].SolarRadius = .5m;
         moons[1].SolarRadius = 50m;
 
@@ -478,7 +477,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(moons[1].StringId);
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
@@ -502,7 +501,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        List<Moon> moons = _fakers.Moon.Generate(4);
+        List<Moon> moons = _fakers.Moon.GenerateList(4);
 
         moons[0].Name = "Alpha1";
         moons[0].SolarRadius = 1m;
@@ -531,7 +530,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(moons[2].StringId);
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
@@ -555,8 +554,8 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Arrange
         var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        Planet planet = _fakers.Planet.Generate();
-        planet.Moons = _fakers.Moon.Generate(1).ToHashSet();
+        Planet planet = _fakers.Planet.GenerateOne();
+        planet.Moons = _fakers.Moon.GenerateSet(1);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -572,13 +571,13 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Custom query string parameters cannot be used on nested resource endpoints.");
         error.Detail.Should().Be("Query string parameter 'isLargerThanTheSun' cannot be used on a nested resource endpoint.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Parameter.Should().Be("isLargerThanTheSun");
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]

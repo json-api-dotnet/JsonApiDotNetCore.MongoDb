@@ -7,7 +7,12 @@ internal sealed class MongoRunnerProvider
 {
     public static readonly MongoRunnerProvider Instance = new();
 
+#if NET8_0
     private readonly object _lockObject = new();
+#else
+    private readonly Lock _lockObject = new();
+#endif
+
     private IMongoRunner? _runner;
     private int _useCounter;
 
@@ -62,20 +67,14 @@ internal sealed class MongoRunnerProvider
 
         public void Import(string database, string collection, string inputFilePath, string? additionalArguments = null, bool drop = false)
         {
-            if (_underlyingMongoRunner == null)
-            {
-                throw new ObjectDisposedException(nameof(IMongoRunner));
-            }
+            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, this);
 
             _underlyingMongoRunner.Import(database, collection, inputFilePath, additionalArguments, drop);
         }
 
         public void Export(string database, string collection, string outputFilePath, string? additionalArguments = null)
         {
-            if (_underlyingMongoRunner == null)
-            {
-                throw new ObjectDisposedException(nameof(IMongoRunner));
-            }
+            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, this);
 
             _underlyingMongoRunner.Export(database, collection, outputFilePath, additionalArguments);
         }
