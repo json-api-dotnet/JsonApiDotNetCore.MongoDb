@@ -13,10 +13,10 @@ namespace TestBuildingBlocks;
 /// </summary>
 public abstract class IntegrationTest : IAsyncLifetime
 {
-    private static readonly MediaTypeHeaderValue DefaultMediaType = MediaTypeHeaderValue.Parse(HeaderConstants.MediaType);
+    private static readonly MediaTypeHeaderValue DefaultMediaType = MediaTypeHeaderValue.Parse(JsonApiMediaType.Default.ToString());
 
     private static readonly MediaTypeWithQualityHeaderValue OperationsMediaType =
-        MediaTypeWithQualityHeaderValue.Parse(HeaderConstants.AtomicOperationsMediaType);
+        MediaTypeWithQualityHeaderValue.Parse(JsonApiMediaType.AtomicOperations.ToString());
 
     private static readonly SemaphoreSlim ThrottleSemaphore = GetDefaultThrottleSemaphore();
 
