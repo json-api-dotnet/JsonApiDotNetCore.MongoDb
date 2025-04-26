@@ -1,4 +1,7 @@
 using EphemeralMongo;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace TestBuildingBlocks;
 
@@ -6,6 +9,7 @@ namespace TestBuildingBlocks;
 internal sealed class MongoRunnerProvider
 {
     public static readonly MongoRunnerProvider Instance = new();
+    private static readonly GuidSerializer StandardGuidSerializer = new(GuidRepresentation.Standard);
 
 #if NET8_0
     private readonly object _lockObject = new();
@@ -26,11 +30,13 @@ internal sealed class MongoRunnerProvider
         {
             if (_runner == null)
             {
+                BsonSerializer.TryRegisterSerializer(StandardGuidSerializer);
+
                 var runnerOptions = new MongoRunnerOptions
                 {
                     // Single-node replica set mode is required for transaction support in MongoDB.
                     UseSingleNodeReplicaSet = true,
-                    AdditionalArguments = "--quiet"
+                    AdditionalArguments = ["--quiet"]
                 };
 
                 _runner = MongoRunner.Run(runnerOptions);
@@ -63,20 +69,45 @@ internal sealed class MongoRunnerProvider
         private readonly MongoRunnerProvider _owner = owner;
         private IMongoRunner? _underlyingMongoRunner = underlyingMongoRunner;
 
-        public string ConnectionString => _underlyingMongoRunner?.ConnectionString ?? throw new ObjectDisposedException(nameof(IMongoRunner));
-
-        public void Import(string database, string collection, string inputFilePath, string? additionalArguments = null, bool drop = false)
+        public string ConnectionString
         {
-            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, this);
-
-            _underlyingMongoRunner.Import(database, collection, inputFilePath, additionalArguments, drop);
+            get
+            {
+                ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, typeof(IMongoRunner));
+                return _underlyingMongoRunner.ConnectionString;
+            }
         }
 
-        public void Export(string database, string collection, string outputFilePath, string? additionalArguments = null)
+        public void Import(string database, string collection, string inputFilePath, string[]? additionalArguments = null, bool drop = false,
+            CancellationToken cancellationToken = default)
         {
-            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, this);
+            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, typeof(IMongoRunner));
 
-            _underlyingMongoRunner.Export(database, collection, outputFilePath, additionalArguments);
+            _underlyingMongoRunner.Import(database, collection, inputFilePath, additionalArguments, drop, cancellationToken);
+        }
+
+        public async Task ImportAsync(string database, string collection, string inputFilePath, string[]? additionalArguments = null, bool drop = false,
+            CancellationToken cancellationToken = default)
+        {
+            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, typeof(IMongoRunner));
+
+            await _underlyingMongoRunner.ImportAsync(database, collection, inputFilePath, additionalArguments, drop, cancellationToken);
+        }
+
+        public void Export(string database, string collection, string outputFilePath, string[]? additionalArguments = null,
+            CancellationToken cancellationToken = default)
+        {
+            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, typeof(IMongoRunner));
+
+            _underlyingMongoRunner.Export(database, collection, outputFilePath, additionalArguments, cancellationToken);
+        }
+
+        public async Task ExportAsync(string database, string collection, string outputFilePath, string[]? additionalArguments = null,
+            CancellationToken cancellationToken = default)
+        {
+            ObjectDisposedException.ThrowIf(_underlyingMongoRunner == null, typeof(IMongoRunner));
+
+            await _underlyingMongoRunner.ExportAsync(database, collection, outputFilePath, additionalArguments, cancellationToken);
         }
 
         public void Dispose()

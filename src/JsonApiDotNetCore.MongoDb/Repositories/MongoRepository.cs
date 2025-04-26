@@ -74,7 +74,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     {
         ArgumentNullException.ThrowIfNull(queryLayer);
 
-        IMongoQueryable<TResource> query = ApplyQueryLayer(queryLayer);
+        IQueryable<TResource> query = ApplyQueryLayer(queryLayer);
         List<TResource>? resources = await query.ToListAsync(cancellationToken);
         return resources.AsReadOnly();
     }
@@ -89,12 +89,12 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             Filter = topFilter
         };
 
-        IMongoQueryable<TResource> query = ApplyQueryLayer(layer);
+        IQueryable<TResource> query = ApplyQueryLayer(layer);
         return query.CountAsync(cancellationToken);
     }
 
 #pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
-    protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
+    protected virtual IQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
 #pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
         ArgumentNullException.ThrowIfNull(queryLayer);
@@ -127,7 +127,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         var context = QueryableBuilderContext.CreateRoot(source, typeof(Queryable), _mongoDataAccess.EntityModel, null);
         Expression expression = _queryableBuilder.ApplyQuery(queryLayer, context);
 
-        return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
+        return source.Provider.CreateQuery<TResource>(expression);
     }
 
     protected virtual IQueryable<TResource> GetAll()
