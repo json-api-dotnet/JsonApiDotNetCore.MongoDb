@@ -14,8 +14,9 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.SparseFiel
 public sealed class ResultCapturingRepository<TResource, TId>(
     IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
     IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder,
-    ResourceCaptureStore captureStore) : MongoRepository<TResource, TId>(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders,
-    resourceDefinitionAccessor, queryableBuilder)
+    ResourceCaptureStore captureStore)
+    : MongoRepository<TResource, TId>(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor,
+        queryableBuilder)
     where TResource : class, IIdentifiable<TId>
 {
     private readonly ResourceCaptureStore _captureStore = captureStore;

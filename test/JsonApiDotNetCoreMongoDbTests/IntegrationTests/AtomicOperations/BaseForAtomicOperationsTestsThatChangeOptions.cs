@@ -16,12 +16,23 @@ public abstract class BaseForAtomicOperationsTestsThatChangeOptions : IDisposabl
 
     public void Dispose()
     {
-        _optionsScope.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+    private void Dispose(bool disposing)
+#pragma warning restore CA1063 // Implement IDisposable Correctly
+    {
+        if (disposing)
+        {
+            _optionsScope.Dispose();
+        }
     }
 
     private sealed class JsonApiOptionsScope : IDisposable
     {
-        private static readonly List<PropertyInfo> PropertyCache = typeof(JsonApiOptions).GetProperties().Where(IsAccessibleProperty).ToList();
+        private static readonly PropertyInfo[] PropertyCache = typeof(JsonApiOptions).GetProperties().Where(IsAccessibleProperty).ToArray();
 
         private readonly JsonApiOptions _options;
         private readonly JsonApiOptions _backupValues;

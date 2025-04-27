@@ -5,7 +5,7 @@ using JsonApiDotNetCore.Queries;
 using JsonApiDotNetCore.Resources;
 using JsonApiDotNetCore.Resources.Annotations;
 
-namespace JsonApiDotNetCore.MongoDb.Queries.Internal;
+namespace JsonApiDotNetCore.MongoDb.Queries;
 
 /// <inheritdoc cref="ISparseFieldSetCache" />
 public sealed class HideRelationshipsSparseFieldSetCache : ISparseFieldSetCache
@@ -15,8 +15,8 @@ public sealed class HideRelationshipsSparseFieldSetCache : ISparseFieldSetCache
     public HideRelationshipsSparseFieldSetCache(IEnumerable<IQueryConstraintProvider> constraintProviders,
         IResourceDefinitionAccessor resourceDefinitionAccessor)
     {
-        ArgumentGuard.NotNull(constraintProviders);
-        ArgumentGuard.NotNull(resourceDefinitionAccessor);
+        ArgumentNullException.ThrowIfNull(constraintProviders);
+        ArgumentNullException.ThrowIfNull(resourceDefinitionAccessor);
 
         _innerCache = new SparseFieldSetCache(constraintProviders, resourceDefinitionAccessor);
     }
@@ -24,18 +24,24 @@ public sealed class HideRelationshipsSparseFieldSetCache : ISparseFieldSetCache
     /// <inheritdoc />
     public IImmutableSet<ResourceFieldAttribute> GetSparseFieldSetForQuery(ResourceType resourceType)
     {
+        ArgumentNullException.ThrowIfNull(resourceType);
+
         return _innerCache.GetSparseFieldSetForQuery(resourceType);
     }
 
     /// <inheritdoc />
     public IImmutableSet<AttrAttribute> GetIdAttributeSetForRelationshipQuery(ResourceType resourceType)
     {
+        ArgumentNullException.ThrowIfNull(resourceType);
+
         return _innerCache.GetIdAttributeSetForRelationshipQuery(resourceType);
     }
 
     /// <inheritdoc />
     public IImmutableSet<ResourceFieldAttribute> GetSparseFieldSetForSerializer(ResourceType resourceType)
     {
+        ArgumentNullException.ThrowIfNull(resourceType);
+
         IImmutableSet<ResourceFieldAttribute> fieldSet = _innerCache.GetSparseFieldSetForSerializer(resourceType);
 
         return resourceType.ClrType.IsAssignableTo(typeof(IMongoIdentifiable)) ? RemoveRelationships(fieldSet) : fieldSet;

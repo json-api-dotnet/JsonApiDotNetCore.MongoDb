@@ -24,7 +24,7 @@ public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<In
     public async Task Cannot_create_resource_with_ToMany_relationship()
     {
         // Arrange
-        UserAccount? existingUserAccount = _fakers.UserAccount.Generate();
+        UserAccount existingUserAccount = _fakers.UserAccount.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -62,7 +62,7 @@ public sealed class CreateResourceWithToManyRelationshipTests : IClassFixture<In
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

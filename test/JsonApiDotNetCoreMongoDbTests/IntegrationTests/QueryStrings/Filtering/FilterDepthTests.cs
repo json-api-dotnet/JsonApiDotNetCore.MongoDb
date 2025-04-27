@@ -25,7 +25,7 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
     public async Task Can_filter_in_primary_resources()
     {
         // Arrange
-        List<BlogPost> posts = _fakers.BlogPost.Generate(2);
+        List<BlogPost> posts = _fakers.BlogPost.GenerateList(2);
         posts[0].Caption = "One";
         posts[1].Caption = "Two";
 
@@ -44,7 +44,7 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(posts[1].StringId);
     }
 
@@ -60,7 +60,7 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -81,7 +81,7 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -102,7 +102,7 @@ public sealed class FilterDepthTests : IClassFixture<IntegrationTestContext<Test
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

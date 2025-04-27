@@ -24,8 +24,8 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
     public async Task Cannot_remove_from_OneToMany_relationship()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        existingWorkItem.Subscribers = _fakers.UserAccount.Generate(1).ToHashSet();
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
+        existingWorkItem.Subscribers = _fakers.UserAccount.GenerateSet(1);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -54,7 +54,7 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -67,8 +67,8 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
     public async Task Cannot_remove_from_ManyToMany_relationship()
     {
         // Arrange
-        WorkItem existingWorkItem = _fakers.WorkItem.Generate();
-        existingWorkItem.Tags = _fakers.WorkTag.Generate(1).ToHashSet();
+        WorkItem existingWorkItem = _fakers.WorkItem.GenerateOne();
+        existingWorkItem.Tags = _fakers.WorkTag.GenerateSet(1);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -97,7 +97,7 @@ public sealed class RemoveFromToManyRelationshipTests : IClassFixture<Integratio
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

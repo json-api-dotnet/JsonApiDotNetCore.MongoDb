@@ -18,7 +18,7 @@ public sealed class WorkItem : HexStringMongoIdentifiable
     [Attr]
     public WorkItemPriority Priority { get; set; }
 
-    [Attr(Capabilities = ~(AttrCapabilities.AllowCreate | AttrCapabilities.AllowChange))]
+    [Attr(Capabilities = AttrCapabilities.All & ~(AttrCapabilities.AllowCreate | AttrCapabilities.AllowChange))]
     [BsonIgnore]
     public bool IsImportant
     {

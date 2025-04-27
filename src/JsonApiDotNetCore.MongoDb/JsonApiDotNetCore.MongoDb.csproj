@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -8,9 +8,8 @@
   <Import Project="..\..\package-versions.props" />
 
   <PropertyGroup>
-    <VersionPrefix>$(JsonApiDotNetCoreMongoDbVersionPrefix)</VersionPrefix>
     <PackageTags>jsonapi;json:api;dotnet;asp.net;rest;web-api;MongoDB</PackageTags>
-    <Description>Persistence layer implementation for use of MongoDB in APIs using JsonApiDotNetCore.</Description>
+    <Description>MongoDB persistence for JsonApiDotNetCore, which is a framework for building JSON:API compliant REST APIs using ASP.NET Core.</Description>
     <Authors>json-api-dotnet</Authors>
     <PackageProjectUrl>https://www.jsonapi.net/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -19,7 +18,6 @@
     <PackageIcon>package-icon.png</PackageIcon>
     <PackageReadmeFile>PackageReadme.md</PackageReadmeFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
@@ -34,7 +32,6 @@
 
   <ItemGroup>
     <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreFrozenVersion)" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(SourceLinkVersion)" PrivateAssets="All" />
     <PackageReference Include="MongoDB.Driver" Version="$(MongoDBDriverFrozenVersion)" />
     <PackageReference Include="SauceControl.InheritDoc" Version="$(InheritDocVersion)" PrivateAssets="All" />
   </ItemGroup>

@@ -12,6 +12,7 @@ namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Transa
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
 public sealed class LyricRepository : MongoRepository<Lyric, string?>, IAsyncDisposable
 {
+    private readonly MongoDataAccess _otherDataAccess;
     private readonly IOperationsTransaction _transaction;
 
     public override string TransactionId => _transaction.TransactionId;
@@ -20,14 +21,15 @@ public sealed class LyricRepository : MongoRepository<Lyric, string?>, IAsyncDis
         IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder)
         : base(mongoDataAccess, targetedFields, resourceGraph, resourceFactory, constraintProviders, resourceDefinitionAccessor, queryableBuilder)
     {
-        IMongoDataAccess otherDataAccess = new MongoDataAccess(mongoDataAccess.EntityModel, mongoDataAccess.MongoDatabase);
+        _otherDataAccess = new MongoDataAccess(mongoDataAccess.EntityModel, mongoDataAccess.MongoDatabase);
 
-        var factory = new MongoTransactionFactory(otherDataAccess);
+        var factory = new MongoTransactionFactory(_otherDataAccess);
         _transaction = factory.BeginTransactionAsync(CancellationToken.None).Result;
     }
 
     public async ValueTask DisposeAsync()
     {
         await _transaction.DisposeAsync();
+        await _otherDataAccess.DisposeAsync();
     }
 }

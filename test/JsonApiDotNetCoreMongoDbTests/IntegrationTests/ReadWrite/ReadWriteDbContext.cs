@@ -5,7 +5,8 @@ using TestBuildingBlocks;
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite;
 
 [UsedImplicitly(ImplicitUseTargetFlags.Members)]
-public sealed class ReadWriteDbContext(IMongoDatabase database) : MongoDbContextShim(database)
+public sealed class ReadWriteDbContext(IMongoDatabase database)
+    : MongoDbContextShim(database)
 {
     public MongoDbSetShim<WorkItem> WorkItems => Set<WorkItem>();
     public MongoDbSetShim<WorkTag> WorkTags => Set<WorkTag>();

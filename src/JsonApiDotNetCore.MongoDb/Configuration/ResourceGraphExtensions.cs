@@ -11,6 +11,8 @@ internal static class ResourceGraphExtensions
 {
     public static IReadOnlyModel ToEntityModel(this IResourceGraph resourceGraph)
     {
+        ArgumentNullException.ThrowIfNull(resourceGraph);
+
         var modelBuilder = new ModelBuilder();
 
         foreach (ResourceType resourceType in resourceGraph.GetResourceTypes())

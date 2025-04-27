@@ -16,7 +16,7 @@ public sealed class AtomicDeleteResourceTests(AtomicOperationsFixture fixture)
     public async Task Can_delete_existing_resource()
     {
         // Arrange
-        Performer existingPerformer = _fakers.Performer.Generate();
+        Performer existingPerformer = _fakers.Performer.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -64,7 +64,7 @@ public sealed class AtomicDeleteResourceTests(AtomicOperationsFixture fixture)
         // Arrange
         const int elementCount = 5;
 
-        List<MusicTrack> existingTracks = _fakers.MusicTrack.Generate(elementCount);
+        List<MusicTrack> existingTracks = _fakers.MusicTrack.GenerateList(elementCount);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -141,13 +141,13 @@ public sealed class AtomicDeleteResourceTests(AtomicOperationsFixture fixture)
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
         error.Title.Should().Be("The requested resource does not exist.");
         error.Detail.Should().Be($"Resource of type 'performers' with ID '{performerId}' does not exist.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
         error.Meta.Should().NotContainKey("requestBody");
     }

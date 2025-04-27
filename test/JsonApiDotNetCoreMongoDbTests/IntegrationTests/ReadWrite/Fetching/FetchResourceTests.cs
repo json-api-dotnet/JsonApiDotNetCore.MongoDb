@@ -25,7 +25,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     public async Task Can_get_primary_resources()
     {
         // Arrange
-        List<WorkItem> workItems = _fakers.WorkItem.Generate(2);
+        List<WorkItem> workItems = _fakers.WorkItem.GenerateList(2);
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -42,20 +42,20 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(2);
+        responseDocument.Data.ManyValue.Should().HaveCount(2);
 
         ResourceObject item1 = responseDocument.Data.ManyValue.Single(resource => resource.Id == workItems[0].StringId);
         item1.Type.Should().Be("workItems");
-        item1.Attributes.ShouldContainKey("description").With(value => value.Should().Be(workItems[0].Description));
-        item1.Attributes.ShouldContainKey("dueAt").With(value => value.Should().Be(workItems[0].DueAt));
-        item1.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(workItems[0].Priority));
+        item1.Attributes.Should().ContainKey("description").WhoseValue.Should().Be(workItems[0].Description);
+        item1.Attributes.Should().ContainKey("dueAt").WhoseValue.Should().Be(workItems[0].DueAt);
+        item1.Attributes.Should().ContainKey("priority").WhoseValue.Should().Be(workItems[0].Priority);
         item1.Relationships.Should().BeNull();
 
         ResourceObject item2 = responseDocument.Data.ManyValue.Single(resource => resource.Id == workItems[1].StringId);
         item2.Type.Should().Be("workItems");
-        item2.Attributes.ShouldContainKey("description").With(value => value.Should().Be(workItems[1].Description));
-        item2.Attributes.ShouldContainKey("dueAt").With(value => value.Should().Be(workItems[1].DueAt));
-        item2.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(workItems[1].Priority));
+        item2.Attributes.Should().ContainKey("description").WhoseValue.Should().Be(workItems[1].Description);
+        item2.Attributes.Should().ContainKey("dueAt").WhoseValue.Should().Be(workItems[1].DueAt);
+        item2.Attributes.Should().ContainKey("priority").WhoseValue.Should().Be(workItems[1].Priority);
         item2.Relationships.Should().BeNull();
     }
 
@@ -63,7 +63,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     public async Task Can_get_primary_resource_by_ID()
     {
         // Arrange
-        WorkItem workItem = _fakers.WorkItem.Generate();
+        WorkItem workItem = _fakers.WorkItem.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -79,12 +79,12 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItems");
         responseDocument.Data.SingleValue.Id.Should().Be(workItem.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("description").With(value => value.Should().Be(workItem.Description));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("dueAt").With(value => value.Should().Be(workItem.DueAt));
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("priority").With(value => value.Should().Be(workItem.Priority));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("description").WhoseValue.Should().Be(workItem.Description);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("dueAt").WhoseValue.Should().Be(workItem.DueAt);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("priority").WhoseValue.Should().Be(workItem.Priority);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
     }
 
@@ -102,7 +102,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.NotFound);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -114,7 +114,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     public async Task Cannot_get_secondary_ManyToOne_resource()
     {
         // Arrange
-        WorkItem workItem = _fakers.WorkItem.Generate();
+        WorkItem workItem = _fakers.WorkItem.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -130,7 +130,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -143,7 +143,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     public async Task Cannot_get_secondary_OneToMany_resources()
     {
         // Arrange
-        UserAccount userAccount = _fakers.UserAccount.Generate();
+        UserAccount userAccount = _fakers.UserAccount.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -159,7 +159,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -172,7 +172,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
     public async Task Cannot_get_secondary_ManyToMany_resources()
     {
         // Arrange
-        WorkItem workItem = _fakers.WorkItem.Generate();
+        WorkItem workItem = _fakers.WorkItem.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -188,7 +188,7 @@ public sealed class FetchResourceTests : IClassFixture<IntegrationTestContext<Te
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

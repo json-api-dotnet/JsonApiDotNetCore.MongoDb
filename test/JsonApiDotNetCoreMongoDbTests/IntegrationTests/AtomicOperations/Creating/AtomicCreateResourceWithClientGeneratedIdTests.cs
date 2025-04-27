@@ -27,7 +27,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
     public async Task Can_create_resource_with_client_generated_string_ID_having_side_effects()
     {
         // Arrange
-        TextLanguage newLanguage = _fakers.TextLanguage.Generate();
+        TextLanguage newLanguage = _fakers.TextLanguage.GenerateOne();
         newLanguage.Id = "free-format-client-generated-id";
 
         var requestBody = new
@@ -60,12 +60,12 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
 
         string isoCode = $"{newLanguage.IsoCode}{ImplicitlyChangingTextLanguageDefinition.Suffix}";
 
-        responseDocument.Results.ShouldHaveCount(1);
+        responseDocument.Results.Should().HaveCount(1);
 
-        responseDocument.Results[0].Data.SingleValue.ShouldNotBeNull().With(resource =>
+        responseDocument.Results[0].Data.SingleValue.RefShould().NotBeNull().And.Subject.With(resource =>
         {
             resource.Type.Should().Be("textLanguages");
-            resource.Attributes.ShouldContainKey("isoCode").With(value => value.Should().Be(isoCode));
+            resource.Attributes.Should().ContainKey("isoCode").WhoseValue.Should().Be(isoCode);
             resource.Attributes.Should().NotContainKey("isRightToLeft");
             resource.Relationships.Should().BeNull();
         });
@@ -82,7 +82,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
     public async Task Can_create_resource_with_client_generated_string_ID_having_no_side_effects()
     {
         // Arrange
-        Playlist newPlaylist = _fakers.Playlist.Generate();
+        Playlist newPlaylist = _fakers.Playlist.GenerateOne();
         newPlaylist.Id = "free-format-client-generated-id";
 
         var requestBody = new
@@ -127,10 +127,10 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
     public async Task Cannot_create_resource_for_existing_client_generated_ID()
     {
         // Arrange
-        TextLanguage existingLanguage = _fakers.TextLanguage.Generate();
+        TextLanguage existingLanguage = _fakers.TextLanguage.GenerateOne();
         existingLanguage.Id = "existing-free-format-client-generated-id";
 
-        string newIsoCode = _fakers.TextLanguage.Generate().IsoCode!;
+        string newIsoCode = _fakers.TextLanguage.GenerateOne().IsoCode!;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -166,13 +166,13 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Conflict);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.Conflict);
         error.Title.Should().Be("Another resource with the specified ID already exists.");
         error.Detail.Should().Be($"Another resource of type 'textLanguages' with ID '{existingLanguage.StringId}' already exists.");
-        error.Source.ShouldNotBeNull();
+        error.Source.Should().NotBeNull();
         error.Source.Pointer.Should().Be("/atomic:operations[0]");
         error.Meta.Should().NotContainKey("requestBody");
     }

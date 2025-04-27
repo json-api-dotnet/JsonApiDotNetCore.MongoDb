@@ -42,7 +42,7 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
 
     internal override async Task PersistAsync(CancellationToken cancellationToken)
     {
-        if (_entitiesToInsert.Any())
+        if (_entitiesToInsert.Count > 0)
         {
             if (_entitiesToInsert.Count == 1)
             {

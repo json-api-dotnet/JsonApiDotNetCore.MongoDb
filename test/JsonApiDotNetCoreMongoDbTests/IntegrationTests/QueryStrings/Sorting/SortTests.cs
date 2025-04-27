@@ -26,7 +26,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
     public async Task Can_sort_in_primary_resources()
     {
         // Arrange
-        List<BlogPost> posts = _fakers.BlogPost.Generate(3);
+        List<BlogPost> posts = _fakers.BlogPost.GenerateList(3);
         posts[0].Caption = "B";
         posts[1].Caption = "A";
         posts[2].Caption = "C";
@@ -46,7 +46,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue.Should().HaveCount(3);
         responseDocument.Data.ManyValue[0].Id.Should().Be(posts[1].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(posts[0].StringId);
         responseDocument.Data.ManyValue[2].Id.Should().Be(posts[2].StringId);
@@ -64,7 +64,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -85,7 +85,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -106,7 +106,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -119,7 +119,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
     public async Task Can_sort_descending_by_ID()
     {
         // Arrange
-        List<WebAccount> accounts = _fakers.WebAccount.Generate(3);
+        List<WebAccount> accounts = _fakers.WebAccount.GenerateList(3);
         accounts[0].Id = "5ff752c4f7c9a9a8373991b2";
         accounts[1].Id = "5ff752c3f7c9a9a8373991b1";
         accounts[2].Id = "5ff752c2f7c9a9a8373991b0";
@@ -143,7 +143,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(3);
+        responseDocument.Data.ManyValue.Should().HaveCount(3);
         responseDocument.Data.ManyValue[0].Id.Should().Be(accounts[1].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(accounts[2].StringId);
         responseDocument.Data.ManyValue[2].Id.Should().Be(accounts[0].StringId);
@@ -153,7 +153,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
     public async Task Sorts_by_ID_if_none_specified()
     {
         // Arrange
-        List<WebAccount> accounts = _fakers.WebAccount.Generate(4);
+        List<WebAccount> accounts = _fakers.WebAccount.GenerateList(4);
         accounts[0].Id = "5ff8a7bcb2a9b83724282718";
         accounts[1].Id = "5ff8a7bcb2a9b83724282717";
         accounts[2].Id = "5ff8a7bbb2a9b83724282716";
@@ -174,7 +174,7 @@ public sealed class SortTests : IClassFixture<IntegrationTestContext<TestableSta
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(4);
+        responseDocument.Data.ManyValue.Should().HaveCount(4);
         responseDocument.Data.ManyValue[0].Id.Should().Be(accounts[2].StringId);
         responseDocument.Data.ManyValue[1].Id.Should().Be(accounts[1].StringId);
         responseDocument.Data.ManyValue[2].Id.Should().Be(accounts[0].StringId);

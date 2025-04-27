@@ -33,6 +33,18 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
     private const string TimeSpanInTheRange = "2:15:51:42.397";
     private const string TimeSpanUpperBound = "2:16:22:41.736";
 
+    private const string IsoDateOnlyLowerBound = "2000-10-22";
+    private const string IsoDateOnlyInTheRange = "2000-11-22";
+    private const string IsoDateOnlyUpperBound = "2000-12-22";
+
+    private const string InvariantDateOnlyLowerBound = "10/22/2000";
+    private const string InvariantDateOnlyInTheRange = "11/22/2000";
+    private const string InvariantDateOnlyUpperBound = "12/22/2000";
+
+    private const string TimeOnlyLowerBound = "15:28:54.997";
+    private const string TimeOnlyInTheRange = "15:51:42.397";
+    private const string TimeOnlyUpperBound = "16:22:41.736";
+
     private readonly IntegrationTestContext<TestableStartup, FilterDbContext> _testContext;
 
     public FilterOperatorTests(IntegrationTestContext<TestableStartup, FilterDbContext> testContext)
@@ -68,8 +80,12 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someString").With(value => value.Should().Be(resource.SomeString));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someString").WhoseValue.Should().Be(resource.SomeString);
+
+        responseDocument.Links.Should().NotBeNull();
+        responseDocument.Links.Self.Should().Be("http://localhost/filterableResources?filter=equals(someString,'This%2c+that+%26+more+%2b+some')");
+        responseDocument.Links.First.Should().Be("http://localhost/filterableResources?filter=equals(someString,%27This,%20that%20%26%20more%20%2B%20some%27)");
     }
 
     [Fact]
@@ -84,12 +100,13 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         error.Title.Should().Be("Comparing attributes against each other is not supported when using MongoDB.");
         error.Detail.Should().BeNull();
+        error.Source.Should().BeNull();
     }
 
     [Theory]
@@ -130,8 +147,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someInt32").With(value => value.Should().Be(resource.SomeInt32));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someInt32").WhoseValue.Should().Be(resource.SomeInt32);
     }
 
     [Theory]
@@ -172,8 +189,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDouble").With(value => value.Should().Be(resource.SomeDouble));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDouble").WhoseValue.Should().Be(resource.SomeDouble);
     }
 
     [Theory]
@@ -222,10 +239,9 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
 
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeInUtcZone")
-            .With(value => value.Should().Be(resource.SomeDateTimeInUtcZone));
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateTimeInUtcZone").WhoseValue.Should().Be(resource.SomeDateTimeInUtcZone);
     }
 
     [Theory]
@@ -274,9 +290,9 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
 
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someDateTimeOffset").With(value => value.Should().Be(resource.SomeDateTimeOffset));
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateTimeOffset").WhoseValue.Should().Be(resource.SomeDateTimeOffset);
     }
 
     [Theory]
@@ -316,8 +332,98 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someTimeSpan").With(value => value.Should().Be(resource.SomeTimeSpan));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someTimeSpan").WhoseValue.Should().Be(resource.SomeTimeSpan);
+    }
+
+    [Theory]
+    [InlineData(IsoDateOnlyLowerBound, IsoDateOnlyUpperBound, ComparisonOperator.LessThan, IsoDateOnlyInTheRange)]
+    [InlineData(IsoDateOnlyLowerBound, IsoDateOnlyUpperBound, ComparisonOperator.LessThan, IsoDateOnlyUpperBound)]
+    [InlineData(IsoDateOnlyLowerBound, IsoDateOnlyUpperBound, ComparisonOperator.LessOrEqual, IsoDateOnlyInTheRange)]
+    [InlineData(IsoDateOnlyLowerBound, IsoDateOnlyUpperBound, ComparisonOperator.LessOrEqual, IsoDateOnlyLowerBound)]
+    [InlineData(IsoDateOnlyUpperBound, IsoDateOnlyLowerBound, ComparisonOperator.GreaterThan, IsoDateOnlyInTheRange)]
+    [InlineData(IsoDateOnlyUpperBound, IsoDateOnlyLowerBound, ComparisonOperator.GreaterThan, IsoDateOnlyLowerBound)]
+    [InlineData(IsoDateOnlyUpperBound, IsoDateOnlyLowerBound, ComparisonOperator.GreaterOrEqual, IsoDateOnlyInTheRange)]
+    [InlineData(IsoDateOnlyUpperBound, IsoDateOnlyLowerBound, ComparisonOperator.GreaterOrEqual, IsoDateOnlyUpperBound)]
+    [InlineData(InvariantDateOnlyLowerBound, InvariantDateOnlyUpperBound, ComparisonOperator.LessThan, InvariantDateOnlyInTheRange)]
+    [InlineData(InvariantDateOnlyLowerBound, InvariantDateOnlyUpperBound, ComparisonOperator.LessThan, InvariantDateOnlyUpperBound)]
+    [InlineData(InvariantDateOnlyLowerBound, InvariantDateOnlyUpperBound, ComparisonOperator.LessOrEqual, InvariantDateOnlyInTheRange)]
+    [InlineData(InvariantDateOnlyLowerBound, InvariantDateOnlyUpperBound, ComparisonOperator.LessOrEqual, InvariantDateOnlyLowerBound)]
+    [InlineData(InvariantDateOnlyUpperBound, InvariantDateOnlyLowerBound, ComparisonOperator.GreaterThan, InvariantDateOnlyInTheRange)]
+    [InlineData(InvariantDateOnlyUpperBound, InvariantDateOnlyLowerBound, ComparisonOperator.GreaterThan, InvariantDateOnlyLowerBound)]
+    [InlineData(InvariantDateOnlyUpperBound, InvariantDateOnlyLowerBound, ComparisonOperator.GreaterOrEqual, InvariantDateOnlyInTheRange)]
+    [InlineData(InvariantDateOnlyUpperBound, InvariantDateOnlyLowerBound, ComparisonOperator.GreaterOrEqual, InvariantDateOnlyUpperBound)]
+    public async Task Can_filter_comparison_on_DateOnly(string matchingValue, string nonMatchingValue, ComparisonOperator filterOperator, string filterValue)
+    {
+        // Arrange
+        var resource = new FilterableResource
+        {
+            SomeDateOnly = DateOnly.Parse(matchingValue, CultureInfo.InvariantCulture)
+        };
+
+        var otherResource = new FilterableResource
+        {
+            SomeDateOnly = DateOnly.Parse(nonMatchingValue, CultureInfo.InvariantCulture)
+        };
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
+        });
+
+        string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someDateOnly,'{filterValue}')";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
+
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someDateOnly").WhoseValue.Should().Be(resource.SomeDateOnly);
+    }
+
+    [Theory]
+    [InlineData(TimeOnlyLowerBound, TimeOnlyUpperBound, ComparisonOperator.LessThan, TimeOnlyInTheRange)]
+    [InlineData(TimeOnlyLowerBound, TimeOnlyUpperBound, ComparisonOperator.LessThan, TimeOnlyUpperBound)]
+    [InlineData(TimeOnlyLowerBound, TimeOnlyUpperBound, ComparisonOperator.LessOrEqual, TimeOnlyInTheRange)]
+    [InlineData(TimeOnlyLowerBound, TimeOnlyUpperBound, ComparisonOperator.LessOrEqual, TimeOnlyLowerBound)]
+    [InlineData(TimeOnlyUpperBound, TimeOnlyLowerBound, ComparisonOperator.GreaterThan, TimeOnlyInTheRange)]
+    [InlineData(TimeOnlyUpperBound, TimeOnlyLowerBound, ComparisonOperator.GreaterThan, TimeOnlyLowerBound)]
+    [InlineData(TimeOnlyUpperBound, TimeOnlyLowerBound, ComparisonOperator.GreaterOrEqual, TimeOnlyInTheRange)]
+    [InlineData(TimeOnlyUpperBound, TimeOnlyLowerBound, ComparisonOperator.GreaterOrEqual, TimeOnlyUpperBound)]
+    public async Task Can_filter_comparison_on_TimeOnly(string matchingValue, string nonMatchingValue, ComparisonOperator filterOperator, string filterValue)
+    {
+        // Arrange
+        var resource = new FilterableResource
+        {
+            SomeTimeOnly = TimeOnly.Parse(matchingValue, CultureInfo.InvariantCulture)
+        };
+
+        var otherResource = new FilterableResource
+        {
+            SomeTimeOnly = TimeOnly.Parse(nonMatchingValue, CultureInfo.InvariantCulture)
+        };
+
+        await _testContext.RunOnDatabaseAsync(async dbContext =>
+        {
+            await dbContext.ClearTableAsync<FilterableResource>();
+            dbContext.FilterableResources.AddRange(resource, otherResource);
+            await dbContext.SaveChangesAsync();
+        });
+
+        string route = $"/filterableResources?filter={filterOperator.ToString().Camelize()}(someTimeOnly,'{filterValue}')";
+
+        // Act
+        (HttpResponseMessage httpResponse, Document responseDocument) = await _testContext.ExecuteGetAsync<Document>(route);
+
+        // Assert
+        httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
+
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someTimeOnly").WhoseValue.Should().Be(resource.SomeTimeOnly);
     }
 
     [Theory]
@@ -354,8 +460,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someString").With(value => value.Should().Be(resource.SomeString));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someString").WhoseValue.Should().Be(resource.SomeString);
     }
 
     [Theory]
@@ -390,8 +496,8 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
-        responseDocument.Data.ManyValue[0].Attributes.ShouldContainKey("someString").With(value => value.Should().Be(resource.SomeString));
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
+        responseDocument.Data.ManyValue[0].Attributes.Should().ContainKey("someString").WhoseValue.Should().Be(resource.SomeString);
     }
 
     [Fact]
@@ -406,7 +512,7 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -427,7 +533,7 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -448,7 +554,7 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -494,7 +600,7 @@ public sealed class FilterOperatorTests : IClassFixture<IntegrationTestContext<T
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.OK);
 
-        responseDocument.Data.ManyValue.ShouldHaveCount(1);
+        responseDocument.Data.ManyValue.Should().HaveCount(1);
         responseDocument.Data.ManyValue[0].Id.Should().Be(resource1.StringId);
     }
 }

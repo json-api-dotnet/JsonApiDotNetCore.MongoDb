@@ -24,8 +24,8 @@ public sealed class UpdateToOneRelationshipTests : IClassFixture<IntegrationTest
     public async Task Cannot_replace_ToOne_relationship()
     {
         // Arrange
-        WorkItemGroup existingGroup = _fakers.WorkItemGroup.Generate();
-        RgbColor existingColor = _fakers.RgbColor.Generate();
+        WorkItemGroup existingGroup = _fakers.WorkItemGroup.GenerateOne();
+        RgbColor existingColor = _fakers.RgbColor.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -51,7 +51,7 @@ public sealed class UpdateToOneRelationshipTests : IClassFixture<IntegrationTest
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

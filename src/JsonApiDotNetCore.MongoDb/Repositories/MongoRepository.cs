@@ -1,3 +1,4 @@
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
@@ -34,7 +35,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     private readonly ITargetedFields _targetedFields;
     private readonly IResourceGraph _resourceGraph;
     private readonly IResourceFactory _resourceFactory;
-    private readonly IEnumerable<IQueryConstraintProvider> _constraintProviders;
+    private readonly IQueryConstraintProvider[] _constraintProviders;
     private readonly IResourceDefinitionAccessor _resourceDefinitionAccessor;
     private readonly IQueryableBuilder _queryableBuilder;
 
@@ -46,19 +47,19 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     public MongoRepository(IMongoDataAccess mongoDataAccess, ITargetedFields targetedFields, IResourceGraph resourceGraph, IResourceFactory resourceFactory,
         IEnumerable<IQueryConstraintProvider> constraintProviders, IResourceDefinitionAccessor resourceDefinitionAccessor, IQueryableBuilder queryableBuilder)
     {
-        ArgumentGuard.NotNull(mongoDataAccess);
-        ArgumentGuard.NotNull(targetedFields);
-        ArgumentGuard.NotNull(resourceGraph);
-        ArgumentGuard.NotNull(resourceFactory);
-        ArgumentGuard.NotNull(constraintProviders);
-        ArgumentGuard.NotNull(resourceDefinitionAccessor);
-        ArgumentGuard.NotNull(queryableBuilder);
+        ArgumentNullException.ThrowIfNull(mongoDataAccess);
+        ArgumentNullException.ThrowIfNull(targetedFields);
+        ArgumentNullException.ThrowIfNull(resourceGraph);
+        ArgumentNullException.ThrowIfNull(resourceFactory);
+        ArgumentNullException.ThrowIfNull(constraintProviders);
+        ArgumentNullException.ThrowIfNull(resourceDefinitionAccessor);
+        ArgumentNullException.ThrowIfNull(queryableBuilder);
 
         _mongoDataAccess = mongoDataAccess;
         _targetedFields = targetedFields;
         _resourceGraph = resourceGraph;
         _resourceFactory = resourceFactory;
-        _constraintProviders = constraintProviders;
+        _constraintProviders = constraintProviders as IQueryConstraintProvider[] ?? constraintProviders.ToArray();
         _resourceDefinitionAccessor = resourceDefinitionAccessor;
         _queryableBuilder = queryableBuilder;
 
@@ -71,10 +72,11 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task<IReadOnlyCollection<TResource>> GetAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(queryLayer);
+        ArgumentNullException.ThrowIfNull(queryLayer);
 
-        IMongoQueryable<TResource> query = ApplyQueryLayer(queryLayer);
-        return await query.ToListAsync(cancellationToken);
+        IQueryable<TResource> query = ApplyQueryLayer(queryLayer);
+        List<TResource>? resources = await query.ToListAsync(cancellationToken);
+        return resources.AsReadOnly();
     }
 
     /// <inheritdoc />
@@ -87,15 +89,15 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
             Filter = topFilter
         };
 
-        IMongoQueryable<TResource> query = ApplyQueryLayer(layer);
+        IQueryable<TResource> query = ApplyQueryLayer(layer);
         return query.CountAsync(cancellationToken);
     }
 
 #pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
-    protected virtual IMongoQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
+    protected virtual IQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
 #pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
-        ArgumentGuard.NotNull(queryLayer);
+        ArgumentNullException.ThrowIfNull(queryLayer);
 
         var queryExpressionValidator = new MongoQueryExpressionValidator();
         queryExpressionValidator.Validate(queryLayer);
@@ -125,7 +127,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         var context = QueryableBuilderContext.CreateRoot(source, typeof(Queryable), _mongoDataAccess.EntityModel, null);
         Expression expression = _queryableBuilder.ApplyQuery(queryLayer, context);
 
-        return (IMongoQueryable<TResource>)source.Provider.CreateQuery<TResource>(expression);
+        return source.Provider.CreateQuery<TResource>(expression);
     }
 
     protected virtual IQueryable<TResource> GetAll()
@@ -159,6 +161,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual Task<TResource> GetForCreateAsync(Type resourceClrType, [DisallowNull] TId id, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(resourceClrType);
+
         var resource = (TResource)_resourceFactory.CreateInstance(resourceClrType);
         resource.Id = id;
 
@@ -168,8 +172,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task CreateAsync(TResource resourceFromRequest, TResource resourceForDatabase, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(resourceFromRequest);
-        ArgumentGuard.NotNull(resourceForDatabase);
+        ArgumentNullException.ThrowIfNull(resourceFromRequest);
+        ArgumentNullException.ThrowIfNull(resourceForDatabase);
 
         AssertNoRelationshipsAreTargeted();
 
@@ -190,7 +194,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
     private void AssertNoRelationshipsAreTargeted()
     {
-        if (_targetedFields.Relationships.Any())
+        if (_targetedFields.Relationships.Count > 0)
         {
             throw new UnsupportedRelationshipException();
         }
@@ -199,7 +203,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task<TResource?> GetForUpdateAsync(QueryLayer queryLayer, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(queryLayer);
+        ArgumentNullException.ThrowIfNull(queryLayer);
 
         IReadOnlyCollection<TResource> resources = await GetAsync(queryLayer, cancellationToken);
         return resources.FirstOrDefault();
@@ -208,8 +212,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task UpdateAsync(TResource resourceFromRequest, TResource resourceFromDatabase, CancellationToken cancellationToken)
     {
-        ArgumentGuard.NotNull(resourceFromRequest);
-        ArgumentGuard.NotNull(resourceFromDatabase);
+        ArgumentNullException.ThrowIfNull(resourceFromRequest);
+        ArgumentNullException.ThrowIfNull(resourceFromDatabase);
 
         AssertNoRelationshipsAreTargeted();
 
@@ -248,12 +252,12 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         if (!result.IsAcknowledged)
         {
             throw new DataStoreUpdateException(
-                new Exception($"Failed to delete document with id '{id}', because the operation was not acknowledged by MongoDB."));
+                new DataException($"Failed to delete document with id '{id}', because the operation was not acknowledged by MongoDB."));
         }
 
         if (result.DeletedCount == 0)
         {
-            throw new DataStoreUpdateException(new Exception($"Failed to delete document with id '{id}', because it does not exist."));
+            throw new DataStoreUpdateException(new DataException($"Failed to delete document with id '{id}', because it does not exist."));
         }
 
         await _resourceDefinitionAccessor.OnWriteSucceededAsync(placeholderResource, WriteOperationKind.DeleteResource, cancellationToken);
@@ -280,6 +284,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
     protected virtual async Task SaveChangesAsync(Func<Task> asyncSaveAction, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(asyncSaveAction);
+
         _ = await SaveChangesAsync<object?>(async () =>
         {
             await asyncSaveAction();
@@ -289,6 +295,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
 
     protected virtual async Task<TResult> SaveChangesAsync<TResult>(Func<Task<TResult>> asyncSaveAction, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(asyncSaveAction);
+
         try
         {
             return await asyncSaveAction();

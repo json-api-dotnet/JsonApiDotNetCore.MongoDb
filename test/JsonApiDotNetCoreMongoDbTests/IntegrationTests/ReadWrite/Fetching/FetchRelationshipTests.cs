@@ -24,7 +24,7 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
     [Fact]
     public async Task Cannot_get_ManyToOne_relationship()
     {
-        WorkItem workItem = _fakers.WorkItem.Generate();
+        WorkItem workItem = _fakers.WorkItem.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -40,7 +40,7 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -53,7 +53,7 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
     public async Task Cannot_get_OneToMany_relationship()
     {
         // Arrange
-        UserAccount userAccount = _fakers.UserAccount.Generate();
+        UserAccount userAccount = _fakers.UserAccount.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -69,7 +69,7 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -82,7 +82,7 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
     public async Task Cannot_get_ManyToMany_relationship()
     {
         // Arrange
-        WorkItem workItem = _fakers.WorkItem.Generate();
+        WorkItem workItem = _fakers.WorkItem.GenerateOne();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -98,7 +98,7 @@ public sealed class FetchRelationshipTests : IClassFixture<IntegrationTestContex
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.BadRequest);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.BadRequest);

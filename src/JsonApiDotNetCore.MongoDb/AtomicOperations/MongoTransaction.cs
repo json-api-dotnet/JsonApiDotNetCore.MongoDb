@@ -16,7 +16,7 @@ public sealed class MongoTransaction : IOperationsTransaction
 
     public MongoTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
     {
-        ArgumentGuard.NotNull(mongoDataAccess);
+        ArgumentNullException.ThrowIfNull(mongoDataAccess);
 
         _mongoDataAccess = mongoDataAccess;
         _ownsTransaction = ownsTransaction;

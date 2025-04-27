@@ -32,7 +32,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     public async Task Can_create_resource_with_client_generated_string_ID_having_side_effects()
     {
         // Arrange
-        WorkItemGroup newGroup = _fakers.WorkItemGroup.Generate();
+        WorkItemGroup newGroup = _fakers.WorkItemGroup.GenerateOne();
         newGroup.Id = "free-format-client-generated-id-1";
 
         var requestBody = new
@@ -58,10 +58,10 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
 
         string groupName = $"{newGroup.Name}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
         responseDocument.Data.SingleValue.Id.Should().Be(newGroup.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(groupName));
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(groupName);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -76,7 +76,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     public async Task Can_create_resource_with_client_generated_string_ID_having_side_effects_with_fieldset()
     {
         // Arrange
-        WorkItemGroup newGroup = _fakers.WorkItemGroup.Generate();
+        WorkItemGroup newGroup = _fakers.WorkItemGroup.GenerateOne();
         newGroup.Id = "free-format-client-generated-id-2";
 
         var requestBody = new
@@ -102,11 +102,11 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
 
         string groupName = $"{newGroup.Name}{ImplicitlyChangingWorkItemGroupDefinition.Suffix}";
 
-        responseDocument.Data.SingleValue.ShouldNotBeNull();
+        responseDocument.Data.SingleValue.Should().NotBeNull();
         responseDocument.Data.SingleValue.Type.Should().Be("workItemGroups");
         responseDocument.Data.SingleValue.Id.Should().Be(newGroup.StringId);
-        responseDocument.Data.SingleValue.Attributes.ShouldHaveCount(1);
-        responseDocument.Data.SingleValue.Attributes.ShouldContainKey("name").With(value => value.Should().Be(groupName));
+        responseDocument.Data.SingleValue.Attributes.Should().HaveCount(1);
+        responseDocument.Data.SingleValue.Attributes.Should().ContainKey("name").WhoseValue.Should().Be(groupName);
         responseDocument.Data.SingleValue.Relationships.Should().BeNull();
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
@@ -121,7 +121,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     public async Task Can_create_resource_with_client_generated_string_ID_having_no_side_effects()
     {
         // Arrange
-        RgbColor newColor = _fakers.RgbColor.Generate();
+        RgbColor newColor = _fakers.RgbColor.GenerateOne();
         newColor.Id = "free-format-client-generated-id-3";
 
         var requestBody = new
@@ -159,7 +159,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     public async Task Can_create_resource_with_client_generated_string_ID_having_no_side_effects_with_fieldset()
     {
         // Arrange
-        RgbColor newColor = _fakers.RgbColor.Generate();
+        RgbColor newColor = _fakers.RgbColor.GenerateOne();
         newColor.Id = "free-format-client-generated-id-4";
 
         var requestBody = new
@@ -197,10 +197,10 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
     public async Task Cannot_create_resource_for_existing_client_generated_ID()
     {
         // Arrange
-        RgbColor existingColor = _fakers.RgbColor.Generate();
+        RgbColor existingColor = _fakers.RgbColor.GenerateOne();
         existingColor.Id = "free-format-client-generated-id-5";
 
-        string newDisplayName = _fakers.RgbColor.Generate().DisplayName;
+        string newDisplayName = _fakers.RgbColor.GenerateOne().DisplayName;
 
         await _testContext.RunOnDatabaseAsync(async dbContext =>
         {
@@ -229,7 +229,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
         // Assert
         httpResponse.ShouldHaveStatusCode(HttpStatusCode.Conflict);
 
-        responseDocument.Errors.ShouldHaveCount(1);
+        responseDocument.Errors.Should().HaveCount(1);
 
         ErrorObject error = responseDocument.Errors[0];
         error.StatusCode.Should().Be(HttpStatusCode.Conflict);
