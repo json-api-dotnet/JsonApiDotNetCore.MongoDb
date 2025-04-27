@@ -31,7 +31,8 @@ The following steps describe how to create a JSON:API project with MongoDB.
 1. Configure MongoDB and JsonApiDotNetCore in `Program.cs`, seeding the database with sample data:
    ```c#
    var builder = WebApplication.CreateBuilder(args);
-   builder.Services.AddSingleton(_ => new MongoClient("mongodb://localhost:27017").GetDatabase("ExampleDbName"));
+   builder.Services.AddSingleton(_ =>
+       new MongoClient("mongodb://localhost:27017").GetDatabase("ExampleDbName"));
    builder.Services.AddJsonApi(options =>
    {
        options.UseRelativeLinks = true;
@@ -73,19 +74,6 @@ The following steps describe how to create a JSON:API project with MongoDB.
        });
    }
    ```
-
-   > [!TIP]
-   > If your API project uses MongoDB only (so not in combination with EF Core), then instead of
-   > registering all MongoDB resources and repositories individually, you can use:
-   >
-   > ```c#
-   > builder.Services.AddJsonApi(facade => facade.AddCurrentAssembly());
-   > builder.Services.AddJsonApiMongoDb();
-   >
-   > builder.Services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
-   > builder.Services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
-   > builder.Services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
-   > ```
 
 1. Start your API
    ```bash
@@ -136,6 +124,19 @@ The following steps describe how to create a JSON:API project with MongoDB.
    ```
 
 </details>
+
+> [!TIP]
+> If your API project uses MongoDB only (so not in combination with EF Core), then instead of
+> registering all MongoDB resources and repositories individually, you can use:
+>
+> ```c#
+> builder.Services.AddJsonApi(facade => facade.AddCurrentAssembly());
+> builder.Services.AddJsonApiMongoDb();
+>
+> builder.Services.AddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+> builder.Services.AddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+> builder.Services.AddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
+> ```
 
 ## Using client-generated IDs
 
