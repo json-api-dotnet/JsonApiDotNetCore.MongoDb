@@ -14,7 +14,7 @@
     <MongoDBDriverVersion>3.3.*</MongoDBDriverVersion>
     <TestSdkVersion>17.14.*</TestSdkVersion>
     <XunitVersion>2.9.*</XunitVersion>
-    <XunitVisualStudioVersion>2.8.*</XunitVisualStudioVersion>
+    <XunitVisualStudioVersion>3.1.*</XunitVisualStudioVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
