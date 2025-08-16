@@ -206,7 +206,7 @@ jobs:
   publish:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    needs: [ build-and-test, inspect-code, cleanup-code ]
+    needs: [ build-and-test ]
     if: ${{ !github.event.pull_request.head.repo.fork }}
     permissions:
       packages: write
@@ -216,6 +216,10 @@ jobs:
       uses: smorimoto/tune-github-hosted-runner-network@v1
     - name: Download artifacts
       uses: actions/download-artifact@v5
+
+    - name: List downloaded artefacts
+      run: ls -al /home/runner/work/JsonApiDotNetCore.MongoDb/JsonApiDotNetCore.MongoDb
+
     - name: Publish to GitHub Packages
       if: ${{ github.event_name == 'push' || github.event_name == 'release' }}
       run: |
