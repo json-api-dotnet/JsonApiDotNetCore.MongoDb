@@ -12,7 +12,7 @@
     <GitHubActionsTestLoggerVersion>2.4.*</GitHubActionsTestLoggerVersion>
     <InheritDocVersion>2.0.*</InheritDocVersion>
     <MongoDBDriverVersion>3.3.*</MongoDBDriverVersion>
-    <TestSdkVersion>17.14.*</TestSdkVersion>
+    <TestSdkVersion>18.0.0</TestSdkVersion>
     <XunitVersion>2.9.*</XunitVersion>
     <XunitVisualStudioVersion>3.1.*</XunitVisualStudioVersion>
   </PropertyGroup>
