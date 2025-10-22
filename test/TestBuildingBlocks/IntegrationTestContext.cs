@@ -56,7 +56,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         _lazyFactory = new Lazy<WebApplicationFactory<TStartup>>(CreateFactory);
     }
 
-    private IMongoRunner StartMongoDb()
+    private static IMongoRunner StartMongoDb()
     {
         return MongoRunnerProvider.Instance.Get();
     }
@@ -118,7 +118,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         return factory;
     }
 
-    private void ConfigureJsonApiOptions(JsonApiOptions options)
+    private static void ConfigureJsonApiOptions(JsonApiOptions options)
     {
         options.IncludeExceptionStackTraceInErrors = true;
         options.IncludeRequestBodyInErrors = true;

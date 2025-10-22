@@ -32,9 +32,10 @@ public static class FluentExtensions
         return new StrongReferenceTypeAssertions<T>(actualValue);
     }
 
-    public static void With<T>(this T subject, [InstantHandle] Action<T> continuation)
+    public static T With<T>(this T subject, [InstantHandle] Action<T> continuation)
     {
         continuation(subject);
+        return subject;
     }
 
     public sealed class StrongReferenceTypeAssertions<TReference>(TReference subject)

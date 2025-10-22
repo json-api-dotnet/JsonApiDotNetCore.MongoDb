@@ -1,0 +1,53 @@
+@hostAddress = http://localhost:24141
+
+### Get all books.
+
+GET {{hostAddress}}/api/books
+
+### Get the first two books.
+
+GET {{hostAddress}}/api/books?page[size]=2
+
+### Filter books whose title contains whitespace, sort descending by publication year.
+
+GET {{hostAddress}}/api/books?filter=contains(title,'%20')&sort=-publishYear
+
+### Get only the titles of all books.
+
+GET {{hostAddress}}/api/books?fields[books]=title
+
+### Create a new book.
+
+POST {{hostAddress}}/api/books
+Content-Type: application/vnd.api+json
+
+{
+  "data": {
+    "type": "books",
+    "attributes": {
+      "title": "Getting started with JSON:API",
+      "author": "John Doe",
+      "publishYear": 2000
+    }
+  }
+}
+
+### Change the publication year and author of the book with ID 68f86594c8555269227c26d2.
+
+PATCH {{hostAddress}}/api/books/68f86594c8555269227c26d2
+Content-Type: application/vnd.api+json
+
+{
+  "data": {
+    "type": "books",
+    "id": "68f86594c8555269227c26d2",
+    "attributes": {
+      "publishYear": 1820,
+      "author": "Jane Doe"
+    }
+  }
+}
+
+### Delete the book with ID 68f86594c8555269227c26d2.
+
+DELETE {{hostAddress}}/api/books/68f86594c8555269227c26d2
