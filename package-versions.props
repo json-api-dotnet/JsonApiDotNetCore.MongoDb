@@ -9,7 +9,7 @@
     <CoverletVersion>6.0.*</CoverletVersion>
     <EphemeralMongoVersion>3.2.*</EphemeralMongoVersion>
     <FluentAssertionsVersion>7.2.*</FluentAssertionsVersion>
-    <GitHubActionsTestLoggerVersion>2.4.*</GitHubActionsTestLoggerVersion>
+    <GitHubActionsTestLoggerVersion>3.0.1</GitHubActionsTestLoggerVersion>
     <InheritDocVersion>2.0.*</InheritDocVersion>
     <MongoDBDriverVersion>3.5.*</MongoDBDriverVersion>
     <TestSdkVersion>18.0.*</TestSdkVersion>
