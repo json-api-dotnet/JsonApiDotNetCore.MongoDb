@@ -49,7 +49,7 @@ jobs:
         Write-Host "$(pwsh --version) is installed at $PSHOME"
         Write-Host "Active .NET SDK: $(dotnet --version)"
     - name: Git checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Restore tools
       run: dotnet tool restore
     - name: Restore packages
@@ -124,7 +124,7 @@ jobs:
           8.0.*
           9.0.*
     - name: Git checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Restore tools
       run: dotnet tool restore
     - name: InspectCode
@@ -178,7 +178,7 @@ jobs:
           8.0.*
           9.0.*
     - name: Git checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 2
     - name: Restore tools
