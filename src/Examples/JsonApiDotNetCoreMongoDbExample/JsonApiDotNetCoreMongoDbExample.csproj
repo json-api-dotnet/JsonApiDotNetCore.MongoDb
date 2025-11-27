@@ -6,6 +6,7 @@
   <Import Project="..\..\..\package-versions.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj" />
+    <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreFrozenVersion)" />
+    <PackageReference Include="JsonApiDotNetCore.MongoDb" Version="$(JsonApiDotNetCoreMongoDbFrozenVersion)" />
   </ItemGroup>
 </Project>
