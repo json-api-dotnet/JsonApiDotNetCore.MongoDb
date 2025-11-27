@@ -2,21 +2,23 @@ using EphemeralMongo;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using LockPrimitive =
+#if NET9_0_OR_GREATER
+    System.Threading.Lock
+#else
+    object
+#endif
+    ;
 
 namespace TestBuildingBlocks;
 
 // Based on https://gist.github.com/asimmon/612b2d54f1a0d2b4e1115590d456e0be.
 internal sealed class MongoRunnerProvider
 {
-    public static readonly MongoRunnerProvider Instance = new();
     private static readonly GuidSerializer StandardGuidSerializer = new(GuidRepresentation.Standard);
+    public static readonly MongoRunnerProvider Instance = new();
 
-#if NET8_0
-    private readonly object _lockObject = new();
-#else
-    private readonly Lock _lockObject = new();
-#endif
-
+    private readonly LockPrimitive _lockObject = new();
     private IMongoRunner? _runner;
     private int _useCounter;
 

@@ -1,9 +1,9 @@
 namespace TestBuildingBlocks;
 
-public static class DateTimeExtensions
+public static class TimeExtensions
 {
-    // The milliseconds precision in DateTime/DateTimeOffset values that fakers produce is higher
-    // than what MongoDB can store. This results in our resource change tracker to detect
+    // The milliseconds precision in DateTime/DateTimeOffset/TimeSpan/TimeOnly values that fakers produce
+    // is higher than what MongoDB can store. This results in our resource change tracker to detect
     // that the time stored in the database differs from the time in the request body. While that's
     // technically correct, we don't want such side effects influencing our tests everywhere.
 
@@ -18,9 +18,13 @@ public static class DateTimeExtensions
 
     public static DateTime TruncateToWholeMilliseconds(this DateTime value)
     {
-        long ticksToSubtract = value.Ticks % TimeSpan.TicksPerMillisecond;
-        long ticksInWholeMilliseconds = value.Ticks - ticksToSubtract;
-
+        long ticksInWholeMilliseconds = TruncateTicksInWholeMilliseconds(value.Ticks);
         return new DateTime(ticksInWholeMilliseconds, value.Kind);
+    }
+
+    private static long TruncateTicksInWholeMilliseconds(long ticks)
+    {
+        long ticksToSubtract = ticks % TimeSpan.TicksPerMillisecond;
+        return ticks - ticksToSubtract;
     }
 }

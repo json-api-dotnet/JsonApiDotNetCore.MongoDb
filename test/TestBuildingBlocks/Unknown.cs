@@ -21,7 +21,7 @@ public static class Unknown
             }
 
             throw new NotSupportedException(
-                $"Unsupported '{nameof(Identifiable<object>.Id)}' property of type '{type}' on resource type '{typeof(TResource).Name}'.");
+                $"Unsupported '{nameof(Identifiable<>.Id)}' property of type '{type}' on resource type '{typeof(TResource).Name}'.");
         }
     }
 }
