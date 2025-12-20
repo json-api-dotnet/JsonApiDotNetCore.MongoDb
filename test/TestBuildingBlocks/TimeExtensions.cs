@@ -12,7 +12,7 @@ public static class TimeExtensions
         // Because MongoDB does not store the UTC offset in the database, it cannot round-trip
         // values with a non-zero UTC offset.
 
-        DateTime dateTime = TruncateToWholeMilliseconds(value.DateTime);
+        DateTime dateTime = value.DateTime.TruncateToWholeMilliseconds();
         return new DateTimeOffset(dateTime, TimeSpan.Zero);
     }
 
