@@ -104,7 +104,7 @@ jobs:
       run: dotnet pack --no-build --configuration Release --output ${{ github.workspace }}/artifacts/packages /p:VersionSuffix=${{ env.PACKAGE_VERSION_SUFFIX }}
     - name: Upload packages to artifacts
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: packages
         path: artifacts/packages
