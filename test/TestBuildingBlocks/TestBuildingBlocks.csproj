@@ -6,15 +6,13 @@
   <Import Project="..\..\package-versions.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\JsonApiDotNetCore.MongoDb\JsonApiDotNetCore.MongoDb.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Bogus" Version="$(BogusVersion)" />
     <PackageReference Include="coverlet.collector" Version="$(CoverletVersion)" PrivateAssets="All" />
     <PackageReference Include="EphemeralMongo" Version="$(EphemeralMongoVersion)" />
     <PackageReference Include="GitHubActionsTestLogger" Version="$(GitHubActionsTestLoggerVersion)" PrivateAssets="All" />
     <PackageReference Include="FluentAssertions" Version="$(FluentAssertionsVersion)" />
+    <PackageReference Include="JsonApiDotNetCore" Version="$(JsonApiDotNetCoreFrozenVersion)" />
+    <PackageReference Include="JsonApiDotNetCore.MongoDb" Version="$(JsonApiDotNetCoreMongoDbFrozenVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="$(MicrosoftExtensionsCachingMemoryVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
