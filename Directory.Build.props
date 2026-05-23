@@ -52,4 +52,10 @@
     <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.8.*" PrivateAssets="All" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)CSharpGuidelinesAnalyzer.config" Visible="False" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- MongoDB.Driver is unaffected, according to https://github.com/mongodb/mongo-csharp-driver/releases/tag/v3.8.1 -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6c8g-7p36-r338" />
+  </ItemGroup>
+
 </Project>
