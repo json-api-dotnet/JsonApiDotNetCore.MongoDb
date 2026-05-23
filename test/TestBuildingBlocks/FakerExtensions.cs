@@ -14,7 +14,7 @@ public static class FakerExtensions
         faker.UseSeed(seed);
 
         // Setting the system DateTime to kind Utc, so that faker calls like PastOffset() don't depend on the system time zone.
-        // See https://docs.microsoft.com/en-us/dotnet/api/system.datetimeoffset.op_implicit?view=net-6.0#remarks
+        // See https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.op_implicit#remarks
         faker.UseDateTimeReference(systemTimeUtc ?? IntegrationTest.DefaultDateTimeUtc.UtcDateTime);
 
         return faker;
@@ -89,7 +89,6 @@ public static class FakerExtensions
         return faker.Generate();
     }
 
-#pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
     public static List<T> GenerateList<T>(this Faker<T> faker, int count)
         where T : class
     {
@@ -101,5 +100,4 @@ public static class FakerExtensions
     {
         return faker.Generate(count).ToHashSet();
     }
-#pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
 }

@@ -79,7 +79,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
-            (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplySort),
@@ -134,7 +133,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
-            (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Planet), ResourceDefinitionExtensibilityPoints.OnApplySort),
@@ -184,7 +182,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
-            (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplySort),
@@ -236,7 +233,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
-            (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplySort),
@@ -276,7 +272,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
 
         hitCounter.HitExtensibilityPoints.Should().BeEquivalentTo(new[]
         {
-            (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Star), ResourceDefinitionExtensibilityPoints.OnApplySort),
@@ -484,7 +479,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         {
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnRegisterQueryableHandlersForQueryStringParameters),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnRegisterQueryableHandlersForQueryStringParameters),
-            (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplySort),
@@ -537,7 +531,6 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
         {
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnRegisterQueryableHandlersForQueryStringParameters),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnRegisterQueryableHandlersForQueryStringParameters),
-            (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplyPagination),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplyFilter),
             (typeof(Moon), ResourceDefinitionExtensibilityPoints.OnApplySort),

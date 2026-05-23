@@ -9,7 +9,7 @@
     <AnalysisMode>Recommended</AnalysisMode>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
     <RunSettingsFilePath>$(MSBuildThisFileDirectory)tests.runsettings</RunSettingsFilePath>
-    <VersionPrefix>5.10.1</VersionPrefix>
+    <VersionPrefix>5.11</VersionPrefix>
     <VersionSuffix>pre</VersionSuffix>
   </PropertyGroup>
 
@@ -49,8 +49,6 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.*" PrivateAssets="All" />
-    <PackageReference Include="CSharpGuidelinesAnalyzer" Version="3.8.*" PrivateAssets="All" />
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)CSharpGuidelinesAnalyzer.config" Visible="False" />
   </ItemGroup>
 
   <ItemGroup>

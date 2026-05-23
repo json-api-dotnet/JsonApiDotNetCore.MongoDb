@@ -5,14 +5,16 @@
 [![NuGet](https://img.shields.io/nuget/v/JsonApiDotNetCore.MongoDb.svg)](https://www.nuget.org/packages/JsonApiDotNetCore.MongoDb/)
 [![GitHub License](https://img.shields.io/github/license/json-api-dotnet/JsonApiDotNetCore.MongoDb)](LICENSE)
 
-Plug-n-play implementation of `IResourceRepository<TResource, TId>`, allowing you to use [MongoDB](https://www.mongodb.com/) with your [JsonApiDotNetCore](https://github.com/json-api-dotnet/JsonApiDotNetCore) API projects.
+Plug-n-play implementation of `IResourceRepository<TResource, TId>`, allowing you to
+use [MongoDB](https://www.mongodb.com/) with
+your [JsonApiDotNetCore](https://github.com/json-api-dotnet/JsonApiDotNetCore) API projects.
 
 ## Getting started
 
 The following steps describe how to create a JSON:API project with MongoDB.
 
 1. Install the JsonApiDotNetCore.MongoDb package:
-   ```bash
+   ```shell
    dotnet add package JsonApiDotNetCore.MongoDb
    ```
 
@@ -76,12 +78,12 @@ The following steps describe how to create a JSON:API project with MongoDB.
    ```
 
 1. Start your API
-   ```bash
+   ```shell
    dotnet run
    ```
 
 1. Send a GET request to retrieve data:
-   ```bash
+   ```shell
    GET http://localhost:5000/people?filter=equals(lastName,'Doe')&fields[people]=firstName HTTP/1.1
    ```
 
@@ -147,19 +149,22 @@ You can assign an ID explicitly, but it must match the 12-byte hexadecimal patte
 To use free-format string IDs, make your resources inherit from `FreeStringMongoIdentifiable` instead.
 When creating a resource without assigning an ID, a 12-byte hexadecimal ID will be auto-generated.
 
-Set `options.ClientIdGeneration` to `Allowed` or `Required` from `Program.cs` to enable API clients to assign IDs. This can be combined
-with both base classes, but `FreeStringMongoIdentifiable` probably makes the most sense.
+Set `options.ClientIdGeneration` to `Allowed` or `Required` from `Program.cs` to enable API clients to assign IDs. This
+can be combined with both base classes, but `FreeStringMongoIdentifiable` probably makes the most sense.
 
 ## Limitations
 
-- JSON:API relationships are [currently not supported](https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb/issues/73). You *can* use complex object graphs though, which are stored in a single document.
+- JSON:API relationships
+  are [currently not supported](https://github.com/json-api-dotnet/JsonApiDotNetCore.MongoDb/issues/73). You *can* use
+  complex object graphs though, which are stored in a single document.
 
 ## Trying out the latest build
 
-After each commit to the master branch, a new pre-release NuGet package is automatically published to [feedz.io](https://feedz.io/docs/package-types/nuget).
+After each commit to the master branch, a new pre-release NuGet package is automatically published
+to [feedz.io](https://feedz.io/docs/package-types/nuget).
 To try it out, follow the steps below:
 
-1. Create a `nuget.config` file in the same directory as your .sln file, with the following contents:
+1. Create a `nuget.config` file in the same directory as your .slnx file, with the following contents:
    ```xml
    <?xml version="1.0" encoding="utf-8"?>
    <configuration>
@@ -170,41 +175,43 @@ To try it out, follow the steps below:
    </configuration>
    ```
 
-1. In your IDE, browse the list of packages from the `json-api-dotnet` feed. Make sure pre-release packages are included in the list.
+1. In your IDE, browse the list of packages from the `json-api-dotnet` feed. Make sure pre-release packages are included
+   in the list.
 
 ## Contributing
 
-Have a question, found a bug or want to submit code changes? See our [contributing guidelines](https://github.com/json-api-dotnet/JsonApiDotNetCore/blob/master/.github/CONTRIBUTING.md).
+Have a question, found a bug or want to submit code changes? See
+our [contributing guidelines](https://github.com/json-api-dotnet/JsonApiDotNetCore/blob/master/.github/CONTRIBUTING.md).
 
 ## Build from source
 
 To build the code from this repository locally, run:
 
-```bash
+```shell
 dotnet build
 ```
 
 You can run tests without MongoDB on your machine. The following command runs all tests:
 
-```bash
+```shell
 dotnet test
 ```
 
 A running instance of MongoDB is required to run the examples.
 If you have docker installed, you can launch MongoDB in a container with the following command:
 
-```bash
+```shell
 pwsh run-docker-mongodb.ps1
 ```
 
 And then to run the API:
 
-```bash
+```shell
 dotnet run --project src/Examples/GettingStarted
 ```
 
 Alternatively, to build, run all tests, generate code coverage and NuGet packages:
 
-```bash
+```shell
 pwsh Build.ps1
 ```
