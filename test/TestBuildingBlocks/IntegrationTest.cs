@@ -8,7 +8,7 @@ using Xunit;
 namespace TestBuildingBlocks;
 
 /// <summary>
-/// A base class for tests that conveniently enables to execute HTTP requests against JSON:API endpoints. It throttles tests that are running in parallel
+/// A base class for tests that conveniently enables executing HTTP requests against JSON:API endpoints. It throttles tests that are running in parallel
 /// to avoid exceeding the maximum active database connections.
 /// </summary>
 public abstract class IntegrationTest : IAsyncLifetime
@@ -36,10 +36,8 @@ public abstract class IntegrationTest : IAsyncLifetime
         return await ExecuteRequestAsync<TResponseDocument>(HttpMethod.Get, requestUrl, null, null, setRequestHeaders);
     }
 
-#pragma warning disable AV1553 // Do not use optional parameters with default value null for strings, collections or tasks
     public async Task<(HttpResponseMessage httpResponse, TResponseDocument responseDocument)> ExecutePostAsync<TResponseDocument>(string requestUrl,
         object requestBody, string? contentType = null, Action<HttpRequestHeaders>? setRequestHeaders = null)
-#pragma warning restore AV1553 // Do not use optional parameters with default value null for strings, collections or tasks
     {
         MediaTypeHeaderValue mediaType = contentType == null ? DefaultMediaType : MediaTypeHeaderValue.Parse(contentType);
 

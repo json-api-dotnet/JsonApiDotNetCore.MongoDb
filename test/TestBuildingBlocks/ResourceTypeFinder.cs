@@ -3,8 +3,6 @@ using System.Reflection;
 using JsonApiDotNetCore.MongoDb;
 using JsonApiDotNetCore.Resources;
 
-#pragma warning disable AV1008 // Class should not be static
-
 namespace TestBuildingBlocks;
 
 internal static class ResourceTypeFinder

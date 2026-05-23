@@ -1,7 +1,5 @@
 using JsonApiDotNetCore.Resources;
 
-#pragma warning disable AV1008 // Class should not be static
-
 namespace TestBuildingBlocks;
 
 public static class Unknown

@@ -93,9 +93,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         return query.CountAsync(cancellationToken);
     }
 
-#pragma warning disable AV1130 // Return type in method signature should be an interface to an unchangeable collection
     protected virtual IQueryable<TResource> ApplyQueryLayer(QueryLayer queryLayer)
-#pragma warning restore AV1130 // Return type in method signature should be an interface to an unchangeable collection
     {
         ArgumentNullException.ThrowIfNull(queryLayer);
 
@@ -159,7 +157,7 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     }
 
     /// <inheritdoc />
-    public virtual Task<TResource> GetForCreateAsync(Type resourceClrType, [DisallowNull] TId id, CancellationToken cancellationToken)
+    public virtual Task<TResource> GetForCreateAsync(Type resourceClrType, TId id, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(resourceClrType);
 
@@ -237,6 +235,8 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
     /// <inheritdoc />
     public virtual async Task DeleteAsync(TResource? resourceFromDatabase, [DisallowNull] TId id, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(id);
+
         TResource placeholderResource = resourceFromDatabase ?? _resourceFactory.CreateInstance<TResource>();
         placeholderResource.Id = id;
 

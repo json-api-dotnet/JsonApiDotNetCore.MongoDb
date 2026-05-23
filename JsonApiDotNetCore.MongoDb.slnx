@@ -1,0 +1,27 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".gitignore" />
+    <File Path="CodingGuidelines.ruleset" />
+    <File Path="Directory.Build.props" />
+    <File Path="package-versions.props" />
+    <File Path="tests.runsettings" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/JsonApiDotNetCore.MongoDb/JsonApiDotNetCore.MongoDb.csproj" />
+  </Folder>
+  <Folder Name="/src/Examples/">
+    <Project Path="src/Examples/JsonApiDotNetCoreMongoDbExample/JsonApiDotNetCoreMongoDbExample.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/JsonApiDotNetCoreMongoDbTests/JsonApiDotNetCoreMongoDbTests.csproj" />
+    <Project Path="test/TestBuildingBlocks/TestBuildingBlocks.csproj" />
+  </Folder>
+  <Project Path="src/Examples/GettingStarted/GettingStarted.csproj" DefaultStartup="true" />
+</Solution>
