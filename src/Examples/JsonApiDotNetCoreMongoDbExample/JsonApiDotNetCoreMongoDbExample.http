@@ -13,9 +13,42 @@ Content-Type: application/vnd.api+json
   "data": {
     "type": "todoItems",
     "attributes": {
-      "description": "Create release",
+      "description": "Review open issues",
       "priority": "High",
       "durationInHours": 1
     }
   }
+}
+
+### Creates multiple todo-items.
+
+POST {{hostAddress}}/api/operations
+Accept: application/vnd.api+json; ext="https://jsonapi.org/ext/atomic"
+Content-Type: application/vnd.api+json; ext="https://jsonapi.org/ext/atomic"
+
+{
+  "atomic:operations": [
+    {
+      "op": "add",
+      "data": {
+        "type": "todoItems",
+        "attributes": {
+          "description": "Create release",
+          "priority": "High",
+          "durationInHours": 1
+        }
+      }
+    },
+    {
+      "op": "add",
+      "data": {
+        "type": "todoItems",
+        "attributes": {
+          "description": "Add release notes",
+          "priority": "High",
+          "durationInHours": 2
+        }
+      }
+    }
+  ]
 }
