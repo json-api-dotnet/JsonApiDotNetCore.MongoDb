@@ -1,6 +1,12 @@
 #Requires -Version 7.0
+$ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $true
 
-# This script starts a MongoDB database in a docker container, which is required for running examples locally.
-
-docker container stop jsonapi-mongo-db
-docker run --pull always --rm --detach --name jsonapi-mongo-db -p 27017:27017 mongo:latest
+Push-Location $PSScriptRoot
+try {
+    docker compose down
+    docker compose up --detach --wait
+}
+finally {
+    Pop-Location
+}
