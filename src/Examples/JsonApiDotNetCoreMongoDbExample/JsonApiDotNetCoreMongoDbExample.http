@@ -1,0 +1,21 @@
+@hostAddress = https://localhost:44340
+
+### Gets all high-priority todo-items.
+
+GET {{hostAddress}}/api/todoItems?filter=equals(priority,'High')
+
+### Creates a todo-item.
+
+POST {{hostAddress}}/api/todoItems
+Content-Type: application/vnd.api+json
+
+{
+  "data": {
+    "type": "todoItems",
+    "attributes": {
+      "description": "Create release",
+      "priority": "High",
+      "durationInHours": 1
+    }
+  }
+}
