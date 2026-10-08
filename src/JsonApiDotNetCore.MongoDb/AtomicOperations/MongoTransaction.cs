@@ -8,18 +8,14 @@ namespace JsonApiDotNetCore.MongoDb.AtomicOperations;
 [PublicAPI]
 public sealed class MongoTransaction : IOperationsTransaction
 {
-    private readonly IMongoDataAccess _mongoDataAccess;
-    private readonly bool _ownsTransaction;
-
     /// <inheritdoc />
-    public string TransactionId => _mongoDataAccess.TransactionId!;
+    public string TransactionId { get; }
 
-    public MongoTransaction(IMongoDataAccess mongoDataAccess, bool ownsTransaction)
+    public MongoTransaction(IMongoDataAccess mongoDataAccess, string transactionId)
     {
-        ArgumentNullException.ThrowIfNull(mongoDataAccess);
+        ArgumentNullException.ThrowIfNull(transactionId);
 
-        _mongoDataAccess = mongoDataAccess;
-        _ownsTransaction = ownsTransaction;
+        TransactionId = transactionId;
     }
 
     /// <inheritdoc />
@@ -35,20 +31,14 @@ public sealed class MongoTransaction : IOperationsTransaction
     }
 
     /// <inheritdoc />
-    public async Task CommitAsync(CancellationToken cancellationToken)
+    public Task CommitAsync(CancellationToken cancellationToken)
     {
-        if (_ownsTransaction && _mongoDataAccess.ActiveSession != null)
-        {
-            await _mongoDataAccess.ActiveSession.CommitTransactionAsync(cancellationToken);
-        }
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_ownsTransaction)
-        {
-            await _mongoDataAccess.DisposeAsync();
-        }
+        return ValueTask.CompletedTask;
     }
 }

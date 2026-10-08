@@ -34,7 +34,7 @@ public sealed class AtomicTransactionConsistencyTests : IClassFixture<Integratio
         // Arrange
         var requestBody = new
         {
-            atomic__operations = new object[]
+            atomic__operations = new[]
             {
                 new
                 {
@@ -76,7 +76,7 @@ public sealed class AtomicTransactionConsistencyTests : IClassFixture<Integratio
 
         var requestBody = new
         {
-            atomic__operations = new object[]
+            atomic__operations = new[]
             {
                 new
                 {
@@ -119,7 +119,7 @@ public sealed class AtomicTransactionConsistencyTests : IClassFixture<Integratio
 
         var requestBody = new
         {
-            atomic__operations = new object[]
+            atomic__operations = new[]
             {
                 new
                 {
