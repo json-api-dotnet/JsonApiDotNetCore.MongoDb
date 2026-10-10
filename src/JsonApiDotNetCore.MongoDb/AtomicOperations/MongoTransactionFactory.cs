@@ -18,22 +18,24 @@ public sealed class MongoTransactionFactory : IOperationsTransactionFactory
     }
 
     /// <inheritdoc />
-    public async Task<IOperationsTransaction> BeginTransactionAsync(CancellationToken cancellationToken)
+    public async Task<TResult> RunInTransactionAsync<TResult>(Func<IOperationsTransaction, Task<TResult>> asyncAction, CancellationToken cancellationToken)
     {
-        bool transactionCreated = await CreateOrJoinTransactionAsync(cancellationToken);
-        return new MongoTransaction(_mongoDataAccess, transactionCreated);
-    }
+        ArgumentNullException.ThrowIfNull(asyncAction);
 
-    private async Task<bool> CreateOrJoinTransactionAsync(CancellationToken cancellationToken)
-    {
         _mongoDataAccess.ActiveSession ??= await _mongoDataAccess.MongoDatabase.Client.StartSessionAsync(cancellationToken: cancellationToken);
 
         if (_mongoDataAccess.ActiveSession.IsInTransaction)
         {
-            return false;
+            // Participate in existing transaction; nested transactions are not supported.
+            await using var transaction = new MongoTransaction(_mongoDataAccess, _mongoDataAccess.TransactionId!);
+            return await asyncAction(transaction);
         }
 
-        _mongoDataAccess.ActiveSession.StartTransaction();
-        return true;
+        // Commits automatically if no exception is thrown, retrying on transient failures.
+        return await _mongoDataAccess.ActiveSession.WithTransactionAsync(async (_, _) =>
+        {
+            await using var transaction = new MongoTransaction(_mongoDataAccess, _mongoDataAccess.TransactionId!);
+            return await asyncAction(transaction);
+        }, cancellationToken: cancellationToken);
     }
 }

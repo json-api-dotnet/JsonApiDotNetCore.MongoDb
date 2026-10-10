@@ -301,17 +301,44 @@ public class MongoRepository<TResource, TId> : IResourceRepository<TResource, TI
         {
             return await asyncSaveAction();
         }
+        catch (MongoException exception) when (IsTransient(exception))
+        {
+            // Let transient MongoException bubble up unwrapped so the MongoDB driver can retry.
+            throw;
+        }
         catch (MongoException exception)
         {
             if (_mongoDataAccess.ActiveSession != null)
             {
                 // The ResourceService calling us needs to run additional SQL queries after an aborted transaction,
                 // to determine error cause. This fails when a failed transaction is still in progress.
-                await _mongoDataAccess.ActiveSession.AbortTransactionAsync(cancellationToken);
+                if (_mongoDataAccess.ActiveSession.IsInTransaction)
+                {
+                    await _mongoDataAccess.ActiveSession.AbortTransactionAsync(cancellationToken);
+                }
+
                 _mongoDataAccess.ActiveSession = null;
             }
 
             throw new DataStoreUpdateException(exception);
         }
+    }
+
+    private static bool IsTransient(MongoException exception)
+    {
+        for (Exception? current = exception; current != null; current = current.InnerException)
+        {
+            if (current is MongoException mongoException && HasTransientErrorLabel(mongoException))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasTransientErrorLabel(MongoException mongoException)
+    {
+        return mongoException.HasErrorLabel("TransientTransactionError") || mongoException.HasErrorLabel("UnknownTransactionCommitResult");
     }
 }
