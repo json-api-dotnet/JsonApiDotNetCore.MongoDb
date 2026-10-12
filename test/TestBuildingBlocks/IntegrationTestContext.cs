@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using EphemeralMongo;
@@ -6,54 +7,56 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.MongoDb.Configuration;
 using JsonApiDotNetCore.MongoDb.Repositories;
 using JsonApiDotNetCore.Repositories;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Xunit;
 
 namespace TestBuildingBlocks;
 
 /// <summary>
-/// Base class for a test context that creates a new database and server instance before running tests and cleans up afterwards. You can either use this
+/// Base class for a test context that creates a new database and server instance before running tests and cleans up afterward. You can either use this
 /// as a fixture on your tests class (init/cleanup runs once before/after all tests) or have your tests class inherit from it (init/cleanup runs once
 /// before/after each test). See <see href="https://xunit.net/docs/shared-context" /> for details on shared context usage.
 /// </summary>
 /// <typeparam name="TStartup">
-/// The server Startup class, which can be defined in the test project or API project.
+/// The Startup class that configures the server.
 /// </typeparam>
 /// <typeparam name="TMongoDbContextShim">
-/// <see cref="MongoDbContextShim" />.
+/// The <see cref="MongoDbContextShim" /> that defines the entity models.
 /// </typeparam>
 [UsedImplicitly(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature)]
-public class IntegrationTestContext<TStartup, TMongoDbContextShim> : IntegrationTest
-    where TStartup : class
+public class IntegrationTestContext<TStartup, TMongoDbContextShim> : IntegrationTest, IAsyncLifetime
+    where TStartup : IStartup, new()
     where TMongoDbContextShim : MongoDbContextShim
 {
     private readonly Lazy<IMongoRunner> _runner;
-    private readonly Lazy<WebApplicationFactory<TStartup>> _lazyFactory;
+    private readonly Lazy<WebApplication> _lazyApp;
     private readonly HashSet<Type> _resourceClrTypes = [];
     private readonly TestControllerProvider _testControllerProvider = new();
     private Action<IServiceCollection>? _configureServices;
+    private bool _throttleAcquired;
 
     protected override JsonSerializerOptions SerializerOptions
     {
         get
         {
-            var options = Factory.Services.GetRequiredService<IJsonApiOptions>();
+            var options = App.Services.GetRequiredService<IJsonApiOptions>();
             return options.SerializerOptions;
         }
     }
 
-    public WebApplicationFactory<TStartup> Factory => _lazyFactory.Value;
+    public WebApplication App => _lazyApp.Value;
 
     public IntegrationTestContext()
     {
         _runner = new Lazy<IMongoRunner>(StartMongoDb);
-        _lazyFactory = new Lazy<WebApplicationFactory<TStartup>>(CreateFactory);
+        _lazyApp = new Lazy<WebApplication>(BuildApp, LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     private static IMongoRunner StartMongoDb()
@@ -79,43 +82,56 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 
     protected override HttpClient CreateClient()
     {
-        return Factory.CreateClient();
+        return App.GetTestClient();
     }
 
-    private WebApplicationFactory<TStartup> CreateFactory()
+    private WebApplication BuildApp()
     {
-        var factory = new IntegrationTestWebApplicationFactory();
+        var startup = new TStartup();
 
-        factory.ConfigureServices(services =>
+        WebApplicationBuilder builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions
         {
-            _configureServices?.Invoke(services);
-
-            services.ReplaceControllers(_testControllerProvider);
-
-            services.TryAddSingleton(_ =>
-            {
-                var client = new MongoClient(_runner.Value.ConnectionString);
-                return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{Random.Shared.Next()}_Test");
-            });
-
-            services.TryAddScoped<TMongoDbContextShim>();
-
-            services.TryAddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
-            services.TryAddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
-            services.TryAddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
-
-            services.AddJsonApi(ConfigureJsonApiOptions, resources: builder =>
-            {
-                foreach (Type resourceClrType in _resourceClrTypes)
-                {
-                    builder.Add(resourceClrType);
-                }
-            });
-
-            services.AddJsonApiMongoDb();
+            ApplicationName = startup.GetType().Assembly.GetName().Name
         });
 
-        return factory;
+        _configureServices?.Invoke(builder.Services);
+        startup.ConfigureServices(builder.Services);
+
+        builder.Services.ReplaceControllers(_testControllerProvider);
+
+        builder.Services.TryAddSingleton(_ =>
+        {
+            var client = new MongoClient(_runner.Value.ConnectionString);
+            return client.GetDatabase($"JsonApiDotNetCore_MongoDb_{Random.Shared.Next()}_Test");
+        });
+
+        builder.Services.TryAddScoped<TMongoDbContextShim>();
+
+        builder.Services.TryAddScoped(typeof(IResourceReadRepository<,>), typeof(MongoRepository<,>));
+        builder.Services.TryAddScoped(typeof(IResourceWriteRepository<,>), typeof(MongoRepository<,>));
+        builder.Services.TryAddScoped(typeof(IResourceRepository<,>), typeof(MongoRepository<,>));
+
+        builder.Services.AddJsonApi(ConfigureJsonApiOptions, resources: resourceGraphBuilder =>
+        {
+            foreach (Type resourceClrType in _resourceClrTypes)
+            {
+                resourceGraphBuilder.Add(resourceClrType);
+            }
+        });
+
+        builder.Services.AddJsonApiMongoDb();
+
+        ClearLoggingProvidersInReleaseBuild(builder.Logging);
+
+        builder.Host.UseDefaultServiceProvider(ConfigureServiceProvider);
+        builder.WebHost.UseTestServer();
+
+        WebApplication app = builder.Build();
+        startup.Configure(app);
+
+        app.Start();
+
+        return app;
     }
 
     private static void ConfigureJsonApiOptions(JsonApiOptions options)
@@ -123,6 +139,12 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         options.IncludeExceptionStackTraceInErrors = true;
         options.IncludeRequestBodyInErrors = true;
         options.SerializerOptions.WriteIndented = true;
+    }
+
+    [Conditional("RELEASE")]
+    private static void ClearLoggingProvidersInReleaseBuild(ILoggingBuilder loggingBuilder)
+    {
+        loggingBuilder.ClearProviders();
     }
 
     public void ConfigureServices(Action<IServiceCollection> configureServices)
@@ -137,19 +159,36 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
 
     public async Task RunOnDatabaseAsync(Func<TMongoDbContextShim, Task> asyncAction)
     {
-        await using AsyncServiceScope scope = Factory.Services.CreateAsyncScope();
+        AssertThrottleAcquired();
+
+        await using AsyncServiceScope scope = App.Services.CreateAsyncScope();
         var mongoDbContextShim = scope.ServiceProvider.GetRequiredService<TMongoDbContextShim>();
 
         await asyncAction(mongoDbContextShim);
     }
 
-    public override async Task DisposeAsync()
+    private void AssertThrottleAcquired()
+    {
+        if (!_throttleAcquired)
+        {
+            throw new InvalidOperationException("Database throttle not acquired.");
+        }
+    }
+
+    public async Task InitializeAsync()
+    {
+        await AcquireDatabaseThrottleAsync();
+        _throttleAcquired = true;
+    }
+
+    public async Task DisposeAsync()
     {
         try
         {
-            if (_lazyFactory.IsValueCreated)
+            if (_lazyApp.IsValueCreated)
             {
-                await _lazyFactory.Value.DisposeAsync();
+                await App.StopAsync();
+                await App.DisposeAsync();
             }
 
             if (_runner.IsValueCreated)
@@ -159,41 +198,7 @@ public class IntegrationTestContext<TStartup, TMongoDbContextShim> : Integration
         }
         finally
         {
-            await base.DisposeAsync();
-        }
-    }
-
-    private sealed class IntegrationTestWebApplicationFactory : WebApplicationFactory<TStartup>
-    {
-        private Action<IServiceCollection>? _configureServices;
-
-        public void ConfigureServices(Action<IServiceCollection>? configureServices)
-        {
-            _configureServices = configureServices;
-        }
-
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            // We have placed an appsettings.json in the TestBuildingBlocks project directory and set the content root to there. Note that
-            // controllers are not discovered in the content root, but are registered manually using IntegrationTestContext.UseController.
-            builder.UseSolutionRelativeContentRoot($"test/{nameof(TestBuildingBlocks)}");
-        }
-
-        protected override IHostBuilder CreateHostBuilder()
-        {
-            // @formatter:wrap_chained_method_calls chop_always
-            // @formatter:wrap_before_first_method_call true
-
-            return Host
-                .CreateDefaultBuilder(null)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.ConfigureServices(services => _configureServices?.Invoke(services));
-                    webBuilder.UseStartup<TStartup>();
-                });
-
-            // @formatter:wrap_before_first_method_call restore
-            // @formatter:wrap_chained_method_calls restore
+            ReleaseDatabaseThrottle();
         }
     }
 }

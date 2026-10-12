@@ -33,13 +33,13 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
             services.AddSingleton<ResourceDefinitionHitCounter>();
         });
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)testContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.IncludeTotalResourceCount = true;
 
-        var settingsProvider = (TestClientSettingsProvider)testContext.Factory.Services.GetRequiredService<IClientSettingsProvider>();
+        var settingsProvider = (TestClientSettingsProvider)testContext.App.Services.GetRequiredService<IClientSettingsProvider>();
         settingsProvider.ResetToDefaults();
 
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
         hitCounter.Reset();
     }
 
@@ -47,9 +47,9 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Filter_from_resource_definition_is_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        var settingsProvider = (TestClientSettingsProvider)_testContext.Factory.Services.GetRequiredService<IClientSettingsProvider>();
+        var settingsProvider = (TestClientSettingsProvider)_testContext.App.Services.GetRequiredService<IClientSettingsProvider>();
         settingsProvider.HidePlanetsWithPrivateName();
 
         List<Planet> planets = _fakers.Planet.GenerateList(4);
@@ -94,9 +94,9 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Filter_from_resource_definition_and_query_string_are_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
-        var settingsProvider = (TestClientSettingsProvider)_testContext.Factory.Services.GetRequiredService<IClientSettingsProvider>();
+        var settingsProvider = (TestClientSettingsProvider)_testContext.App.Services.GetRequiredService<IClientSettingsProvider>();
         settingsProvider.HidePlanetsWithPrivateName();
 
         List<Planet> planets = _fakers.Planet.GenerateList(4);
@@ -147,7 +147,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Sort_from_resource_definition_is_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         List<Star> stars = _fakers.Star.GenerateList(3);
 
@@ -198,7 +198,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Sort_from_query_string_is_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         List<Star> stars = _fakers.Star.GenerateList(3);
 
@@ -249,7 +249,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Page_size_from_resource_definition_is_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         List<Star> stars = _fakers.Star.GenerateList(10);
 
@@ -290,7 +290,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Attribute_inclusion_from_resource_definition_is_applied_for_omitted_query_string()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         Star star = _fakers.Star.GenerateOne();
 
@@ -330,7 +330,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Attribute_inclusion_from_resource_definition_is_applied_for_fields_query_string()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         Star star = _fakers.Star.GenerateOne();
 
@@ -371,7 +371,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Attribute_exclusion_from_resource_definition_is_applied_for_omitted_query_string()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         Star star = _fakers.Star.GenerateOne();
 
@@ -411,7 +411,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Attribute_exclusion_from_resource_definition_is_applied_for_fields_query_string()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         Star star = _fakers.Star.GenerateOne();
 
@@ -451,7 +451,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Queryable_parameter_handler_from_resource_definition_is_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         List<Moon> moons = _fakers.Moon.GenerateList(2);
         moons[0].SolarRadius = .5m;
@@ -493,7 +493,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Queryable_parameter_handler_from_resource_definition_and_query_string_filter_are_applied()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         List<Moon> moons = _fakers.Moon.GenerateList(4);
 
@@ -545,7 +545,7 @@ public sealed class ResourceDefinitionReadTests : IClassFixture<IntegrationTestC
     public async Task Queryable_parameter_handler_from_resource_definition_is_not_applied_on_secondary_request()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         Planet planet = _fakers.Planet.GenerateOne();
         planet.Moons = _fakers.Moon.GenerateSet(1);

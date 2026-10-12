@@ -23,7 +23,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
 
         testContext.UseController<BlogPostsController>();
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)testContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.IncludeTotalResourceCount = true;
     }
 
@@ -63,7 +63,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
     public async Task Uses_default_page_number_and_size()
     {
         // Arrange
-        var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)_testContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.DefaultPageSize = new PageSize(2);
 
         List<BlogPost> posts = _fakers.BlogPost.GenerateList(3);
@@ -99,7 +99,7 @@ public sealed class PaginationWithTotalCountTests : IClassFixture<IntegrationTes
     public async Task Returns_all_resources_when_pagination_is_disabled()
     {
         // Arrange
-        var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)_testContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.DefaultPageSize = null;
 
         List<BlogPost> posts = _fakers.BlogPost.GenerateList(25);

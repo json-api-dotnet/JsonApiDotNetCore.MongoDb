@@ -19,7 +19,7 @@ public sealed class AtomicCreateResourceWithClientGeneratedIdTests : BaseForAtom
     {
         _testContext = fixture.TestContext;
 
-        var options = (JsonApiOptions)fixture.TestContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)fixture.TestContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.ClientIdGeneration = ClientIdGenerationMode.Required;
     }
 

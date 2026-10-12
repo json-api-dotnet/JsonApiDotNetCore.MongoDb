@@ -26,7 +26,7 @@ public sealed class FilterDataTypeTests : IClassFixture<IntegrationTestContext<T
 
         testContext.UseController<FilterableResourcesController>();
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)testContext.App.Services.GetRequiredService<IJsonApiOptions>();
 
         if (!options.SerializerOptions.Converters.Any(converter => converter is JsonStringEnumConverter))
         {
