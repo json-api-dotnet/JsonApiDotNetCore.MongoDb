@@ -1,4 +1,5 @@
 using EphemeralMongo;
+using FluentAssertions.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -40,6 +41,11 @@ internal sealed class MongoRunnerProvider
                     UseSingleNodeReplicaSet = true,
                     AdditionalArguments = ["--quiet"]
                 };
+
+                if (OperatingSystem.IsWindows() && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")))
+                {
+                    runnerOptions.ReplicaSetSetupTimeout = 30.Seconds();
+                }
 
                 _runner = MongoRunner.Run(runnerOptions);
             }
