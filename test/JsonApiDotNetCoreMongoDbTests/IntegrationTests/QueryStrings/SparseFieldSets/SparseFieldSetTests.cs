@@ -58,7 +58,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_select_attribute_in_primary_resources()
     {
         // Arrange
-        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        var store = _testContext.App.Services.GetRequiredService<ResourceCaptureStore>();
         store.Clear();
 
         BlogPost post = _fakers.BlogPost.GenerateOne();
@@ -114,7 +114,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_select_attribute_in_primary_resource_by_ID()
     {
         // Arrange
-        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        var store = _testContext.App.Services.GetRequiredService<ResourceCaptureStore>();
         store.Clear();
 
         BlogPost post = _fakers.BlogPost.GenerateOne();
@@ -235,7 +235,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_select_ID()
     {
         // Arrange
-        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        var store = _testContext.App.Services.GetRequiredService<ResourceCaptureStore>();
         store.Clear();
 
         BlogPost post = _fakers.BlogPost.GenerateOne();
@@ -271,7 +271,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Can_select_empty_fieldset()
     {
         // Arrange
-        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        var store = _testContext.App.Services.GetRequiredService<ResourceCaptureStore>();
         store.Clear();
 
         BlogPost post = _fakers.BlogPost.GenerateOne();
@@ -305,7 +305,7 @@ public sealed class SparseFieldSetTests : IClassFixture<IntegrationTestContext<T
     public async Task Fetches_all_scalar_properties_when_fieldset_contains_readonly_attribute()
     {
         // Arrange
-        var store = _testContext.Factory.Services.GetRequiredService<ResourceCaptureStore>();
+        var store = _testContext.App.Services.GetRequiredService<ResourceCaptureStore>();
         store.Clear();
 
         Blog blog = _fakers.Blog.GenerateOne();

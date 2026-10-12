@@ -24,7 +24,7 @@ public sealed class CreateResourceWithClientGeneratedIdTests : IClassFixture<Int
 
         testContext.ConfigureServices(services => services.AddResourceDefinition<ImplicitlyChangingWorkItemGroupDefinition>());
 
-        var options = (JsonApiOptions)testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)testContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.ClientIdGeneration = ClientIdGenerationMode.Required;
     }
 

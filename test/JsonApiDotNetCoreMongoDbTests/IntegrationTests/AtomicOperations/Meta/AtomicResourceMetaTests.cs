@@ -19,7 +19,7 @@ public sealed class AtomicResourceMetaTests
     {
         _testContext = fixture.TestContext;
 
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
         hitCounter.Reset();
     }
 
@@ -27,7 +27,7 @@ public sealed class AtomicResourceMetaTests
     public async Task Returns_resource_meta_in_create_resource_with_side_effects()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         string newTitle1 = _fakers.MusicTrack.GenerateOne().Title;
         string newTitle2 = _fakers.MusicTrack.GenerateOne().Title;
@@ -108,7 +108,7 @@ public sealed class AtomicResourceMetaTests
     public async Task Returns_resource_meta_in_update_resource_with_side_effects()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         TextLanguage existingLanguage = _fakers.TextLanguage.GenerateOne();
 

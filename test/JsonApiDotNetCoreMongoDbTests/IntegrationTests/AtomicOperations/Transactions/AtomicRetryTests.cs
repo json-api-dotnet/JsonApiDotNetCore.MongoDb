@@ -34,7 +34,7 @@ public sealed class AtomicRetryTests : IClassFixture<IntegrationTestContext<Test
     public async Task Can_process_operations_with_retrying_execution_strategy(bool simulateFailureOnFirstSaveChanges)
     {
         // Arrange
-        var failureSimulator = _testContext.Factory.Services.GetRequiredService<OperationsTransientFailureSimulator>();
+        var failureSimulator = _testContext.App.Services.GetRequiredService<OperationsTransientFailureSimulator>();
         failureSimulator.Reset();
 
         if (simulateFailureOnFirstSaveChanges)
@@ -102,7 +102,7 @@ public sealed class AtomicRetryTests : IClassFixture<IntegrationTestContext<Test
     public async Task Does_not_retry_on_non_transient_failure()
     {
         // Arrange
-        var failureSimulator = _testContext.Factory.Services.GetRequiredService<OperationsTransientFailureSimulator>();
+        var failureSimulator = _testContext.App.Services.GetRequiredService<OperationsTransientFailureSimulator>();
         failureSimulator.Reset();
         failureSimulator.FailOnNextAttempt = true;
 

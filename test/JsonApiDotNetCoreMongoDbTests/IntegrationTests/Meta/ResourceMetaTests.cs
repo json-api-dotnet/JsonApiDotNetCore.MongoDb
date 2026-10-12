@@ -28,7 +28,7 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
             services.AddSingleton<ResourceDefinitionHitCounter>();
         });
 
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
         hitCounter.Reset();
     }
 
@@ -36,7 +36,7 @@ public sealed class ResourceMetaTests : IClassFixture<IntegrationTestContext<Tes
     public async Task Returns_resource_meta_from_ResourceDefinition()
     {
         // Arrange
-        var hitCounter = _testContext.Factory.Services.GetRequiredService<ResourceDefinitionHitCounter>();
+        var hitCounter = _testContext.App.Services.GetRequiredService<ResourceDefinitionHitCounter>();
 
         List<SupportTicket> tickets = _fakers.SupportTicket.GenerateList(3);
         tickets[0].Description = $"Critical: {tickets[0].Description}";

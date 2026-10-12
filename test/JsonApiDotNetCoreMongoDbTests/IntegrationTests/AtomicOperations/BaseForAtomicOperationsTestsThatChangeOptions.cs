@@ -10,7 +10,7 @@ public abstract class BaseForAtomicOperationsTestsThatChangeOptions : IDisposabl
 
     protected BaseForAtomicOperationsTestsThatChangeOptions(AtomicOperationsFixture fixture)
     {
-        var options = (JsonApiOptions)fixture.TestContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)fixture.TestContext.App.Services.GetRequiredService<IJsonApiOptions>();
         _optionsScope = new JsonApiOptionsScope(options);
     }
 

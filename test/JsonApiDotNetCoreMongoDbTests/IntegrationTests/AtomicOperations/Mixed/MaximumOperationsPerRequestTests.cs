@@ -17,7 +17,7 @@ public sealed class MaximumOperationsPerRequestTests(AtomicOperationsFixture fix
     public async Task Can_process_high_number_of_operations_when_unconstrained()
     {
         // Arrange
-        var options = (JsonApiOptions)_testContext.Factory.Services.GetRequiredService<IJsonApiOptions>();
+        var options = (JsonApiOptions)_testContext.App.Services.GetRequiredService<IJsonApiOptions>();
         options.MaximumOperationsPerRequest = null;
 
         const int elementCount = 100;

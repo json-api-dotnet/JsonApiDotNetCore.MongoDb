@@ -20,8 +20,6 @@ The following steps describe how to create a JSON:API project with MongoDB.
 
 1. Declare your entities, annotated with JsonApiDotNetCore attributes:
    ```c#
-   #nullable enable
-
    [Resource]
    public class Person : HexStringMongoIdentifiable
    {
