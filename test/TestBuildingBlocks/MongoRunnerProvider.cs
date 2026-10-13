@@ -38,7 +38,12 @@ internal sealed class MongoRunnerProvider
                 {
                     // Single-node replica set mode is required for transaction support in MongoDB.
                     UseSingleNodeReplicaSet = true,
-                    AdditionalArguments = ["--quiet"]
+                    AdditionalArguments =
+                    [
+                        "--quiet",
+                        "--oplogSize",
+                        "64"
+                    ]
                 };
 
                 _runner = MongoRunner.Run(runnerOptions);
