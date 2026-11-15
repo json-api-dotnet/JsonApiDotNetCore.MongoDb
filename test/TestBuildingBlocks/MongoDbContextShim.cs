@@ -1,5 +1,6 @@
 using JsonApiDotNetCore.MongoDb.Resources;
 using MongoDB.Driver;
+using Xunit;
 
 namespace TestBuildingBlocks;
 
@@ -25,14 +26,14 @@ public abstract class MongoDbContextShim(IMongoDatabase database)
     public async Task ClearTableAsync<TEntity>()
         where TEntity : IMongoIdentifiable
     {
-        await _database.DropCollectionAsync(typeof(TEntity).Name);
+        await _database.DropCollectionAsync(typeof(TEntity).Name, TestContext.Current.CancellationToken);
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellation = default)
+    public async Task SaveChangesAsync()
     {
         foreach (MongoDbSetShim dbSetShim in _dbSetShims)
         {
-            await dbSetShim.PersistAsync(cancellation);
+            await dbSetShim.PersistAsync();
         }
     }
 }

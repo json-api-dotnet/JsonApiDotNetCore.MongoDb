@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
 [CollectionDefinition("AtomicOperationsFixture")]

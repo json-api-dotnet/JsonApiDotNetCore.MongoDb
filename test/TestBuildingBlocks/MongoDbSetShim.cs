@@ -2,12 +2,13 @@ using System.Linq.Expressions;
 using JsonApiDotNetCore.MongoDb.Resources;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Xunit;
 
 namespace TestBuildingBlocks;
 
 public abstract class MongoDbSetShim
 {
-    internal abstract Task PersistAsync(CancellationToken cancellationToken);
+    internal abstract Task PersistAsync();
 }
 
 /// <summary>
@@ -40,17 +41,17 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         _entitiesToInsert.AddRange(entities);
     }
 
-    internal override async Task PersistAsync(CancellationToken cancellationToken)
+    internal override async Task PersistAsync()
     {
         if (_entitiesToInsert.Count > 0)
         {
             if (_entitiesToInsert.Count == 1)
             {
-                await _collection.InsertOneAsync(_entitiesToInsert[0], cancellationToken: cancellationToken);
+                await _collection.InsertOneAsync(_entitiesToInsert[0], cancellationToken: TestContext.Current.CancellationToken);
             }
             else
             {
-                await _collection.InsertManyAsync(_entitiesToInsert, cancellationToken: cancellationToken);
+                await _collection.InsertManyAsync(_entitiesToInsert, cancellationToken: TestContext.Current.CancellationToken);
             }
 
             _entitiesToInsert.Clear();
@@ -62,9 +63,9 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         await action(_collection);
     }
 
-    public async Task<TEntity> FirstWithIdAsync(string? id, CancellationToken cancellationToken = default)
+    public async Task<TEntity> FirstWithIdAsync(string? id)
     {
-        TEntity entity = await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
+        TEntity entity = await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), TestContext.Current.CancellationToken);
 
         if (entity is null)
         {
@@ -74,18 +75,18 @@ public sealed class MongoDbSetShim<TEntity> : MongoDbSetShim
         return entity;
     }
 
-    public async Task<TEntity?> FirstWithIdOrDefaultAsync(string? id, CancellationToken cancellationToken = default)
+    public async Task<TEntity?> FirstWithIdOrDefaultAsync(string? id)
     {
-        return await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), cancellationToken);
+        return await _collection.AsQueryable().FirstOrDefaultAsync(document => Equals(document.Id, id), TestContext.Current.CancellationToken);
     }
 
-    public async Task<List<TEntity>> ToListAsync(CancellationToken cancellationToken = default)
+    public async Task<List<TEntity>> ToListAsync()
     {
-        return await _collection.AsQueryable().ToListAsync(cancellationToken);
+        return await _collection.AsQueryable().ToListAsync(TestContext.Current.CancellationToken);
     }
 
-    public async Task<List<TEntity>> ToListWhereAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<List<TEntity>> ToListWhereAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        return await _collection.AsQueryable().Where(predicate).ToListAsync(cancellationToken);
+        return await _collection.AsQueryable().Where(predicate).ToListAsync(TestContext.Current.CancellationToken);
     }
 }

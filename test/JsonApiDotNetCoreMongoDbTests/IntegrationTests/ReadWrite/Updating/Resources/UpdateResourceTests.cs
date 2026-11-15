@@ -1,9 +1,7 @@
 using System.Net;
-using FluentAssertions;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using TestBuildingBlocks;
-using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.ReadWrite.Updating.Resources;
 

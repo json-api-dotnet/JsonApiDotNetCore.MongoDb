@@ -2,33 +2,27 @@
   <PropertyGroup>
     <!-- Published dependencies (only update on major version change) -->
     <JsonApiDotNetCoreFrozenVersion>5.12.0</JsonApiDotNetCoreFrozenVersion>
-    <MongoDBDriverFrozenVersion>3.8.1</MongoDBDriverFrozenVersion>
+    <MongoDBDriverFrozenVersion>3.14.0</MongoDBDriverFrozenVersion>
 
     <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
     <BogusVersion>35.6.*</BogusVersion>
-    <CoverletVersion>8.0.*</CoverletVersion>
+    <CoverletVersion>10.1.*</CoverletVersion>
     <EphemeralMongoVersion>3.3.*</EphemeralMongoVersion>
     <FluentAssertionsVersion>7.2.*</FluentAssertionsVersion>
     <GitHubActionsTestLoggerVersion>3.0.*</GitHubActionsTestLoggerVersion>
     <InheritDocVersion>2.0.*</InheritDocVersion>
-    <MongoDBDriverVersion>3.12.*</MongoDBDriverVersion>
-    <TestSdkVersion>18.11.*</TestSdkVersion>
-    <XunitVersion>2.9.*</XunitVersion>
-    <XunitVisualStudioVersion>4.0.*</XunitVisualStudioVersion>
+    <MongoDBDriverVersion>3.14.*</MongoDBDriverVersion>
+    <TestingPlatformVersion>2.5.*</TestingPlatformVersion>
+    <XunitVersion>4.0.*</XunitVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
+    <AspNetCoreVersion>11.0.*</AspNetCoreVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
     <AspNetCoreVersion>10.0.*</AspNetCoreVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
-    <AspNetCoreVersion>9.0.*</AspNetCoreVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <!-- Non-published dependencies (these are safe to update, won't cause a breaking change) -->
-    <AspNetCoreVersion>8.0.*</AspNetCoreVersion>
   </PropertyGroup>
 </Project>
