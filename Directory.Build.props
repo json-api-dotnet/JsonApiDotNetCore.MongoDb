@@ -8,7 +8,6 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisMode>Recommended</AnalysisMode>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)CodingGuidelines.ruleset</CodeAnalysisRuleSet>
-    <RunSettingsFilePath>$(MSBuildThisFileDirectory)tests.runsettings</RunSettingsFilePath>
     <VersionPrefix>5.12.1</VersionPrefix>
     <VersionSuffix>pre</VersionSuffix>
   </PropertyGroup>
@@ -37,9 +36,17 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <!-- CA1707: Identifiers should not contain underscores -->
     <NoWarn>$(NoWarn);CA1707</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
+    <None Include="$(MSBuildThisFileDirectory)testconfig.json" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+
+    <Using Include="FluentAssertions" />
+    <Using Include="Xunit" />
+  </ItemGroup>
 
   <PropertyGroup
     Condition="!$(MSBuildProjectName.StartsWith('JsonApiDotNetCore')) Or $(MSBuildProjectName.EndsWith('Tests')) Or $(MSBuildProjectName.EndsWith('Example'))">
@@ -51,10 +58,4 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2026.2.*" PrivateAssets="All" />
   </ItemGroup>
-
-  <ItemGroup>
-    <!-- MongoDB.Driver is unaffected, according to https://github.com/mongodb/mongo-csharp-driver/releases/tag/v3.8.1 -->
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6c8g-7p36-r338" />
-  </ItemGroup>
-
 </Project>

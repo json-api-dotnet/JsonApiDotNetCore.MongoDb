@@ -3,7 +3,6 @@ using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations.Meta;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using TestBuildingBlocks;
-using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.AtomicOperations;
 
@@ -27,12 +26,12 @@ public sealed class AtomicOperationsFixture : IAsyncLifetime
         });
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await TestContext.InitializeAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await TestContext.DisposeAsync();
     }

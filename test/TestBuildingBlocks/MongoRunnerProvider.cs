@@ -2,13 +2,6 @@ using EphemeralMongo;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
-using LockPrimitive =
-#if NET9_0_OR_GREATER
-    System.Threading.Lock
-#else
-    object
-#endif
-    ;
 
 namespace TestBuildingBlocks;
 
@@ -18,7 +11,7 @@ internal sealed class MongoRunnerProvider
     private static readonly GuidSerializer StandardGuidSerializer = new(GuidRepresentation.Standard);
     public static readonly MongoRunnerProvider Instance = new();
 
-    private readonly LockPrimitive _lockObject = new();
+    private readonly Lock _lockObject = new();
     private IMongoRunner? _runner;
     private int _useCounter;
 

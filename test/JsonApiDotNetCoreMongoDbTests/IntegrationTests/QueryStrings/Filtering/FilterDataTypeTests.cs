@@ -3,14 +3,12 @@ using System.Net;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Web;
-using FluentAssertions;
 using FluentAssertions.Extensions;
 using Humanizer;
 using JsonApiDotNetCore.Configuration;
 using JsonApiDotNetCore.Serialization.Objects;
 using Microsoft.Extensions.DependencyInjection;
 using TestBuildingBlocks;
-using Xunit;
 
 namespace JsonApiDotNetCoreMongoDbTests.IntegrationTests.QueryStrings.Filtering;
 
